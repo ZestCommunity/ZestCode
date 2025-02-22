@@ -45,12 +45,14 @@ task_fn_t task_fns[4] = {_opcontrol_task, _autonomous_task, _disabled_task, _com
 
 extern void ser_output_flush(void);
 
+void vexTasksRun();
+
 // does the basic background operations that need to occur every 2ms
 static inline void do_background_operations() {
 	port_mutex_take_all();
 	ser_output_flush();
 	rtos_suspend_all();
-	vexBackgroundProcessing();
+	vexTasksRun();
 	rtos_resume_all();
 	vdml_background_processing();
 	port_mutex_give_all();

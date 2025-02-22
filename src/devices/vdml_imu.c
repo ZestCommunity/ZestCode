@@ -70,7 +70,7 @@ int32_t imu_reset_blocking(uint8_t port) {
 	// delay for vexos to set calibration flag, background processing must be called for flag
 	// to be set.
 	uint16_t timeoutCount = 0;
-	// releasing mutex so vexBackgroundProcessing can run without being blocked.
+	// releasing mutex so vexTasksRun can run without being blocked.
 	do {
 		port_mutex_give(port - 1);
 		task_delay(5);
@@ -133,8 +133,7 @@ double imu_get_heading(uint8_t port) {
 	return_port(port - 1, fmod((rtn + IMU_HEADING_MAX), (double)IMU_HEADING_MAX));
 }
 
-#define QUATERNION_ERR_INIT \
-	{ .x = PROS_ERR_F, .y = PROS_ERR_F, .z = PROS_ERR_F, .w = PROS_ERR_F }
+#define QUATERNION_ERR_INIT {.x = PROS_ERR_F, .y = PROS_ERR_F, .z = PROS_ERR_F, .w = PROS_ERR_F}
 
 quaternion_s_t imu_get_quaternion(uint8_t port) {
 	quaternion_s_t rtn = QUATERNION_ERR_INIT;
@@ -167,8 +166,7 @@ quaternion_s_t imu_get_quaternion(uint8_t port) {
 	return_port(port - 1, rtn);
 }
 
-#define ATTITUDE_ERR_INIT \
-	{ .pitch = PROS_ERR_F, .roll = PROS_ERR_F, .yaw = PROS_ERR_F }
+#define ATTITUDE_ERR_INIT {.pitch = PROS_ERR_F, .roll = PROS_ERR_F, .yaw = PROS_ERR_F}
 
 euler_s_t imu_get_euler(uint8_t port) {
 	euler_s_t rtn = ATTITUDE_ERR_INIT;

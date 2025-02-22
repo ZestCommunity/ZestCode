@@ -94,7 +94,7 @@ extern int32_t inp_buffer_read(uint32_t timeout);
 /**                              Output queue                                **/
 /**                                                                          **/
 /** vexSerialWriteBuffer doesn't seem to be very thread safe, so the system  **/
-/** daemon flushes an intermediary buffer once before vexBackgroundProcessing**/
+/** daemon flushes an intermediary buffer once before vexTasksRun            **/
 /** calls to write add to the queue. Flushing is optimized because we have   **/
 /** underlying access to the write buffer, as opposed to calling queue_recv  **/
 /** a bunch of times                                                         **/

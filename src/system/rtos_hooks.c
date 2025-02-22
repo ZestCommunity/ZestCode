@@ -18,9 +18,10 @@
 #include "rtos/semphr.h"
 #include "rtos/task.h"
 #include "rtos/tcb.h"
-
 #include "v5_api.h"
 #include "v5_color.h"
+
+void vexTasksRun();
 
 // Fast interrupt handler
 void FIQInterrupt() {
@@ -33,11 +34,11 @@ void DataAbortInterrupt() {
 	asm("add %0,sp,#8\n" : "=r"(sp));
 	extern void report_fatal_error(uint32_t _sp, const char* error_name);
 	report_fatal_error(sp, "DATA ABORT EXCEPTION");
-	for(uint8_t i = 1; i <= 21; i++) {
+	for (uint8_t i = 1; i <= 21; i++) {
 		motor_move_voltage(i, 0);
 	}
 	for (;;) {
-		vexBackgroundProcessing();
+		vexTasksRun();
 		extern void ser_output_flush();
 		ser_output_flush();
 	}
@@ -49,11 +50,11 @@ void PrefetchAbortInterrupt() {
 	asm("add %0,sp,#8\n" : "=r"(sp));
 	extern void report_fatal_error(uint32_t _sp, const char* error_name);
 	report_fatal_error(sp, "PREFETCH ABORT EXCEPTION");
-	for(uint8_t i = 1; i <= 21; i++) {
+	for (uint8_t i = 1; i <= 21; i++) {
 		motor_move_voltage(i, 0);
 	}
 	for (;;) {
-		vexBackgroundProcessing();
+		vexTasksRun();
 		extern void ser_output_flush();
 		ser_output_flush();
 	}
@@ -101,8 +102,7 @@ void vApplicationMallocFailedHook(void) {
 	// configTOTAL_HEAP_SIZE configuration constant in FreeRTOSConfig.h.
 	taskDISABLE_INTERRUPTS();
 
-	for (;;)
-		;
+	for (;;);
 }
 
 void vApplicationStackOverflowHook(task_t pxTask, char* pcTaskName) {
@@ -117,7 +117,7 @@ void vApplicationStackOverflowHook(task_t pxTask, char* pcTaskName) {
 	// configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook function is
 	// called if a stack overflow is detected.
 	taskDISABLE_INTERRUPTS();
-	for (;;) vexBackgroundProcessing();
+	for (;;) vexTasksRun();
 	;
 }
 

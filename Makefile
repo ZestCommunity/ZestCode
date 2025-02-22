@@ -27,10 +27,14 @@ EXTRA_CFLAGS=
 EXTRA_CXXFLAGS=
 
 .DEFAULT_GOAL=quick
-USE_PACKAGE:=0
+USE_PACKAGE:=1
 
 # object files to keep in libv5rt.a
-RETAIN_OBJECTS:=v5_startup.c.obj v5_fstubs.c.obj v5_util.c.obj v5_apijump.c.obj v5_apiuser.c.obj v5_apigraphics.c.obj v5_apiversions.c.obj
+RETAIN_OBJECTS:= v5_fstubs.c.obj v5_util.c.obj v5_apijump.c.obj v5_apiuser.c.obj v5_apigraphics.c.obj v5_apiversions.c.obj
+
+# objects to keep in v5_startup.c.obj
+RETAIN_STARTUP_OBJECTS:=__vex_function_prolog __vex_critical_section vexCodeSig
+KEEP_SYMBOLS=$(foreach sym,$(RETAIN_STARTUP_OBJECTS),--keep-symbol=$(sym))
 
 # Set this to 1 to add additional rules to compile your project as a PROS library template
 IS_LIBRARY:=1
@@ -103,11 +107,21 @@ template:: patch_sdk_headers clean-template library
 libv5rt_EXTRACTION_DIR=$(BINDIR)/libv5rt
 $(LIBAR): patch_sdk_headers $(call GETALLOBJ,$(EXCLUDE_SRC_FROM_LIB)) $(EXTRA_LIB_DEPS)
 	$(VV)mkdir -p $(libv5rt_EXTRACTION_DIR)
-	$(call test_output_2,Extracting libv5rt ,cd $(libv5rt_EXTRACTION_DIR) && $(AR) x ../../$(PATCHED_SDK),$(DONE_STRING))
+	$(call test_output_2,Extracting libv5rt, cd $(libv5rt_EXTRACTION_DIR) && $(AR) x ../../$(PATCHED_SDK), $(DONE_STRING))
+	
+	$(VV)# Isolate startup symbols from v5_startup.c.obj if it exists
+	$(VV)if [ -f ./bin/libv5rt/v5_startup.c.obj ]; then \
+		arm-none-eabi-objcopy $(KEEP_SYMBOLS) --strip-all ./bin/libv5rt/v5_startup.c.obj ./bin/libv5rt/isolated_vex_cs.o; \
+		rm -f ./bin/libv5rt/v5_startup.c.obj; \
+	fi
+
 	$(eval libv5rt_OBJECTS := $(shell $(AR) t $(PATCHED_SDK)))
-# Only retain the specified object files (and therefore their contained symbols)
 	$(eval libv5rt_OBJECTS := $(filter $(RETAIN_OBJECTS),$(libv5rt_OBJECTS)))
+	$(eval libv5rt_OBJECTS += isolated_vex_cs.o)
+	
 	-$Drm -f $@
-	$(call test_output_2,Creating $@ ,$(AR) rcs $@ $(addprefix $(libv5rt_EXTRACTION_DIR)/, $(libv5rt_OBJECTS)) $(call GETALLOBJ,$(EXCLUDE_SRC_FROM_LIB)),$(DONE_STRING))
+	$(call test_output_2,Creating $@, $(AR) rcs $@ $(addprefix $(libv5rt_EXTRACTION_DIR)/, $(libv5rt_OBJECTS)) $(call GETALLOBJ,$(EXCLUDE_SRC_FROM_LIB)), $(DONE_STRING))
+
+
 # @echo -n "Stripping non-public symbols "
 # $(call test_output,$D$(OBJCOPY) -S -D -g --strip-unneeded --keep-symbols public_symbols.txt $@,$(DONE_STRING))
