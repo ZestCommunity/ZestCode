@@ -6,7 +6,7 @@
 
 namespace zest {
 namespace vdml {
-extern std::array<std::mutex, 21> port_mutexes;
+extern std::array<std::mutex, 32> device_mutexes;
 
 std::mutex& smart_port_mutex(int port);
 
