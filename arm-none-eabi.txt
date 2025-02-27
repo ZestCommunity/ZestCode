@@ -1,0 +1,17 @@
+[constants]
+toolchain = '/home/andrew/.vscode-server/data/User/globalStorage/sigbots.pros/install/pros-toolchain-linux/bin/arm-none-eabi-'
+
+[binaries]
+c = toolchain + 'gcc'
+cpp = toolchain + 'g++'
+ar = toolchain + 'ar'
+strip = toolchain + 'strip'
+
+[properties]
+
+[host_machine]
+system = ''
+kernel = 'none'
+cpu_family = 'arm'
+cpu = 'cortex-a9'
+endian = 'little'
