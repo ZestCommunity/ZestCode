@@ -6,9 +6,16 @@
 
 namespace zest {
 namespace vdml {
-extern std::array<std::mutex, 32> device_mutexes;
+constexpr uint8_t MAX_DEVICE_PORTS = 32;
+
+extern std::array<std::mutex, MAX_DEVICE_PORTS> device_mutexes;
 
 std::mutex& smart_port_mutex(int port);
+std::mutex create_mutex();
+
+void initialize_vdml();
+
+bool is_valid_port(uint8_t port);
 
 }  // namespace vdml
 }  // namespace zest

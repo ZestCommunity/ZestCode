@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <optional>
 
+#include "v5_apitypes.h"
+#include "vdml/vdml.hpp"
+
 namespace zest {
 namespace vdml {
 enum class DeviceType {
@@ -17,7 +20,7 @@ enum class DeviceType {
 	ADI = 12,
 	OPTICAL = 16,
 	GPS = 20,
-	AIVISION = 29,
+	AI_VISION = 29,
 	SERIAL = 129,
 	UNDEFINED = 255
 };
@@ -27,11 +30,15 @@ struct DeviceInfo {
 	uint32_t data;
 };
 
-extern std::array<std::optional<DeviceInfo>, 32> device_registry;
+static std::array<std::optional<DeviceInfo>, MAX_DEVICE_PORTS> device_registry;
+static V5_DeviceType registry_types[MAX_DEVICE_PORTS];
+
+void initialize_registry();
 
 void update_registry();
-std::optional<DeviceInfo> get_device_info(int port);
-bool validate_device(int port, DeviceType expected);
+std::optional<DeviceInfo> set_device(uint8_t port, DeviceType type);
+std::optional<DeviceInfo> get_device(uint8_t port);
+bool validate_device(uint8_t port, DeviceType expected);
 }  // namespace vdml
 }  // namespace zest
 
