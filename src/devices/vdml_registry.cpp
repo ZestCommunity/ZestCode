@@ -10,8 +10,8 @@ void initialize_registry() {
     // update registry types
     update_registry();
     for (int i = 0; i < 22; i++) {
-        device_registry[i]->type = (DeviceType)registry_types[i];
-        device_registry[i]->data = (int)vexDeviceGetByIndex(i);
+        device_registry[i]->type = static_cast<DeviceType>(registry_types[i]);
+        device_registry[i]->data = (uint32_t)vexDeviceGetByIndex(i);
     }
 }
 
@@ -51,7 +51,7 @@ bool validate_device(uint8_t port, DeviceType expected) {
         return false;
 
     DeviceType registered = device_registry[port]->type;
-    DeviceType actual = (DeviceType)registry_types[port];
+    DeviceType actual = static_cast<DeviceType>(registry_types[port]);
 
     // automatically register the port, if needed
     if (registered == DeviceType::NONE && actual != DeviceType::NONE) {
