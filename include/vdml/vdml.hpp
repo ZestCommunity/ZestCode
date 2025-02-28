@@ -16,8 +16,7 @@ std::mutex create_mutex();
 void initialize_vdml();
 
 bool is_valid_port(uint8_t port);
+} // namespace vdml
+} // namespace zest
 
-}  // namespace vdml
-}  // namespace zest
-
-#endif  // VDML_HPP
+#endif // VDML_HPP
