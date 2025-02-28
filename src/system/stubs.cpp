@@ -137,8 +137,9 @@ unsigned sleep(unsigned period) {
 	return 1;
 }
 
-// get entropy. Not implemented
-int getentropy(void* _buffer, size_t _length) {
+// get entropy. Zestcode does not implement this function, but other
+// libraries can, which is why this function is marked as weak
+[[gnu::weak]] int getentropy(void* _buffer, size_t _length) {
 	errno = ENOSYS;
 	return -1;
 }
