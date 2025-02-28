@@ -1,15 +1,103 @@
-BasedOnStyle: Google
-TabWidth: 2
+---
+# inspired by rustfmt's default style
+# implemented for clang-format 19
 Language: Cpp
-UseTab: ForIndentation
-ColumnLimit: 120
-Standard: Cpp11
-DerivePointerAlignment: false
-PointerAlignment: Left
-FixNamespaceComments: true
-ReflowComments: true
-SortIncludes: true
-AccessModifierOffset: 0
-AllowShortBlocksOnASingleLine: false
+Standard: Latest
+AccessModifierOffset: -2
+AlignAfterOpenBracket: BlockIndent
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AlignConsecutiveAssignments: None
+AllowBreakBeforeNoexceptSpecifier: Always
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortCompoundRequirementOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakBeforeMultilineStrings: true # auto formatting gets nasty otherwise
+BinPackArguments: false
+BinPackParameters: false
+BitFieldColonSpacing: Both
+BreakAdjacentStringLiterals: true
+BreakAfterAttributes: Always
+BreakAfterReturnType: Automatic
+PenaltyReturnTypeOnItsOwnLine: 100 # we really don't want to ever do this
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Attach
+BreakBeforeConceptDeclarations: Always
+BreakBeforeInlineASMColon: Always
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: AfterColon
+BreakStringLiterals: true # this *could* produce really wacky results if autoformatting
+                          # we keep this to let the developer know that they've exceeded
+                          # the column limit. It can be manually formatted in a way that
+                          # won't trigger clang-format
+BreakTemplateDeclarations: Yes
+ColumnLimit: 100
+CompactNamespaces: false
+Cpp11BracedListStyle: true
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: Always
+FixNamespaceComments: true
+IndentAccessModifiers: false
+IndentCaseBlocks: false
+IndentCaseLabels: true
+IndentExternBlock: NoIndent
+IndentGotoLabels: false
+IndentPPDirectives: BeforeHash
+IndentRequiresClause: true
+IndentWidth: 4
+IndentWrappedFunctionNames: false
+InsertBraces: false # can produce incorrect code if set to true
+InsertNewlineAtEOF: false
+InsertTrailingCommas: Wrapped
+KeepEmptyLines:
+  AtEndOfFile: false
+  AtStartOfBlock: false
+  AtStartOfFile: false
+LambdaBodyIndentation: OuterScope # can get really ugly otherwise
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+PackConstructorInitializers: Never
+PointerAlignment: Left # its type info, so it goes on the left
+QualifierAlignment: Leave # can produce incorrect code if set to anything other than Leave
+ReferenceAlignment: Pointer
+ReflowComments: true
+RequiresClausePosition: OwnLine
+RequiresExpressionIndentation: OuterScope # can get really ugly otherwise
+SeparateDefinitionBlocks: Always
+ShortNamespaceLines: 0 # disable short namespaces essentially
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"' # Group 1: Quote includes.
+    Priority: 1
+  - Regex: '^<' # Group 2: Angle-bracket includes.
+    Priority: 2
+SortUsingDeclarations: Lexicographic
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Default
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatementsExceptControlMacros
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: Never
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1
+SpacesInParens: Never
+SpacesInSquareBrackets: false
+UseTab: Never
