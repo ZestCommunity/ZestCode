@@ -11,52 +11,52 @@
  */
 
 #include "pros/distance.hpp"
-#include "vdml/vdml.h"
+#include "vdml/vdml.hpp"
 
 namespace pros {
 inline namespace v5 {
 
-Distance::Distance(const std::uint8_t port) : Device(port, DeviceType::distance) {}
+Distance::Distance(const std::uint8_t port)
+    : Device(port, DeviceType::distance) {}
 
 std::int32_t Distance::get() {
-	return pros::c::distance_get(_port);
+    return pros::c::distance_get(_port);
 }
 
 std::int32_t Distance::get_distance() {
-	return get();
+    return get();
 }
 
 std::vector<Distance> Distance::get_all_devices() {
-	std::vector<Device> matching_devices {Device::get_all_devices(DeviceType::distance)};
-	std::vector<Distance> return_vector;
-	for (auto device : matching_devices) {
-		return_vector.push_back(device);
-	}
-	return return_vector;
+    std::vector<Device> matching_devices{Device::get_all_devices(DeviceType::distance)};
+    std::vector<Distance> return_vector;
+    for (auto device : matching_devices) {
+        return_vector.push_back(device);
+    }
+    return return_vector;
 }
 
 std::int32_t Distance::get_confidence() {
-	return pros::c::distance_get_confidence(_port);
+    return pros::c::distance_get_confidence(_port);
 }
 
 std::int32_t Distance::get_object_size() {
-	return pros::c::distance_get_object_size(_port);
+    return pros::c::distance_get_object_size(_port);
 }
 
 double Distance::get_object_velocity() {
-	return pros::c::distance_get_object_velocity(_port);
+    return pros::c::distance_get_object_velocity(_port);
 }
 
-
 std::ostream& operator<<(std::ostream& os, pros::Distance& distance) {
-	os << "Distance [";
-	os << "port: " << distance.get_port();
-	os << ", distance: " << distance.get();
-	os << ", confidence: " << distance.get_confidence();
-	os << ", object size: " << distance.get_object_size();
-	os << ", object velocity: " << distance.get_object_velocity();
-	os << "]";
-	return os;
+    os << "Distance [";
+    os << "port: " << distance.get_port();
+    os << ", distance: " << distance.get();
+    os << ", confidence: " << distance.get_confidence();
+    os << ", object size: " << distance.get_object_size();
+    os << ", object velocity: " << distance.get_object_velocity();
+    os << "]";
+    return os;
 }
 
 namespace literals {
@@ -65,4 +65,4 @@ const pros::Distance operator"" _dist(const unsigned long long int d) {
 }
 } // namespace literals
 } // namespace v5
-}  // namespace pros
+} // namespace pros

@@ -16,14 +16,14 @@
  */
 
 #include "pros/device.h"
-#include "vdml/vdml.h"
+#include "vdml/vdml.hpp"
 
 v5_device_e_t get_plugged_type(uint8_t port) {
-    if (!port_mutex_take(port - 1)) {                            
-		errno = EACCES; 
-		return E_DEVICE_UNDEFINED;                                                                           
-	}
-	v5_device_e_t type = registry_get_plugged_type(port - 1);
-	
-	return_port(port - 1, type);
+    if (!port_mutex_take(port - 1)) {
+        errno = EACCES;
+        return E_DEVICE_UNDEFINED;
+    }
+    v5_device_e_t type = registry_get_plugged_type(port - 1);
+
+    return_port(port - 1, type);
 }

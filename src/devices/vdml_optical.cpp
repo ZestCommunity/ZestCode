@@ -12,97 +12,98 @@
 
 #include "pros/optical.h"
 #include "pros/optical.hpp"
-#include "vdml/vdml.h"
+#include "vdml/vdml.hpp"
 
 namespace pros {
 inline namespace v5 {
 using namespace pros::c;
 
-Optical::Optical(std::uint8_t port) : Device(port, DeviceType::optical) {}
+Optical::Optical(std::uint8_t port)
+    : Device(port, DeviceType::optical) {}
 
 std::vector<Optical> Optical::get_all_devices() {
-	std::vector<Device> matching_devices {Device::get_all_devices(DeviceType::optical)};
-	std::vector<Optical> return_vector;
-	for (auto device : matching_devices) {
-		return_vector.push_back(device);
-	}
-	return return_vector;
+    std::vector<Device> matching_devices{Device::get_all_devices(DeviceType::optical)};
+    std::vector<Optical> return_vector;
+    for (auto device : matching_devices) {
+        return_vector.push_back(device);
+    }
+    return return_vector;
 }
 
-double Optical::get_hue(){
-  return optical_get_hue(_port);
+double Optical::get_hue() {
+    return optical_get_hue(_port);
 }
 
-double Optical::get_saturation(){
-  return optical_get_saturation(_port);
+double Optical::get_saturation() {
+    return optical_get_saturation(_port);
 }
 
-double Optical::get_brightness(){
-  return optical_get_brightness(_port);
+double Optical::get_brightness() {
+    return optical_get_brightness(_port);
 }
 
-std::int32_t Optical::get_proximity(){
-  return optical_get_proximity(_port);
+std::int32_t Optical::get_proximity() {
+    return optical_get_proximity(_port);
 }
 
-std::int32_t Optical::set_led_pwm(std::uint8_t value){
-  return optical_set_led_pwm(_port, value);
+std::int32_t Optical::set_led_pwm(std::uint8_t value) {
+    return optical_set_led_pwm(_port, value);
 }
 
-std::int32_t Optical::get_led_pwm(){
-  return optical_get_led_pwm(_port);
+std::int32_t Optical::get_led_pwm() {
+    return optical_get_led_pwm(_port);
 }
 
-optical_rgb_s_t Optical::get_rgb(){
-  return optical_get_rgb(_port);
+optical_rgb_s_t Optical::get_rgb() {
+    return optical_get_rgb(_port);
 }
 
-optical_raw_s_t Optical::get_raw(){
-  return optical_get_raw(_port);
+optical_raw_s_t Optical::get_raw() {
+    return optical_get_raw(_port);
 }
 
-optical_direction_e_t Optical::get_gesture(){
-  return optical_get_gesture(_port);
+optical_direction_e_t Optical::get_gesture() {
+    return optical_get_gesture(_port);
 }
 
-optical_gesture_s_t Optical::get_gesture_raw(){
-  return optical_get_gesture_raw(_port);
+optical_gesture_s_t Optical::get_gesture_raw() {
+    return optical_get_gesture_raw(_port);
 }
 
-std::int32_t Optical::enable_gesture(){
-  return optical_enable_gesture(_port);
+std::int32_t Optical::enable_gesture() {
+    return optical_enable_gesture(_port);
 }
 
-std::int32_t Optical::disable_gesture(){
-  return optical_disable_gesture(_port);
+std::int32_t Optical::disable_gesture() {
+    return optical_disable_gesture(_port);
 }
 
 double Optical::get_integration_time() {
-  return optical_get_integration_time(_port);
+    return optical_get_integration_time(_port);
 }
 
 std::int32_t Optical::set_integration_time(double time) {
-  return optical_set_integration_time(_port, time);
+    return optical_set_integration_time(_port, time);
 }
 
 std::ostream& operator<<(std::ostream& os, pros::Optical& optical) {
-  pros::c::optical_rgb_s_t rgb = optical.get_rgb(); 
-  os << "Optical [";
-  os << "port: " << optical.get_port();
-  os << ", hue: " << optical.get_hue();
-  os << ", saturation: " << optical.get_saturation();
-  os << ", brightness: " << optical.get_brightness();
-  os << ", proximity: " << optical.get_proximity();
-  os << ", rgb: " << "{" << rgb.red << ","<< rgb.green << "," << rgb.blue << "}"; 
-  os << "]";
-  return os;
+    pros::c::optical_rgb_s_t rgb = optical.get_rgb();
+    os << "Optical [";
+    os << "port: " << optical.get_port();
+    os << ", hue: " << optical.get_hue();
+    os << ", saturation: " << optical.get_saturation();
+    os << ", brightness: " << optical.get_brightness();
+    os << ", proximity: " << optical.get_proximity();
+    os << ", rgb: " << "{" << rgb.red << "," << rgb.green << "," << rgb.blue << "}";
+    os << "]";
+    return os;
 }
 
 namespace literals {
 const pros::Optical operator"" _opt(const unsigned long long int o) {
-  return pros::Optical(o);
+    return pros::Optical(o);
 }
-} //
+} // namespace literals
 
 } // namespace v5
 } // namespace pros
