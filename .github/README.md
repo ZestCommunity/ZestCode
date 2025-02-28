@@ -29,7 +29,7 @@ PROS depends on `libv5rts`, which is a private version of the VEX SDK. ZestCode 
 
 ### License
 
-ZestCode is licensed under the [Mozilla Public License 2.0](LICENSE)
+ZestCode is licensed under the [Mozilla Public License 2.0](../LICENSE)
 
 ### Contributing
 
