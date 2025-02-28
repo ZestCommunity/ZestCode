@@ -42,4 +42,17 @@ bool validate_device(uint8_t port, DeviceType expected);
 } // namespace vdml
 } // namespace zest
 
+// STUBS SO OLD VDML CODE COMPILES
+
+typedef struct {
+    pros::c::v5_device_e_t device_type;
+    V5_DeviceT device_info;
+    uint8_t pad[128]; // 16 bytes in adi_data_s_t times 8 ADI Ports = 128
+} v5_smart_device_s_t;
+
+void registry_update_types();
+v5_smart_device_s_t* registry_get_device(uint8_t port);
+v5_smart_device_s_t* registry_get_device_internal(uint8_t port);
+int32_t registry_validate_binding(uint8_t port, pros::c::v5_device_e_t expected_t);
+
 #endif
