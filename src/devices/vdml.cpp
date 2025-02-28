@@ -5,26 +5,29 @@
 #include <cstdlib>
 #include <mutex>
 
-// initialize the device mutex array
-std::array<std::mutex, 32> zest::vdml::device_mutexes;
+using namespace zest::vdml;
 
-std::mutex zest::vdml::create_mutex() {
+// initialize the device mutex array
+std::array<std::mutex, 32> device_mutexes;
+
+std::mutex create_mutex() {
     // for now just a stub, as don't know what type of mutex will be implemented yet
     return std::mutex();
 }
 
-void zest::vdml::initialize_vdml() {
+void initialize_vdml() {
     // initialize the device (port) mutexes
-    for (int i = 0; i < zest::vdml::MAX_DEVICE_PORTS; i++)
-        zest::vdml::device_mutexes[i] = create_mutex();
+    for (int i = 0; i < MAX_DEVICE_PORTS; i++)
+        device_mutexes[i] = create_mutex();
 
-    // initialize ADI port mutexes
+    // initialize register
+    initialize_registry();
 }
 
-std::mutex& zest::vdml::smart_port_mutex(int8_t port) {
+std::mutex& smart_port_mutex(int8_t port) {
     port = abs(port); // prevent negative port
 
-    return zest::vdml::device_mutexes[port];
+    return device_mutexes[port];
 }
 
 bool is_valid_port(uint8_t port) {
