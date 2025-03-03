@@ -17,7 +17,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * \defgroup apix Extended API
  * \note Also included in the Extended API is [LVGL.](https://lvgl.io/)
  */
@@ -26,14 +26,11 @@
 #define _PROS_API_EXTENDED_H_
 
 #include "api.h"
-#include "pros/device.h"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic pop
-#include "pros/serial.h"
 
 #ifdef __cplusplus
-#include "pros/serial.hpp"
 namespace pros::c {
 extern "C" {
 #endif
@@ -61,7 +58,7 @@ typedef void* sem_t;
  *        The task to unblock
  *
  * \return True if the task was unblocked, false otherwise
- * 
+ *
  * \b Example:
  * \code
  * task_t task = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
@@ -84,22 +81,26 @@ bool task_abort_delay(task_t task);
  *				The value to supply to task_notify_ext
  * \param notify_action
  * 				The action to supply to task_notify_ext
- * 
-    * \b Example:
-    * \code
-    * task_t task_to_delete = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
-    *                           TASK_STACK_DEPTH_DEFAULT, "task_fn");
-    * task_t task_to_notify = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
-    *                           TASK_STACK_DEPTH_DEFAULT, "task_fn2");
-    * 
-    * task_notify_ext(task_to_notify, 0, NOTIFY_ACTION_INCREMENT, NULL);
-    * 
-    * task_notify_when_deleting(task_to_delete, task_get_current(), 0, NOTIFY_ACTION_NONE);
-    * task_delete(task_to_delete);
-    * \endcode
+ *
+ * \b Example:
+ * \code
+ * task_t task_to_delete = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
+ *                           TASK_STACK_DEPTH_DEFAULT, "task_fn");
+ * task_t task_to_notify = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
+ *                           TASK_STACK_DEPTH_DEFAULT, "task_fn2");
+ *
+ * task_notify_ext(task_to_notify, 0, NOTIFY_ACTION_INCREMENT, NULL);
+ *
+ * task_notify_when_deleting(task_to_delete, task_get_current(), 0, NOTIFY_ACTION_NONE);
+ * task_delete(task_to_delete);
+ * \endcode
  */
-void task_notify_when_deleting(task_t target_task, task_t task_to_notify, uint32_t value,
-                               notify_action_e_t notify_action);
+void task_notify_when_deleting(
+    task_t target_task,
+    task_t task_to_notify,
+    uint32_t value,
+    notify_action_e_t notify_action
+);
 
 /**
  * Returns a handle to the current owner of a mutex.
@@ -109,7 +110,7 @@ void task_notify_when_deleting(task_t target_task, task_t task_to_notify, uint32
  *
  * \return A handle to the current task that owns the mutex, or NULL if the
  * mutex isn't owned.
- * 
+ *
  * \b Example:
  * \code
  * mutex_t mutex = mutex_create();
@@ -126,18 +127,18 @@ void task_notify_when_deleting(task_t target_task, task_t task_to_notify, uint32
  *                           TASK_STACK_DEPTH_DEFAULT, "task_fn");
  *
  * void opcontrol(void) {
-*   while (1) {
-*     if (joystick_get_digital(1, 7, JOY_UP)) {
-*       task_t owner = mutex_get_owner(mutex);
-*       if (owner != NULL) {
-*         printf("Mutex is owned by task %s", task_get_name(owner));
-*       } else {
-*         printf("Mutex is not owned");
-*       }
-*     }
-*     task_delay(20);
-*   }
-* }
+ *   while (1) {
+ *     if (joystick_get_digital(1, 7, JOY_UP)) {
+ *       task_t owner = mutex_get_owner(mutex);
+ *       if (owner != NULL) {
+ *         printf("Mutex is owned by task %s", task_get_name(owner));
+ *       } else {
+ *         printf("Mutex is not owned");
+ *       }
+ *     }
+ *     task_delay(20);
+ *   }
+ * }
  * \endcode
  */
 task_t mutex_get_owner(mutex_t mutex);
@@ -183,8 +184,8 @@ sem_t sem_create(uint32_t max_count, uint32_t init_count);
  * \code
  * // Binary semaphore acts as a mutex
  * sem_t sem = sem_create(1, 0);
- * 
- * void task_fn(void* param) { 
+ *
+ * void task_fn(void* param) {
  *   while(1) {
  *     sem_take(sem, 1000);
  *     // critical section
@@ -198,14 +199,14 @@ sem_t sem_create(uint32_t max_count, uint32_t init_count);
  * void opcontrol(void) {
  *   while (1) {
  *     if (joystick_get_digital(1, 7, JOY_UP)) {
- *       // honestly this is a bad example because you should never 
+ *       // honestly this is a bad example because you should never
  *       // delete a semaphore like this
  *       sem_delete(sem);
  *     }
  *     task_delay(20);
  *   }
  * }
- * 
+ *
  * \endcode
  */
 void sem_delete(sem_t sem);
@@ -214,7 +215,7 @@ void sem_delete(sem_t sem);
  * Creates a binary semaphore.
  *
  * \return A newly created semaphore.
- * 
+ *
  * \b Example:
  * \code
  * // Binary semaphore acts as a mutex
@@ -249,7 +250,7 @@ sem_t sem_binary_create(void);
  * \return True if the semaphore was successfully take, false otherwise. If
  * false is returned, then errno is set with a hint about why the sempahore
  * couldn't be taken.
- * 
+ *
  * \b Example:
  * \code
  * // Binary semaphore acts as a mutex
@@ -291,7 +292,7 @@ bool sem_wait(sem_t sem, uint32_t timeout);
  * \return True if the value was incremented, false otherwise. If false is
  * returned, then errno is set with a hint about why the semaphore couldn't be
  * taken.
- * 
+ *
  * \b Example:
  * \code
  * // Binary semaphore acts as a mutex
@@ -320,7 +321,7 @@ bool sem_post(sem_t sem);
  *
  * \return The current value of the semaphore (e.g. the number of resources
  * available)
- * 
+ *
  * \b Example of sem_get_count:
  * \code
  * // Binary semaphore acts as a mutex
@@ -348,7 +349,7 @@ uint32_t sem_get_count(sem_t sem);
  *
  * \return A handle to a newly created queue, or NULL if the queue cannot be
  * created.
- * 
+ *
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -403,7 +404,7 @@ bool queue_prepend(queue_t queue, const void* item, uint32_t timeout);
  *        indefinitely.
  *
  * \return True if the item was preprended, false otherwise.
- * 
+ *
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -425,11 +426,11 @@ bool queue_append(queue_t queue, const void* item, uint32_t timeout);
  * \param buffer
  *        Pointer to a buffer to which the received item will be copied
  * \param timeout
- *        The maximum amount of time the task should block waiting for an item to receive should the queue be empty at
- *        the time of the call. TIMEOUT_MAX can be used to block indefinitely.
+ *        The maximum amount of time the task should block waiting for an item to receive should the
+ * queue be empty at the time of the call. TIMEOUT_MAX can be used to block indefinitely.
  *
  * \return True if an item was copied into the buffer, false otherwise.
- * 
+ *
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -489,7 +490,7 @@ bool queue_recv(queue_t queue, void* const buffer, uint32_t timeout);
  * \code
  * void opcontrol(void) {
  *   queue_t queue = queue_create(10, sizeof(int));
- * 
+ *
  *   int item[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
  *   queue_prepend(queue, item, 1000);
  *   queue_append(queue, item, 1000);
@@ -511,7 +512,7 @@ uint32_t queue_get_waiting(const queue_t queue);
  * \code
  * void opcontrol(void) {
  *   queue_t queue = queue_create(10, sizeof(int));
- * 
+ *
  *   int item[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
  *   queue_prepend(queue, item, 1000);
  *   queue_append(queue, item, 1000);
@@ -542,7 +543,7 @@ void queue_delete(queue_t queue);
  *
  * \param queue
  *        Queue handle to reset
- * 
+ *
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -562,6 +563,31 @@ void queue_reset(queue_t queue);
 ///@{
 
 /**
+ * \enum v5_device_e
+ * \brief
+ * List of possible v5 devices
+ *
+ * This list contains all current V5 Devices, and mirrors V5_DeviceType from the
+ * api.
+ */
+typedef enum v5_device_e {
+    E_DEVICE_NONE = 0,      ///< No device is plugged into the port
+    E_DEVICE_MOTOR = 2,     ///< A motor is plugged into the port
+    E_DEVICE_ROTATION = 4,  ///< A rotation sensor is plugged into the port
+    E_DEVICE_IMU = 6,       ///< An inertial sensor is plugged into the port
+    E_DEVICE_DISTANCE = 7,  ///< A distance sensor is plugged into the port
+    E_DEVICE_RADIO = 8,     ///< A radio is plugged into the port
+    E_DEVICE_VISION = 11,   ///< A vision sensor is plugged into the port
+    E_DEVICE_ADI = 12,      ///< This port is an ADI expander
+    E_DEVICE_OPTICAL = 16,  ///< An optical sensor is plugged into the port
+    E_DEVICE_GPS = 20,      ///< A GPS sensor is plugged into the port
+    E_DEVICE_AIVISION = 29, ///< An AI Vision sensor is plugged into the port
+    E_DEVICE_SERIAL = 129,  ///< A serial device is plugged into the port
+    E_DEVICE_GENERIC __attribute__((deprecated("use E_DEVICE_SERIAL instead"))) = E_DEVICE_SERIAL,
+    E_DEVICE_UNDEFINED = 255 ///< The device type is not defined, or is not a valid device
+} v5_device_e_t;
+
+/**
  * Registers a device in the given zero-indexed port
  *
  * Registers a device of the given type in the given port into the registry, if
@@ -579,7 +605,7 @@ void queue_reset(queue_t queue);
  *        The type of device to register
  *
  * \return 1 upon success, PROS_ERR upon failure
- * 
+ *
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -668,7 +694,7 @@ v5_device_e_t registry_get_plugged_type(uint8_t port);
  * Enable/disable the PROS banner printed to the serial stream.
  *
  * \warning This function must be called BEFORE the PROS daemon starts.
- * The easiest way to acheive this is to NOT call this function directly, 
+ * The easiest way to acheive this is to NOT call this function directly,
  * and instead use the BANNER_ENABLE macro.
  *
  * \param enable
@@ -677,7 +703,7 @@ v5_device_e_t registry_get_plugged_type(uint8_t port);
 void enable_banner(bool enabled);
 
 /**
- * This priority value, when used with __attribute__((constructor( ))), is 
+ * This priority value, when used with __attribute__((constructor( ))), is
  * guaranteed to run before PROS initializes.
  */
 #define PRE_PROS_INIT_PRIORITY 101
@@ -691,15 +717,23 @@ void enable_banner(bool enabled);
  *          Whether the banner should be enabled or disabled.
  */
 #ifdef __cplusplus
-#define ENABLE_BANNER(enabled) static_assert(!__builtin_strcmp(__FUNCTION__, "top level"),                            \
-                               "Cannot use ENABLE_BANNER inside a function!");                                        \
-                               __attribute__((constructor(PRE_PROS_INIT_PRIORITY))) static void _enable_banner_impl() \
-                               { pros::c::enable_banner(enabled); }
+    #define ENABLE_BANNER(enabled)                                                                 \
+        static_assert(                                                                             \
+            !__builtin_strcmp(__FUNCTION__, "top level"),                                          \
+            "Cannot use ENABLE_BANNER inside a function!"                                          \
+        );                                                                                         \
+        __attribute__((constructor(PRE_PROS_INIT_PRIORITY))) static void _enable_banner_impl() {   \
+            pros::c::enable_banner(enabled);                                                       \
+        }
 #else
-#define ENABLE_BANNER(enabled) static_assert(!__builtin_strcmp(__FUNCTION__, "top level"),                            \
-                               "Cannot use ENABLE_BANNER inside a function!");                                        \
-                               __attribute__((constructor(PRE_PROS_INIT_PRIORITY))) static void _enable_banner_impl() \
-                               { enable_banner(enabled); }
+    #define ENABLE_BANNER(enabled)                                                                 \
+        static_assert(                                                                             \
+            !__builtin_strcmp(__FUNCTION__, "top level"),                                          \
+            "Cannot use ENABLE_BANNER inside a function!"                                          \
+        );                                                                                         \
+        __attribute__((constructor(PRE_PROS_INIT_PRIORITY))) static void _enable_banner_impl() {   \
+            enable_banner(enabled);                                                                \
+        }
 #endif
 ///@}
 
@@ -714,7 +748,7 @@ void enable_banner(bool enabled);
  * 			details on the different actions.
  * \param extra_arg
  * 			An argument to pass in based on the action
- * 
+ *
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -775,7 +809,7 @@ int32_t fdctl(int file, const uint32_t action, void* const extra_arg);
  *
  * \return 1 if the operation was successful or PROS_ERR if the operation
  * failed, setting errno.
- * 
+ *
  * \b Example
  * \code
  * void autonomous() {
@@ -799,7 +833,7 @@ int32_t motor_set_reversed(int8_t port, const bool reverse);
  *
  * \return 1 if the motor has been reversed and 0 if the motor was not reversed,
  * or PROS_ERR if the operation failed, setting errno.
- * 
+ *
  * \b Example
  * \code
  * void initialize() {
@@ -898,4 +932,4 @@ int32_t motor_is_reversed(int8_t port);
 }
 #endif
 
-#endif  // _PROS_API_EXTENDED_H_
+#endif // _PROS_API_EXTENDED_H_
