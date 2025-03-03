@@ -43,12 +43,13 @@ For more details, see [.clang-format](../.clang-format).
 
 - **files, folders** - snake_case
 - **classes, structs, enums, unions, concepts, etc** - PascalCase
+  - **enum members** - PascalCase
+  - **edge case** - names like `HTTPRequest` should be `HttpRequst`
 - **functions** - snake_case
 - **variables** - snake_case
 - **member variables** - m_snake_case (The `m_` is intentional)
 - **macros** - SCREAMING_SNAKE_CASE
-- **compile-time constants** - SCREAMING_SNAKE_CASE
-- **enum members** - snake_case
+- **constexpr constants** - SCREAMING_SNAKE_CASE
 
 ## Documentation
 
