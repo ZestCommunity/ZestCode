@@ -1,7 +1,9 @@
 #include "system/hot.h"
 
-#include "kapi.h"
 #include "v5_api.h"
+
+#include <stddef.h>
+#include <string.h>
 
 // stored only in cold
 struct hot_table __HOT_TABLE = {0};
