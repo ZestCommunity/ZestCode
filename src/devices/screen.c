@@ -16,7 +16,6 @@
 
 #include "common/linkedlist.h"
 #include "kapi.h"
-#include "pros/apix.h"
 #include "v5_api.h" // vexDisplay*
 
 #include <stdint.h>
@@ -446,7 +445,7 @@ static static_task_s_t touch_handle_task_buffer;
 static task_t touch_handle_task;
 
 // volatile because some linters think this is going to be optimized out
-static volatile void _handle_cb(ll_node_s_t* current, void* extra_data) {
+static void _handle_cb(ll_node_s_t* current, void* extra_data) {
     (current->payload.func)();
 }
 
