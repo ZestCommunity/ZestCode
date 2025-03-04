@@ -11,7 +11,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "kapi.h"
+#include "pros/misc.h"
 #include "v5_api.h"
 
 // TODO: remove this C API
@@ -45,27 +45,27 @@ namespace pros {
 namespace competition {
 using namespace pros::c;
 
-std::uint8_t get_status(void) {
+uint8_t get_status(void) {
     return competition_get_status();
 }
 
-std::uint8_t is_autonomous(void) {
+uint8_t is_autonomous(void) {
     return competition_is_autonomous();
 }
 
-std::uint8_t is_connected(void) {
+uint8_t is_connected(void) {
     return competition_is_connected();
 }
 
-std::uint8_t is_disabled(void) {
+uint8_t is_disabled(void) {
     return competition_is_disabled();
 }
 
-std::uint8_t is_field_control(void) {
+uint8_t is_field_control(void) {
     return competition_is_field();
 }
 
-std::uint8_t is_competition_switch(void) {
+uint8_t is_competition_switch(void) {
     return competition_is_switch();
 }
 
