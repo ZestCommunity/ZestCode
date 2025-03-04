@@ -14,8 +14,8 @@
 
 #include "vdml/registry.h"
 
-#include "api.h"
 #include "kapi.h"
+#include "pros/apix.h"
 #include "pros/misc.h"
 #include "v5_api.h"
 #include "vdml/vdml.h"
@@ -108,7 +108,7 @@ v5_device_e_t registry_get_plugged_type(uint8_t port) {
         errno = ENXIO;
         return -1;
     }
-    return registry_types[port];
+    return (v5_device_e_t)registry_types[port];
 }
 
 int32_t registry_validate_binding(uint8_t port, v5_device_e_t expected_t) {
