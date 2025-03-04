@@ -18,15 +18,15 @@
 typedef void (*generic_fn_t)(void);
 
 typedef struct ll_node_s {
-	union {
-		generic_fn_t func; // Note: a list should not contain both data/funcs
-		void* data;
-	} payload;
-	struct ll_node_s* next;
+    union {
+        generic_fn_t func; // Note: a list should not contain both data/funcs
+        void* data;
+    } payload;
+    struct ll_node_s* next;
 } ll_node_s_t;
 
 typedef struct {
-	ll_node_s_t* head;
+    ll_node_s_t* head;
 } linked_list_s_t;
 
 /**

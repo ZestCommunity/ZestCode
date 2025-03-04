@@ -1,5 +1,5 @@
 #ifndef FUNC
-#error "FUNC must be defined"
+    #error "FUNC must be defined"
 #endif
 
 FUNC(cpp_autonomous)

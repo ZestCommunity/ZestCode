@@ -11,34 +11,34 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include <cstddef>
-#include <cstdlib>
-#include <stdexcept>
-
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
 #include "v5_api.h"
 
+#include <cstddef>
+#include <cstdlib>
+#include <stdexcept>
+
 extern "C" void task_fn_wrapper(task_fn_t fn, void* args) {
 #ifdef __cpp_exceptions
-	try {
+    try {
 #endif
-		fn(args);
+        fn(args);
 #ifdef __cpp_exceptions
-	} catch (const std::runtime_error& re) {
-		fprintf(stderr, "Runtime error: %s \n", re.what());
-		vexDisplayString(5, "A runtime error occurred:");
-		vexDisplayString(6, "%s", re.what());
-		vexDisplayString(7, "Note: open terminal for error message");
-	} catch (const std::exception& ex) {
-		fprintf(stderr, "Exception occurred: %s \n", ex.what());
-		vexDisplayString(5, "An exception occurred:");
-		vexDisplayString(6, "%s", ex.what());
-		vexDisplayString(7, "Note: open terminal for error message");
-	} catch (...) {
-		fprintf(stderr, "Unknown error occurred. \n");
-		vexDisplayString(5, "An unknown error occurred");
-	}
+    } catch (const std::runtime_error& re) {
+        fprintf(stderr, "Runtime error: %s \n", re.what());
+        vexDisplayString(5, "A runtime error occurred:");
+        vexDisplayString(6, "%s", re.what());
+        vexDisplayString(7, "Note: open terminal for error message");
+    } catch (const std::exception& ex) {
+        fprintf(stderr, "Exception occurred: %s \n", ex.what());
+        vexDisplayString(5, "An exception occurred:");
+        vexDisplayString(6, "%s", ex.what());
+        vexDisplayString(7, "Note: open terminal for error message");
+    } catch (...) {
+        fprintf(stderr, "Unknown error occurred. \n");
+        vexDisplayString(5, "An unknown error occurred");
+    }
 #endif
 }
 
@@ -46,23 +46,31 @@ extern "C" void task_fn_wrapper(task_fn_t fn, void* args) {
 /**                        C++ Linkages for User Tasks                       **/
 /******************************************************************************/
 __attribute__((weak)) void autonomous() {}
+
 __attribute__((weak)) void initialize() {}
+
 __attribute__((weak)) void opcontrol() {}
+
 __attribute__((weak)) void disabled() {}
+
 __attribute__((weak)) void competition_initialize() {}
 
 extern "C" void cpp_autonomous() {
-	autonomous();
+    autonomous();
 }
+
 extern "C" void cpp_initialize() {
-	initialize();
+    initialize();
 }
+
 extern "C" void cpp_opcontrol() {
-	opcontrol();
+    opcontrol();
 }
+
 extern "C" void cpp_disabled() {
-	disabled();
+    disabled();
 }
+
 extern "C" void cpp_competition_initialize() {
-	competition_initialize();
+    competition_initialize();
 }

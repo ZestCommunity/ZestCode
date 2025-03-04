@@ -18,19 +18,19 @@ namespace battery {
 using namespace pros::c;
 
 double get_capacity(void) {
-	return battery_get_capacity();
+    return battery_get_capacity();
 }
 
 std::int32_t get_current(void) {
-	return battery_get_current();
+    return battery_get_current();
 }
 
 double get_temperature(void) {
-	return battery_get_temperature();
+    return battery_get_temperature();
 }
 
 std::int32_t get_voltage(void) {
-	return battery_get_voltage();
+    return battery_get_voltage();
 }
-}  // namespace battery
-}  // namespace pros
+} // namespace battery
+} // namespace pros
