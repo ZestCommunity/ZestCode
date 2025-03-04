@@ -1,4 +1,4 @@
 Diagnostics:
   Suppress:
   - redefinition_different_typedef # hopefully this won't be needed once FreeRTOS has been updated
-  - language-extension-token
+  - language-extension-token # this is necessary due to asm being used in unwind.c
