@@ -96,7 +96,7 @@ int32_t rtos_resume_all(void);
  *        TASK_PRIO_DEFAULT plus/minus 1 or 2 is typically used.
  * \param stack_depth
  *        The number of words (i.e. 4 * stack_depth) available on the task's
- *        stack. TASK_STACK_DEPTH_DEFAULT is typically sufficienct.
+ *        stack. TASK_STACK_DEPTH_DEFAULT is typically sufficient.
  * \param name
  *        A descriptive name for the task.  This is mainly used to facilitate
  *        debugging. The name may be up to 32 characters long.
