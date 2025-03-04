@@ -184,7 +184,6 @@ FreeRTOS/Source/tasks.c for limitations. */
 
 /* The private watchdog is used to generate run time stats. */
 extern void vInitialiseTimerForRunTimeStats( void );
-extern uint32_t vexSystemWatchdogGet( void );
 #define configGENERATE_RUN_TIME_STATS 1
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vInitialiseTimerForRunTimeStats()
 #define portGET_RUN_TIME_COUNTER_VALUE()         vexSystemWatchdogGet()
