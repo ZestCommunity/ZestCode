@@ -1,2 +1,4 @@
 Diagnostics:
-  Suppress: redefinition_different_typedef # hopefully this won't be needed once FreeRTOS has been updated
+  Suppress:
+  - redefinition_different_typedef # hopefully this won't be needed once FreeRTOS has been updated
+  - language-extension-token
