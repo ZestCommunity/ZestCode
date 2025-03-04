@@ -15,17 +15,19 @@
 
 #pragma once
 
+#include "kapi.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "kapi.h"
+
 
 struct set {
-	uint32_t* arr;
-	size_t used;
-	size_t size;
-	static_sem_s_t mtx_buf;
-	mutex_t mtx;
+    uint32_t* arr;
+    size_t used;
+    size_t size;
+    static_sem_s_t mtx_buf;
+    mutex_t mtx;
 };
 
 /**

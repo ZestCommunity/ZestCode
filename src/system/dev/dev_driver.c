@@ -29,6 +29,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #define ASCII_ZERO 48
 
 typedef struct dev_file_arg {

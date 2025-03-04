@@ -14,10 +14,10 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * \defgroup c-rtos RTOS Facilities C API
  * \note Additional example code for this module can be found in its [Tutorial.](@ref multitasking)
- */	
+ */
 
 #ifndef _PROS_RTOS_H_
 #define _PROS_RTOS_H_
@@ -32,15 +32,15 @@ namespace pros {
 
 /// \ingroup c-rtos
 
-/// \addtogroup c-rtos 
+/// \addtogroup c-rtos
 /// @{
 
-/// \name Macros 
+/// \name Macros
 /// @{
 
 /**
  * The highest priority that can be assigned to a task.
- * 
+ *
  * A task with this priority will always run if it is available to. Beware of
  * deadlocks when using this priority.
  */
@@ -57,14 +57,14 @@ namespace pros {
 /**
  * The default task priority, which should be used for most tasks unless you
  * have a specific need for a higher or lower priority task.
- * 
+ *
  * The default tasks, such as autonomous(), are run with this priority
  */
 #define TASK_PRIORITY_DEFAULT 8
 
 /**
  * The recommended stack size for a new task.
- * 
+ *
  * This stack size is used for the default tasks such as autonomous(). This
  * size is 8,192 words, or 32,768 bytes. This should be enough for the majority
  * of tasks
@@ -73,8 +73,8 @@ namespace pros {
 
 /**
  * The minimal stack size for a task.
- * 
- * This equates to  512 words, or 2,048 bytes. 
+ *
+ * This equates to  512 words, or 2,048 bytes.
  */
 #define TASK_STACK_DEPTH_MIN 0x200
 
@@ -100,15 +100,14 @@ namespace pros {
 typedef void* task_t;
 
 /**
- * A pointer to a task's function. 
- * 
+ * A pointer to a task's function.
+ *
  * Such a function is called when a task starts, and exiting said function will
  * terminate the task.
  */
 typedef void (*task_fn_t)(void*);
 
 /// @} Name: Typedefs
-
 
 /// \name Enumerations
 /// @{
@@ -117,23 +116,29 @@ typedef void (*task_fn_t)(void*);
  * The state of a task.
  */
 typedef enum {
-	E_TASK_STATE_RUNNING = 0, /**< The task is actively executing. */
-	E_TASK_STATE_READY, /**< The task exists and is available to run, but is not currently running. */
-	E_TASK_STATE_BLOCKED, /**< The task is delayed or blocked by a mutex, semaphore, or I/O operation. */
-	E_TASK_STATE_SUSPENDED, /**< The task is supended using task_suspend. */
-	E_TASK_STATE_DELETED, /**< The task has been deleted using task_delete. */
-	E_TASK_STATE_INVALID /**< The task handle does not point to a current or past task.*/
+    E_TASK_STATE_RUNNING = 0, /**< The task is actively executing. */
+    E_TASK_STATE_READY, /**< The task exists and is available to run, but is not currently running.
+                         */
+    E_TASK_STATE_BLOCKED,   /**< The task is delayed or blocked by a mutex, semaphore, or I/O
+                               operation. */
+    E_TASK_STATE_SUSPENDED, /**< The task is supended using task_suspend. */
+    E_TASK_STATE_DELETED,   /**< The task has been deleted using task_delete. */
+    E_TASK_STATE_INVALID    /**< The task handle does not point to a current or past task.*/
 } task_state_e_t;
 
 /**
  * brief The action to take when a task is notified.
  */
 typedef enum {
-	E_NOTIFY_ACTION_NONE, /**< The task’s notification value will not be touched.*/
-	E_NOTIFY_ACTION_BITS, /**< The task’s notification value will be bitwise ORed with the new value.*/
-	E_NOTIFY_ACTION_INCR, /**< The task’s notification value will be incremented by one, effectively using it as a notification counter.*/
-	E_NOTIFY_ACTION_OWRITE, /**< The task’s notification value will be unconditionally set to the new value.*/
-	E_NOTIFY_ACTION_NO_OWRITE /**< The task’s notification value will be set to the new value if the task does not already have a pending notification.*/
+    E_NOTIFY_ACTION_NONE, /**< The task’s notification value will not be touched.*/
+    E_NOTIFY_ACTION_BITS, /**< The task’s notification value will be bitwise ORed with the new
+                             value.*/
+    E_NOTIFY_ACTION_INCR, /**< The task’s notification value will be incremented by one, effectively
+                             using it as a notification counter.*/
+    E_NOTIFY_ACTION_OWRITE, /**< The task’s notification value will be unconditionally set to the
+                               new value.*/
+    E_NOTIFY_ACTION_NO_OWRITE /**< The task’s notification value will be set to the new value if the
+                                 task does not already have a pending notification.*/
 } notify_action_e_t;
 
 /// @} Name: Enumerations
@@ -142,31 +147,31 @@ typedef enum {
 /// @{
 
 #ifdef PROS_USE_SIMPLE_NAMES
-#ifdef __cplusplus
-#define TASK_STATE_RUNNING pros::E_TASK_STATE_RUNNING
-#define TASK_STATE_READY pros::E_TASK_STATE_READY
-#define TASK_STATE_BLOCKED pros::E_TASK_STATE_BLOCKED
-#define TASK_STATE_SUSPENDED pros::E_TASK_STATE_SUSPENDED
-#define TASK_STATE_DELETED pros::E_TASK_STATE_DELETED
-#define TASK_STATE_INVALID pros::E_TASK_STATE_INVALID
-#define NOTIFY_ACTION_NONE pros::E_NOTIFY_ACTION_NONE
-#define NOTIFY_ACTION_BITS pros::E_NOTIFY_ACTION_BITS
-#define NOTIFY_ACTION_INCR pros::E_NOTIFY_ACTION_INCR
-#define NOTIFY_ACTION_OWRITE pros::E_NOTIFY_ACTION_OWRITE
-#define NOTIFY_ACTION_NO_OWRITE pros::E_NOTIFY_ACTION_NO_OWRITE
-#else
-#define TASK_STATE_RUNNING E_TASK_STATE_RUNNING
-#define TASK_STATE_READY E_TASK_STATE_READY
-#define TASK_STATE_BLOCKED E_TASK_STATE_BLOCKED
-#define TASK_STATE_SUSPENDED E_TASK_STATE_SUSPENDED
-#define TASK_STATE_DELETED E_TASK_STATE_DELETED
-#define TASK_STATE_INVALID E_TASK_STATE_INVALID
-#define NOTIFY_ACTION_NONE E_NOTIFY_ACTION_NONE
-#define NOTIFY_ACTION_BITS E_NOTIFY_ACTION_BITS
-#define NOTIFY_ACTION_INCR E_NOTIFY_ACTION_INCR
-#define NOTIFY_ACTION_OWRITE E_NOTIFY_ACTION_OWRITE
-#define NOTIFY_ACTION_NO_OWRITE E_NOTIFY_ACTION_NO_OWRITE
-#endif
+    #ifdef __cplusplus
+        #define TASK_STATE_RUNNING pros::E_TASK_STATE_RUNNING
+        #define TASK_STATE_READY pros::E_TASK_STATE_READY
+        #define TASK_STATE_BLOCKED pros::E_TASK_STATE_BLOCKED
+        #define TASK_STATE_SUSPENDED pros::E_TASK_STATE_SUSPENDED
+        #define TASK_STATE_DELETED pros::E_TASK_STATE_DELETED
+        #define TASK_STATE_INVALID pros::E_TASK_STATE_INVALID
+        #define NOTIFY_ACTION_NONE pros::E_NOTIFY_ACTION_NONE
+        #define NOTIFY_ACTION_BITS pros::E_NOTIFY_ACTION_BITS
+        #define NOTIFY_ACTION_INCR pros::E_NOTIFY_ACTION_INCR
+        #define NOTIFY_ACTION_OWRITE pros::E_NOTIFY_ACTION_OWRITE
+        #define NOTIFY_ACTION_NO_OWRITE pros::E_NOTIFY_ACTION_NO_OWRITE
+    #else
+        #define TASK_STATE_RUNNING E_TASK_STATE_RUNNING
+        #define TASK_STATE_READY E_TASK_STATE_READY
+        #define TASK_STATE_BLOCKED E_TASK_STATE_BLOCKED
+        #define TASK_STATE_SUSPENDED E_TASK_STATE_SUSPENDED
+        #define TASK_STATE_DELETED E_TASK_STATE_DELETED
+        #define TASK_STATE_INVALID E_TASK_STATE_INVALID
+        #define NOTIFY_ACTION_NONE E_NOTIFY_ACTION_NONE
+        #define NOTIFY_ACTION_BITS E_NOTIFY_ACTION_BITS
+        #define NOTIFY_ACTION_INCR E_NOTIFY_ACTION_INCR
+        #define NOTIFY_ACTION_OWRITE E_NOTIFY_ACTION_OWRITE
+        #define NOTIFY_ACTION_NO_OWRITE E_NOTIFY_ACTION_NO_OWRITE
+    #endif
 #endif
 
 /// @} Name: Simple enum names
@@ -175,9 +180,9 @@ typedef enum {
 
 /**
  * A [mutex.](@ref multitasking)
- * 
+ *
  * A mutex is a synchronization object that can be used to protect a shared
- * resource from being accessed by multiple tasks at the same time. A mutex can 
+ * resource from being accessed by multiple tasks at the same time. A mutex can
  * be claimed by a task, which will prevent other tasks from claiming it until
  * that task releases it.
  */
@@ -186,12 +191,12 @@ typedef void* mutex_t;
 /// @} Name: Typedefs
 
 /**
- * The task handle of the currently running task. 
+ * The task handle of the currently running task.
  */
 #ifdef __cplusplus
-#define CURRENT_TASK ((pros::task_t)NULL)
+    #define CURRENT_TASK ((pros::task_t)NULL)
 #else
-#define CURRENT_TASK ((task_t)NULL)
+    #define CURRENT_TASK ((task_t)NULL)
 #endif
 
 /// @} (add to group: c-rtos)
@@ -208,7 +213,7 @@ namespace c {
  * Gets the number of milliseconds since PROS initialized.
  *
  * \return The number of milliseconds since PROS initialized
- * 
+ *
  * \b Example
  * \code
  * void opcontrol() {
@@ -224,9 +229,9 @@ uint32_t millis(void);
 
 /**
  * Gets the number of microseconds since PROS initialized,
- * 
+ *
  * \return The number of microseconds since PROS initialized
- * 
+ *
  * \b Example
  * \code
  * void opcontrol() {
@@ -266,22 +271,27 @@ uint64_t micros(void);
  * \return A handle by which the newly created task can be referenced. If an
  * error occurred, NULL will be returned and errno can be checked for hints as
  * to why task_create failed.
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                               TASK_STACK_DEPTH_DEFAULT, "My Task");
  * }
  * \endcode
  */
-task_t task_create(task_fn_t function, void* const parameters, uint32_t prio, const uint16_t stack_depth,
-                   const char* const name);
+task_t task_create(
+    task_fn_t function,
+    void* const parameters,
+    uint32_t prio,
+    const uint16_t stack_depth,
+    const char* const name
+);
 
 /**
  * Removes a task from the RTOS real time kernel's management. The task being
@@ -293,14 +303,14 @@ task_t task_create(task_fn_t function, void* const parameters, uint32_t prio, co
  * \param task
  *        The handle of the task to be deleted.  Passing NULL will cause the
  *        calling task to be deleted.
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -320,7 +330,7 @@ void task_delete(task_t task);
  *
  * \param milliseconds
  *        The number of milliseconds to wait (1000 milliseconds per second)
- * 
+ *
  * \b Example
  * \code
  * void opcontrol() {
@@ -335,14 +345,14 @@ void task_delay(const uint32_t milliseconds);
 
 /**
  * Delays the current task for a given number of milliseconds.
- * 
+ *
  * This is not the best method to have a task execute code at predefined
  * intervals, as the delay time is measured from when the delay is requested.
  * To delay cyclically, use task_delay_until().
- * 
+ *
  * \param milliseconds
  *        The number of milliseconds to wait (1000 milliseconds per second)
- * 
+ *
  * \b Example
  * \code
  * void opcontrol() {
@@ -356,7 +366,7 @@ void task_delay(const uint32_t milliseconds);
 void delay(const uint32_t milliseconds);
 
 /**
- * Delays the current task until a specified time.  This function can be used 
+ * Delays the current task until a specified time.  This function can be used
  * by periodic tasks to ensure a constant execution frequency.
  *
  * The task will be woken up at the time *prev_time + delta, and *prev_time will
@@ -367,7 +377,7 @@ void delay(const uint32_t milliseconds);
  *        typically be initialized to the return value of millis().
  * \param delta
  *        The number of milliseconds to wait (1000 milliseconds per second)
- * 
+ *
  * \b Example
  * \code
  * void opcontrol() {
@@ -388,14 +398,14 @@ void task_delay_until(uint32_t* const prev_time, const uint32_t delta);
  *        The task to check
  *
  * \return The priority of the task
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -416,13 +426,13 @@ uint32_t task_get_priority(task_t task);
  *        The task to set
  * \param prio
  *        The new priority of the task
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* ign) {
  *   // Do things
  * }
- * 
+ *
  * void opcontrol() {
  *   task_t my_task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  *                             TASK_STACK_DEPTH_DEFAULT, "Example Task");
@@ -439,14 +449,14 @@ void task_set_priority(task_t task, uint32_t prio);
  *        The task to check
  *
  * \return The state of the task
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -461,12 +471,12 @@ task_state_e_t task_get_state(task_t task);
  *
  * \param task
  *        The task to suspend
- * 
+ *
  * \b Example
  * \code
  * mutex_t counter_mutex;
  * int counter = 0;
- * 
+ *
  * void my_task_fn(void* param) {
  *   while(true) {
  *     mutex_take(counter_mutex, TIMEOUT_MAX);// Mutexes are used for protecting shared resources
@@ -475,10 +485,10 @@ task_state_e_t task_get_state(task_t task);
  *     pros::delay(10);
  *   }
  * }
- * 
+ *
  * void opcontrol() {
  *   task_t task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,;
- * 
+ *
  *   while(true) {
  * 	   mutex_take(counter_mutex, TIMEOUT_MAX);
  *     if(counter > 100) {
@@ -497,7 +507,7 @@ void task_suspend(task_t task);
  *
  * \param task
  *        The task to resume
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
@@ -506,29 +516,29 @@ void task_suspend(task_t task);
  *     delay(10);
  *   }
  * }
- * 
+ *
  * task_t task;
- * 
+ *
  * void initialize() {
  *   task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  * 					TASK_STACK_DEPTH_DEFAULT, "My Task");
  * }
- * 
+ *
  * void autonomous() {
  *   task_resume(task);
- * 
+ *
  *   // Run autonomous , then suspend the task so it doesn't interfere run
- *   
+ *
  *   // outside of autonomous or opcontrol
  *   task_suspend(task);
  * }
- * 
+ *
  * void opcontrol() {
  *   task_resume(task);
  *   // Opctonrol code here
  *   task_suspend(task);
  * }
- * 
+ *
  * \endcode
  */
 void task_resume(task_t task);
@@ -540,14 +550,14 @@ void task_resume(task_t task);
  * created may take one context switch to be counted.
  *
  * \return The number of tasks that are currently being managed by the kernel.
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -564,14 +574,14 @@ uint32_t task_get_count(void);
  *        The task to check
  *
  * \return A pointer to the name of the task
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -590,14 +600,14 @@ char* task_get_name(task_t task);
  *        The name to query
  *
  * \return A task handle with a matching name, or NULL if none were found.
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
  *   printf("Hello %s\n", (char*)param);
  *   // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -613,7 +623,7 @@ task_t task_get_by_name(const char* name);
  * wants to tell another task about itself.
  *
  * \return The currently running task handle.
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
@@ -623,7 +633,7 @@ task_t task_get_by_name(const char* name);
  *   }
  * // ...
  * }
- * 
+ *
  * void initialize() {
  *   task_t my_task = task_create(my_task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
@@ -639,7 +649,7 @@ task_t task_get_current();
  *        The task to notify
  *
  * \return Always returns true.
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* ign) {
@@ -648,7 +658,7 @@ task_t task_get_current();
  *   }
  *   puts("I was unblocked!");
  * }
- * 
+ *
  * void opcontrol() {
  *   task_t my_task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  *                             TASK_STACK_DEPTH_DEFAULT, "Notify me! Task");
@@ -663,15 +673,15 @@ task_t task_get_current();
 uint32_t task_notify(task_t task);
 
 /**
- * 
+ *
  * Utilizes task notifications to wait until specified task is complete and deleted,
  * then continues to execute the program. Analogous to std::thread::join in C++.
- * 
+ *
  * \param task
  *        The handle of the task to wait on.
- * 
+ *
  * \return void
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* ign) {
@@ -679,7 +689,7 @@ uint32_t task_notify(task_t task);
  *   task_delay(1000);
  *   lcd_print(2, "End of %s", task_get_name(NULL));
  * }
- * 
+ *
  * void opcontrol() {
  *   task_t my_task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  *                             TASK_STACK_DEPTH_DEFAULT, "Example Task");
@@ -711,7 +721,7 @@ void task_join(task_t task);
  * For NOTIFY_ACTION_NO_WRITE: return 0 if the value could be written without
  * needing to overwrite, 1 otherwise.
  * For all other NOTIFY_ACTION values: always return 0
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
@@ -719,31 +729,32 @@ void task_join(task_t task);
  *     // Wait until we have been notified 20 times before running the code
  *     if(task_notify_take(false, TIMEOUT_MAX) == 20) {
  *       // ... Code to do stuff here ...
- * 
+ *
  *       // Reset the notification counter
  *       task_notify_take(true, TIMEOUT_MAX);
  *     }
  *     delay(10);
  * 	 }
  * }
- * 
+ *
  * void opcontrol() {
  * 	 task_t task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  * 						   TASK_STACK_DEPTH_DEFAULT, "My Task");
- *   
+ *
  *   int count = 0;
- *   
+ *
  *   while(true) {
  *     if(controller_get_digital(CONTROLLER_MASTER, DIGITAL_L1)) {
  *       task_notify_ext(task, 1, NOTIFY_ACTION_INCREMENT, &count);
  *     }
- *     
+ *
  *     delay(20);
  *   }
  * }
  * \endcode
  */
-uint32_t task_notify_ext(task_t task, uint32_t value, notify_action_e_t action, uint32_t* prev_value);
+uint32_t
+task_notify_ext(task_t task, uint32_t value, notify_action_e_t action, uint32_t* prev_value);
 
 /**
  * Waits for a notification to be nonzero.
@@ -760,7 +771,7 @@ uint32_t task_notify_ext(task_t task, uint32_t value, notify_action_e_t action, 
  *
  * \return The value of the task's notification value before it is decremented
  * or cleared
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* ign) {
@@ -769,7 +780,7 @@ uint32_t task_notify_ext(task_t task, uint32_t value, notify_action_e_t action, 
  *     puts("I was unblocked!");
  *   }
  * }
- * 
+ *
  * void opcontrol() {
  *   task_t my_task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  *                             TASK_STACK_DEPTH_DEFAULT, "Notify me! Task");
@@ -793,7 +804,7 @@ uint32_t task_notify_take(bool clear_on_exit, uint32_t timeout);
  *        The task to clear
  *
  * \return False if there was not a notification waiting, true if there was
- * 
+ *
  * \b Example
  * \code
  * void my_task_fn(void* param) {
@@ -801,16 +812,16 @@ uint32_t task_notify_take(bool clear_on_exit, uint32_t timeout);
  *   while(true) {
  *     printf("Waiting for notification...\n");
  * 	   printf("Got a notification: %d\n", task_notify_take(task, false, TIMEOUT_MAX));
- * 
+ *
  * 	   task_notify_clear(task);
  *     delay(10):
  *   }
  * }
- * 
+ *
  * void opcontrol() {
  *  task_t task = task_create(my_task_fn, NULL, TASK_PRIORITY_DEFAULT,
  *                            TASK_STACK_DEPTH_DEFAULT, "My Task");
- * 
+ *
  *   while(true) {
  *     if(controller_get_digital(CONTROLLER_MASTER, DIGITAL_L1)) {
  *       task_notify(task);
@@ -830,7 +841,7 @@ bool task_notify_clear(task_t task);
  *
  * \return A handle to a newly created mutex. If an error occurred, NULL will be
  * returned and errno can be checked for hints as to why mutex_create failed.
- * 
+ *
  * \b Example
  * \code
  * // Global variables for the robot's odometry, which the rest of the robot's
@@ -838,12 +849,12 @@ bool task_notify_clear(task_t task);
  * double odom_x = 0.0;
  * double odom_y = 0.0;
  * double odom_heading = 0.0;
- * 
+ *
  * // This mutex protects the odometry data. Whenever we read or write to the
  * // odometry data, we should make copies into the local variables, and read
  * // all 3 values at once to avoid errors.
  * mutex_t odom_mutex;
- * 
+ *
  * void odom_task(void* param) {
  *   while(true) {
  *     // First we fetch the odom coordinates from the previous iteration of the
@@ -856,24 +867,24 @@ bool task_notify_clear(task_t task);
  *     double y_old = odom_y;
  *     double heading_old = odom_heading;
  * 	   mutex_give(odom_mutex);
- * 
+ *
  *     double x_new = 0.0;
  *     double y_new = 0.0;
  *     double heading_new = 0.0;
- *     
+ *
  *     // --- Calculate new pose for the robot here ---
- * 
+ *
  *     // Now that we have the new pose, we can update the global variables
  *     mutex_take(odom_mutex, MAX_DELAY);
  *     odom_x = x_new;
  *     odom_y = y_new;
  *     odom_heading = heading_new;
  *     mutex_give(odom_mutex);
- *     
+ *
  *     delay(10);
  *   }
  * }
- * 
+ *
  * void chassis_task(void* param) {
  *   while(true) {
  *     // Here we copy the current odom values into local variables so that
@@ -885,18 +896,19 @@ bool task_notify_clear(task_t task);
  *     double current_y = odom_y;
  *     double current_heading = odom_heading;
  *     mutex_give(odom_mutex);
- *     
+ *
  *     // ---- Move the robot using the current locations goes here ----
- *     
+ *
  *     delay(10);
  *   }
  * }
- * 
+ *
  * void initialize() {
  *   odom_mutex = mutex_create();
- * 
+ *
  *   task_create(odom_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Odometry Task");
- *   task_create(chassis_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Chassis Task");
+ *   task_create(chassis_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Chassis
+ * Task");
  * }
  * \endcode
  */
@@ -919,7 +931,7 @@ mutex_t mutex_create(void);
  * \return True if the mutex was successfully taken, false otherwise. If false
  * is returned, then errno is set with a hint about why the the mutex
  * couldn't be taken.
- * 
+ *
  * \b Example
  * \code
  * // Global variables for the robot's odometry, which the rest of the robot's
@@ -927,12 +939,12 @@ mutex_t mutex_create(void);
  * double odom_x = 0.0;
  * double odom_y = 0.0;
  * double odom_heading = 0.0;
- * 
+ *
  * // This mutex protects the odometry data. Whenever we read or write to the
  * // odometry data, we should make copies into the local variables, and read
  * // all 3 values at once to avoid errors.
  * mutex_t odom_mutex;
- * 
+ *
  * void odom_task(void* param) {
  *   while(true) {
  *     // First we fetch the odom coordinates from the previous iteration of the
@@ -945,24 +957,24 @@ mutex_t mutex_create(void);
  *     double y_old = odom_y;
  *     double heading_old = odom_heading;
  * 	   mutex_give(odom_mutex);
- * 
+ *
  *     double x_new = 0.0;
  *     double y_new = 0.0;
  *     double heading_new = 0.0;
- *     
+ *
  *     // --- Calculate new pose for the robot here ---
- * 
+ *
  *     // Now that we have the new pose, we can update the global variables
  *     mutex_take(odom_mutex, MAX_DELAY);
  *     odom_x = x_new;
  *     odom_y = y_new;
  *     odom_heading = heading_new;
  *     mutex_give(odom_mutex);
- *     
+ *
  *     delay(10);
  *   }
  * }
- * 
+ *
  * void chassis_task(void* param) {
  *   while(true) {
  *     // Here we copy the current odom values into local variables so that
@@ -974,18 +986,19 @@ mutex_t mutex_create(void);
  *     double current_y = odom_y;
  *     double current_heading = odom_heading;
  *     mutex_give(odom_mutex);
- *     
+ *
  *     // ---- Move the robot using the current locations goes here ----
- *     
+ *
  *     delay(10);
  *   }
  * }
- * 
+ *
  * void initialize() {
  *   odom_mutex = mutex_create();
- * 
+ *
  *   task_create(odom_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Odometry Task");
- *   task_create(chassis_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Chassis Task");
+ *   task_create(chassis_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Chassis
+ * Task");
  * }
  * \endcode
  */
@@ -1003,7 +1016,7 @@ bool mutex_take(mutex_t mutex, uint32_t timeout);
  * \return True if the mutex was successfully returned, false otherwise. If
  * false is returned, then errno is set with a hint about why the mutex
  * couldn't be returned.
- * 
+ *
  * \b Example
  * \code
  * // Global variables for the robot's odometry, which the rest of the robot's
@@ -1011,12 +1024,12 @@ bool mutex_take(mutex_t mutex, uint32_t timeout);
  * double odom_x = 0.0;
  * double odom_y = 0.0;
  * double odom_heading = 0.0;
- * 
+ *
  * // This mutex protects the odometry data. Whenever we read or write to the
  * // odometry data, we should make copies into the local variables, and read
  * // all 3 values at once to avoid errors.
  * mutex_t odom_mutex;
- * 
+ *
  * void odom_task(void* param) {
  *   while(true) {
  *     // First we fetch the odom coordinates from the previous iteration of the
@@ -1029,24 +1042,24 @@ bool mutex_take(mutex_t mutex, uint32_t timeout);
  *     double y_old = odom_y;
  *     double heading_old = odom_heading;
  * 	   mutex_give(odom_mutex);
- * 
+ *
  *     double x_new = 0.0;
  *     double y_new = 0.0;
  *     double heading_new = 0.0;
- *     
+ *
  *     // --- Calculate new pose for the robot here ---
- * 
+ *
  *     // Now that we have the new pose, we can update the global variables
  *     mutex_take(odom_mutex, MAX_DELAY);
  *     odom_x = x_new;
  *     odom_y = y_new;
  *     odom_heading = heading_new;
  *     mutex_give(odom_mutex);
- *     
+ *
  *     delay(10);
  *   }
  * }
- * 
+ *
  * void chassis_task(void* param) {
  *   while(true) {
  *     // Here we copy the current odom values into local variables so that
@@ -1058,18 +1071,19 @@ bool mutex_take(mutex_t mutex, uint32_t timeout);
  *     double current_y = odom_y;
  *     double current_heading = odom_heading;
  *     mutex_give(odom_mutex);
- *     
+ *
  *     // ---- Move the robot using the current locations goes here ----
- *     
+ *
  *     delay(10);
  *   }
  * }
- * 
+ *
  * void initialize() {
  *   odom_mutex = mutex_create();
- * 
+ *
  *   task_create(odom_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Odometry Task");
- *   task_create(chassis_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Chassis Task");
+ *   task_create(chassis_task, NULL, TASK_PRIORITY_DEFAULT, TASK_STACK_DEPTH_DEFAULT, "Chassis
+ * Task");
  * }
  * \endcode
  */
@@ -1079,11 +1093,11 @@ bool mutex_give(mutex_t mutex);
  * Creates a recursive mutex which can be locked recursively by the owner.
  *
  * \return A newly created recursive mutex.
- * 
+ *
  * \b Example:
  * \code
  * mutex_t mutex = mutex_recursive_create();
- * 
+ *
  * void task_fn(void* param) {
  *   while(1) {
  *     mutex_recursive_take(mutex, 1000);
@@ -1108,7 +1122,7 @@ mutex_t mutex_recursive_create(void);
  *        Amount of time to wait before timing out
  *
  * \return 1 if the mutex was obtained, 0 otherwise
- * 
+ *
  * \b Example:
  * \code
  * mutex_t mutex = mutex_recursive_create();
@@ -1135,7 +1149,7 @@ bool mutex_recursive_take(mutex_t mutex, uint32_t timeout);
  *        A mutex handle created by mutex_recursive_create
  *
  * \return 1 if the mutex was obtained, 0 otherwise
- * 
+ *
  * \b Example:
  * \code
  * mutex_t mutex = mutex_recursive_create();
@@ -1160,7 +1174,7 @@ bool mutex_recursive_give(mutex_t mutex);
  *
  * \param mutex
  *        Mutex to unlock.
- * 
+ *
  * \b Example
  * \code
  * mutex_t mutex = mutex_create();
@@ -1180,9 +1194,9 @@ void mutex_delete(mutex_t mutex);
 /// @} Add to group: c-rtos
 
 #ifdef __cplusplus
-}  // namespace c
-}  // namespace pros
+} // namespace c
+} // namespace pros
 }
 #endif
 
-#endif  // _PROS_RTOS_H_
+#endif // _PROS_RTOS_H_
