@@ -142,7 +142,7 @@ unsigned sleep(unsigned period) {
     return 1;
 }
 
-// get entropy. Zestcode does not implement this function, but other
+// get entropy. ZestCode does not implement this function, but other
 // libraries can, which is why this function is marked as weak
 [[gnu::weak]]
 int getentropy(void* _buffer, size_t _length) {

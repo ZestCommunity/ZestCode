@@ -11,11 +11,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "rtos/FreeRTOS.h"
 #include "rtos/task.h"
 #include "v5_api.h"
 
-#include <cstddef>
 #include <cstdlib>
 #include <stdexcept>
 

@@ -95,5 +95,10 @@ void _start() {
     __libc_init_array();
 
     // call the main function
+    // This GCC warning is a nuisance.
+    // This is the industry standard
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     main();
+#pragma GCC diagnostic pop
 }

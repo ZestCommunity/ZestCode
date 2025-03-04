@@ -11,12 +11,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "common/set.h"
-#include "common/string.h"
-#include "kapi.h"
+// the pragma below is needed due to a FreeRTOS oversight
+#include "kapi.h" // IWYU pragma: keep
 #include "system/dev/usd.h"
 #include "system/dev/vfs.h"
-#include "system/optimizers.h"
 #include "v5_api.h"
 
 #include <fcntl.h>

@@ -241,7 +241,7 @@ void report_fatal_error(uint32_t _sp, const char* error_name) {
         fprintf(
             stderr,
             "STACK REMAINING AT ERROR: %lu bytes\n",
-            vrs.core.r[R_SP] - (uint32_t)pxCurrentTCB->pxStack
+            vrs.core.r[R_SP] - (uint32_t)pxCurrentTCB->pxStack // ignore clangd, this is correct
         );
     }
 }

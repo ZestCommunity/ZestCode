@@ -11,8 +11,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "kapi.h"
+#include "pros/error.h"
 #include "v5_api.h"
+
+#include <errno.h>
+#include <sys/unistd.h>
 
 int32_t usd_is_installed(void) {
     return vexFileDriveStatus(0);
