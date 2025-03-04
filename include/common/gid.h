@@ -15,24 +15,26 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "api.h"
 
-struct gid_metadata {
-	uint32_t* const bitmap;    // a constant pointer to a bitmap
-	const size_t max;          // Maximum gid value
-	const size_t reserved;     // first n GIDs may be reserved, at most 32, but at least 1
-	const size_t bitmap_size;  // Cached number of uint32_t's used to map gid_max.
-	                           // Use gid_size_to_words to compute
+#include <stdint.h>
 
-	// internal usage to ensure that GIDs get delegated linearly before wrapping
-	// around back to 0
-	size_t _cur_val;
-	mutex_t _lock;
+
+struct gid_metadata {
+    uint32_t* const bitmap;   // a constant pointer to a bitmap
+    const size_t max;         // Maximum gid value
+    const size_t reserved;    // first n GIDs may be reserved, at most 32, but at least 1
+    const size_t bitmap_size; // Cached number of uint32_t's used to map gid_max.
+                              // Use gid_size_to_words to compute
+
+    // internal usage to ensure that GIDs get delegated linearly before wrapping
+    // around back to 0
+    size_t _cur_val;
+    mutex_t _lock;
 };
 
 #ifndef UINT32_WIDTH
-#define UINT32_WIDTH 32
+    #define UINT32_WIDTH 32
 #endif
 
 /**

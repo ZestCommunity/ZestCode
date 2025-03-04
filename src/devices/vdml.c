@@ -14,6 +14,7 @@
  */
 
 #include "vdml/vdml.h"
+
 #include "kapi.h"
 #include "v5_api.h"
 #include "vdml/registry.h"
@@ -30,18 +31,18 @@ extern void registry_init();
 extern void port_mutex_init();
 
 int32_t claim_port_try(uint8_t port, v5_device_e_t type) {
-	if (!VALIDATE_PORT_NO(port)) {
-		errno = ENXIO;
-		return 0;
-	}
-	if (registry_validate_binding(port, type) != 0) {
-		return 0;
-	}
-	if (!port_mutex_take(port)) {
-		errno = EACCES;
-		return 0;
-	}
-	return 1;
+    if (!VALIDATE_PORT_NO(port)) {
+        errno = ENXIO;
+        return 0;
+    }
+    if (registry_validate_binding(port, type) != 0) {
+        return 0;
+    }
+    if (!port_mutex_take(port)) {
+        errno = EACCES;
+        return 0;
+    }
+    return 1;
 }
 
 /**
@@ -49,15 +50,15 @@ int32_t claim_port_try(uint8_t port, v5_device_e_t type) {
  * controllers, batteries which are sort of like smart devices internally to the
  * V5
  */
-mutex_t port_mutexes[V5_MAX_DEVICE_PORTS];            // Mutexes for each port
-static_sem_s_t port_mutex_bufs[V5_MAX_DEVICE_PORTS];  // Stack mem for rtos
+mutex_t port_mutexes[V5_MAX_DEVICE_PORTS];           // Mutexes for each port
+static_sem_s_t port_mutex_bufs[V5_MAX_DEVICE_PORTS]; // Stack mem for rtos
 
 /**
  * Shorcut to initialize all of VDML (mutexes and register)
  */
 void vdml_initialize() {
-	port_mutex_init();
-	registry_init();
+    port_mutex_init();
+    registry_init();
 }
 
 /**
@@ -69,79 +70,80 @@ void vdml_initialize() {
  * returned, or worse.
  */
 void port_mutex_init() {
-	for (int i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
-		port_mutexes[i] = mutex_create_static(&(port_mutex_bufs[i]));
-	}
+    for (int i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+        port_mutexes[i] = mutex_create_static(&(port_mutex_bufs[i]));
+    }
 }
 
 int port_mutex_take(uint8_t port) {
-	if (port >= V5_MAX_DEVICE_PORTS) {
-		errno = ENXIO;
-		return PROS_ERR;
-	}
-	return xTaskGetSchedulerState() != taskSCHEDULER_RUNNING || mutex_take(port_mutexes[port], TIMEOUT_MAX);
+    if (port >= V5_MAX_DEVICE_PORTS) {
+        errno = ENXIO;
+        return PROS_ERR;
+    }
+    return xTaskGetSchedulerState() != taskSCHEDULER_RUNNING
+           || mutex_take(port_mutexes[port], TIMEOUT_MAX);
 }
 
 int internal_port_mutex_take(uint8_t port) {
-	if (port >= V5_MAX_DEVICE_PORTS) {
-		errno = ENXIO;
-		return PROS_ERR;
-	}
-	return mutex_take(port_mutexes[port], TIMEOUT_MAX);
+    if (port >= V5_MAX_DEVICE_PORTS) {
+        errno = ENXIO;
+        return PROS_ERR;
+    }
+    return mutex_take(port_mutexes[port], TIMEOUT_MAX);
 }
 
 static inline char* print_num(char* buff, int num) {
-	*buff++ = (num / 10) + '0';
-	*buff++ = (num % 10) + '0';
-	return buff;
+    *buff++ = (num / 10) + '0';
+    *buff++ = (num % 10) + '0';
+    return buff;
 }
 
 int port_mutex_give(uint8_t port) {
-	if (port >= V5_MAX_DEVICE_PORTS) {
-		errno = ENXIO;
-		return PROS_ERR;
-	}
-	return xTaskGetSchedulerState() != taskSCHEDULER_RUNNING || mutex_give(port_mutexes[port]);
+    if (port >= V5_MAX_DEVICE_PORTS) {
+        errno = ENXIO;
+        return PROS_ERR;
+    }
+    return xTaskGetSchedulerState() != taskSCHEDULER_RUNNING || mutex_give(port_mutexes[port]);
 }
 
 int internal_port_mutex_give(uint8_t port) {
-	if (port >= V5_MAX_DEVICE_PORTS) {
-		errno = ENXIO;
-		return PROS_ERR;
-	}
-	return mutex_give(port_mutexes[port]);
+    if (port >= V5_MAX_DEVICE_PORTS) {
+        errno = ENXIO;
+        return PROS_ERR;
+    }
+    return mutex_give(port_mutexes[port]);
 }
 
 void port_mutex_take_all() {
-	for (int i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
-		port_mutex_take(i);
-	}
+    for (int i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+        port_mutex_take(i);
+    }
 }
 
 void port_mutex_give_all() {
-	for (int i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
-		port_mutex_give(i);
-	}
+    for (int i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+        port_mutex_give(i);
+    }
 }
 
 void vdml_set_port_error(uint8_t port) {
-	if (VALIDATE_PORT_NO(port)) {
-		port_errors |= (1 << port);
-	}
+    if (VALIDATE_PORT_NO(port)) {
+        port_errors |= (1 << port);
+    }
 }
 
 void vdml_unset_port_error(uint8_t port) {
-	if (VALIDATE_PORT_NO(port)) {
-		port_errors &= ~(1 << port);
-	}
+    if (VALIDATE_PORT_NO(port)) {
+        port_errors &= ~(1 << port);
+    }
 }
 
 bool vdml_get_port_error(uint8_t port) {
-	if (VALIDATE_PORT_NO(port)) {
-		return (port_errors >> port) & 1;
-	} else {
-		return false;
-	}
+    if (VALIDATE_PORT_NO(port)) {
+        return (port_errors >> port) & 1;
+    } else {
+        return false;
+    }
 }
 
 #if 0
@@ -163,7 +165,6 @@ void vdml_reset_port_error() {
  * On warnings, no operation is performed.
  */
 void vdml_background_processing() {
-
 // We're not removing this outright since we want to revisit the idea of logging
 // the errors with devices in the future
 #if 0
@@ -176,8 +177,8 @@ void vdml_background_processing() {
 	}
 #endif
 
-	// Refresh actual device types.
-	registry_update_types();
+    // Refresh actual device types.
+    registry_update_types();
 
 #if 0
 	// Validate the ports. Warn if mismatch.

@@ -25,30 +25,32 @@
 
 #ifdef __cplusplus
 extern "C" {
-#define task_t pros::task_t
-#define task_fn_t pros::task_fn_t
-#define mutex_t pros::mutex_t
-#define sem_t pros::c::sem_t
-#define queue_t pros::c::queue_t
+    #define task_t pros::task_t
+    #define task_fn_t pros::task_fn_t
+    #define mutex_t pros::mutex_t
+    #define sem_t pros::c::sem_t
+    #define queue_t pros::c::queue_t
 #endif
 
 #define KDBG_FILENO 3
 
-#define warn_printf(fmt, ...) dprintf(STDERR_FILENO, "%s:%d -- " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define warn_printf(fmt, ...)                                                                      \
+    dprintf(STDERR_FILENO, "%s:%d -- " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define warn_wprint(str) wprintf("%s", str)
 
-#define kprintf(fmt, ...) dprintf(KDBG_FILENO, "%s:%d -- " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define kprintf(fmt, ...)                                                                          \
+    dprintf(KDBG_FILENO, "%s:%d -- " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define kprint(str) kprintf("%s", str)
 
 #ifndef PROS_RELEASING
-#define kassert(cond)                     \
-	do {                                    \
-		if (!(cond)) {                        \
-			kprint("Assertion failed: " #cond); \
-		}                                     \
-	} while (0)
+    #define kassert(cond)                                                                          \
+        do {                                                                                       \
+            if (!(cond)) {                                                                         \
+                kprint("Assertion failed: " #cond);                                                \
+            }                                                                                      \
+        } while (0)
 #else
-#define kassert(cond)
+    #define kassert(cond)
 #endif
 
 typedef uint32_t task_stack_t;
@@ -103,8 +105,15 @@ int32_t rtos_resume_all(void);
  * error occurred, NULL will be returned and errno can be checked for hints as
  * to why task_create failed.
  */
-task_t task_create_static(task_fn_t task_code, void* const param, uint32_t priority, const size_t stack_size,
-                          const char* const name, task_stack_t* const stack_buffer, static_task_s_t* const task_buffer);
+task_t task_create_static(
+    task_fn_t task_code,
+    void* const param,
+    uint32_t priority,
+    const size_t stack_size,
+    const char* const name,
+    task_stack_t* const stack_buffer,
+    static_task_s_t* const task_buffer
+);
 
 /**
  * Creates a statically allocated mutex.
@@ -156,9 +165,12 @@ sem_t sem_create_static(uint32_t max_count, uint32_t init_count, static_sem_s_t*
  * \return A handle to a newly created queue, or NULL if the queue cannot be
  * created.
  */
-queue_t queue_create_static(uint32_t length, uint32_t item_size, uint8_t* storage_buffer,
-                            static_queue_s_t* queue_buffer);
-
+queue_t queue_create_static(
+    uint32_t length,
+    uint32_t item_size,
+    uint8_t* storage_buffer,
+    static_queue_s_t* queue_buffer
+);
 
 /**
  * Display a fatal error to the built-in LCD/touch screen.
@@ -188,8 +200,8 @@ int32_t xTaskGetSchedulerState();
 #define taskSCHEDULER_RUNNING ((int32_t)2)
 
 #ifdef __cplusplus
-#undef task_t
-#undef task_fn_t
-#undef mutex_t
+    #undef task_t
+    #undef task_fn_t
+    #undef mutex_t
 }
 #endif

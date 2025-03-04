@@ -22,10 +22,11 @@
 #ifndef _PROS_MISC_HPP_
 #define _PROS_MISC_HPP_
 
+#include "pros/misc.h"
+
 #include <cstdint>
 #include <string>
 
-#include "pros/misc.h"
 
 namespace pros {
 namespace battery {
@@ -105,7 +106,7 @@ double get_temperature(void);
  */
 int32_t get_voltage(void);
 ///@}
-}  // namespace battery
+} // namespace battery
 
 namespace competition {
 /**
@@ -134,7 +135,7 @@ std::uint8_t is_connected(void);
 std::uint8_t is_disabled(void);
 std::uint8_t is_field_control(void);
 std::uint8_t is_competition_switch(void);
-}  // namespace competition
+} // namespace competition
 
 namespace usd {
 /**
@@ -153,10 +154,10 @@ std::int32_t is_installed(void);
 /**
  * Lists the files in a directory specified by the path
  * Puts the list of file names (NOT DIRECTORIES) into the buffer seperated by newlines
- * 
+ *
  * This function uses the following values of errno when an error state is
  * reached:
- * 
+ *
  * EIO - Hard error occured in the low level disk I/O layer
  * EINVAL - file or directory is invalid, or length is invalid
  * EBUSY - THe physical drinve cannot work
@@ -186,15 +187,15 @@ std::int32_t is_installed(void);
  *  pros::delay(100);
  *  pros::list_files("/test", test, 128);
  *	pros::delay(200);
- *	printf("%s\n", test); //Prints the names of files in the folder named test seperated by newlines
- *  pros::delay(100);
+ *	printf("%s\n", test); //Prints the names of files in the folder named test seperated by
+ *newlines pros::delay(100);
  * }
  * \endcode
  */
 
 std::int32_t list_files(const char* path, char* buffer, std::int32_t len);
-}  // namespace usd
+} // namespace usd
 
-}  // namespace pros
+} // namespace pros
 
-#endif  // _PROS_MISC_HPP_
+#endif // _PROS_MISC_HPP_

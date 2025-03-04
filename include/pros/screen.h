@@ -24,9 +24,10 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #undef _GNU_SOURCE
+#include "pros/colors.h" // c color macros
+
 #include <stdint.h>
 
-#include "pros/colors.h"  // c color macros
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,16 +48,16 @@ namespace pros {
  * Different font sizes that can be used in printing text.
  */
 typedef enum {
-	/// Small text font size
-	E_TEXT_SMALL = 0,
-	/// Normal/Medium text font size
-	E_TEXT_MEDIUM,
-	/// Large text font size
-	E_TEXT_LARGE,
-	/// Medium centered text
-	E_TEXT_MEDIUM_CENTER,
-	/// Large centered text
-	E_TEXT_LARGE_CENTER
+    /// Small text font size
+    E_TEXT_SMALL = 0,
+    /// Normal/Medium text font size
+    E_TEXT_MEDIUM,
+    /// Large text font size
+    E_TEXT_LARGE,
+    /// Medium centered text
+    E_TEXT_MEDIUM_CENTER,
+    /// Large centered text
+    E_TEXT_LARGE_CENTER
 } text_format_e_t;
 
 /**
@@ -64,48 +65,50 @@ typedef enum {
  * Enum indicating what the current touch status is for the touchscreen.
  */
 typedef enum {
-	/// Last interaction with screen was a quick press
-	E_TOUCH_RELEASED = 0,
-	/// Last interaction with screen was a release
-	E_TOUCH_PRESSED,
-	/// User is holding screen down
-	E_TOUCH_HELD,
-	/// An error occured while taking/returning the mutex
-	E_TOUCH_ERROR
+    /// Last interaction with screen was a quick press
+    E_TOUCH_RELEASED = 0,
+    /// Last interaction with screen was a release
+    E_TOUCH_PRESSED,
+    /// User is holding screen down
+    E_TOUCH_HELD,
+    /// An error occured while taking/returning the mutex
+    E_TOUCH_ERROR
 } last_touch_e_t;
 
 /**
  * \struct screen_touch_status_s_t
- *  Struct representing screen touch status, screen last x, screen last y, press count, release count.
+ *  Struct representing screen touch status, screen last x, screen last y, press count, release
+ * count.
  */
 typedef struct screen_touch_status_s {
-	last_touch_e_t touch_status; ///< Represents if the screen is being held, released, or pressed.
-	int16_t x; ///< Represents the x value of the location of the touch.
-	int16_t y; ///< Represents the y value of the location of the touch.
-	int32_t press_count; ///< Represents how many times the screen has be pressed.
-	int32_t release_count; ///< Represents how many times the user released after a touch on the screen.
+    last_touch_e_t touch_status; ///< Represents if the screen is being held, released, or pressed.
+    int16_t x;                   ///< Represents the x value of the location of the touch.
+    int16_t y;                   ///< Represents the y value of the location of the touch.
+    int32_t press_count;         ///< Represents how many times the screen has be pressed.
+    int32_t
+        release_count; ///< Represents how many times the user released after a touch on the screen.
 } screen_touch_status_s_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES
-#ifdef __cplusplus
-#define TEXT_SMALL pros::E_TEXT_SMALL
-#define TEXT_MEDIUM pros::E_TEXT_MEDIUM
-#define TEXT_LARGE pros::E_TEXT_LARGE
-#define TEXT_MEDIUM_CENTER pros::E_TEXT_MEDIUM_CENTER
-#define TEXT_LARGE_CENTER pros::E_TEXT_LARGE_CENTER
-#define TOUCH_RELEASED pros::E_TOUCH_RELEASED
-#define TOUCH_PRESSED pros::E_TOUCH_PRESSED
-#define TOUCH_HELD pros::E_TOUCH_HELD
-#else
-#define TEXT_SMALL E_TEXT_SMALL
-#define TEXT_MEDIUM E_TEXT_MEDIUM
-#define TEXT_LARGE E_TEXT_LARGE
-#define TEXT_MEDIUM_CENTER E_TEXT_MEDIUM_CENTER
-#define TEXT_LARGE_CENTER E_TEXT_LARGE_CENTER
-#define TOUCH_RELEASED E_TOUCH_RELEASED
-#define TOUCH_PRESSED E_TOUCH_PRESSED
-#define TOUCH_HELD E_TOUCH_HELD
-#endif
+    #ifdef __cplusplus
+        #define TEXT_SMALL pros::E_TEXT_SMALL
+        #define TEXT_MEDIUM pros::E_TEXT_MEDIUM
+        #define TEXT_LARGE pros::E_TEXT_LARGE
+        #define TEXT_MEDIUM_CENTER pros::E_TEXT_MEDIUM_CENTER
+        #define TEXT_LARGE_CENTER pros::E_TEXT_LARGE_CENTER
+        #define TOUCH_RELEASED pros::E_TOUCH_RELEASED
+        #define TOUCH_PRESSED pros::E_TOUCH_PRESSED
+        #define TOUCH_HELD pros::E_TOUCH_HELD
+    #else
+        #define TEXT_SMALL E_TEXT_SMALL
+        #define TEXT_MEDIUM E_TEXT_MEDIUM
+        #define TEXT_LARGE E_TEXT_LARGE
+        #define TEXT_MEDIUM_CENTER E_TEXT_MEDIUM_CENTER
+        #define TEXT_LARGE_CENTER E_TEXT_LARGE_CENTER
+        #define TOUCH_RELEASED E_TOUCH_RELEASED
+        #define TOUCH_PRESSED E_TOUCH_PRESSED
+        #define TOUCH_HELD E_TOUCH_HELD
+    #endif
 #endif
 
 typedef void (*touch_event_cb_fn_t)();
@@ -342,7 +345,8 @@ uint32_t screen_scroll_area(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int1
  * }
  * \endcode
  */
-uint32_t screen_copy_area(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t* buf, int32_t stride);
+uint32_t
+screen_copy_area(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t* buf, int32_t stride);
 
 /**
  * Draw a single pixel on the screen using the current pen color
@@ -609,9 +613,9 @@ uint32_t screen_fill_circle(int16_t x, int16_t y, int16_t radius);
  *
  * Will default to a medium sized font by default if invalid txt_fmt is given.
  *
- * \param txt_fmt Text format enum that determines if the text is medium, large, medium_center, or large_center. (DOES
- * NOT SUPPORT SMALL) \param line The line number on which to print \param text  Format string \param ...  Optional list
- * of arguments for the format string
+ * \param txt_fmt Text format enum that determines if the text is medium, large, medium_center, or
+ * large_center. (DOES NOT SUPPORT SMALL) \param line The line number on which to print \param text
+ * Format string \param ...  Optional list of arguments for the format string
  *
  *  \return 1 if there were no errors, or PROS_ERR if an error occured
  *          taking or returning the screen mutex.
@@ -662,7 +666,8 @@ uint32_t screen_print(text_format_e_t txt_fmt, const int16_t line, const char* t
  * }
  * \endcode
  */
-uint32_t screen_print_at(text_format_e_t txt_fmt, const int16_t x, const int16_t y, const char* text, ...);
+uint32_t
+screen_print_at(text_format_e_t txt_fmt, const int16_t x, const int16_t y, const char* text, ...);
 
 /**
  * Print a formatted string to the screen on the specified line
@@ -677,16 +682,17 @@ uint32_t screen_print_at(text_format_e_t txt_fmt, const int16_t x, const int16_t
  * reached:
  * EACCESS - Another resource is currently trying to access the screen mutex.
  *
- * \param txt_fmt Text format enum that determines if the text is medium, large, medium_center, or large_center. (DOES
- * NOT SUPPORT SMALL) \param line The line number on which to print \param text  Format string \param args List of
- * arguments for the format string
+ * \param txt_fmt Text format enum that determines if the text is medium, large, medium_center, or
+ * large_center. (DOES NOT SUPPORT SMALL) \param line The line number on which to print \param text
+ * Format string \param args List of arguments for the format string
  *
  * \return 1 if there were no errors, or PROS_ERR if an error occured
  *          while taking or returning the screen mutex.
  *
- * 
+ *
  */
-uint32_t screen_vprintf(text_format_e_t txt_fmt, const int16_t line, const char* text, va_list args);
+uint32_t
+screen_vprintf(text_format_e_t txt_fmt, const int16_t line, const char* text, va_list args);
 
 /**
  * Print a formatted string to the screen at the specified coordinates
@@ -712,7 +718,13 @@ uint32_t screen_vprintf(text_format_e_t txt_fmt, const int16_t line, const char*
  *          while taking or returning the screen mutex.
  *
  */
-uint32_t screen_vprintf_at(text_format_e_t txt_fmt, const int16_t x, const int16_t y, const char* text, va_list args);
+uint32_t screen_vprintf_at(
+    text_format_e_t txt_fmt,
+    const int16_t x,
+    const int16_t y,
+    const char* text,
+    va_list args
+);
 
 ///@}
 
@@ -723,10 +735,10 @@ uint32_t screen_vprintf_at(text_format_e_t txt_fmt, const int16_t x, const int16
 /**
  * Gets the touch status of the last touch of the screen.
  *
- * \return The last_touch_e_t enum specifier that indicates the last touch status of the screen (E_TOUCH_EVENT_RELEASE,
- * E_TOUCH_EVENT_PRESS, or E_TOUCH_EVENT_PRESS_AND_HOLD). This will be released by default if no action was taken. If an
- * error occured, the screen_touch_status_s_t will have its last_touch_e_t enum specifier set to E_TOUCH_ERR, and other
- * values set to -1.
+ * \return The last_touch_e_t enum specifier that indicates the last touch status of the screen
+ * (E_TOUCH_EVENT_RELEASE, E_TOUCH_EVENT_PRESS, or E_TOUCH_EVENT_PRESS_AND_HOLD). This will be
+ * released by default if no action was taken. If an error occured, the screen_touch_status_s_t will
+ * have its last_touch_e_t enum specifier set to E_TOUCH_ERR, and other values set to -1.
  *
  * \b Example
  * \code
@@ -783,8 +795,8 @@ uint32_t screen_touch_callback(touch_event_cb_fn_t cb, last_touch_e_t event_type
 ///@}
 
 #ifdef __cplusplus
-}  // namespace c
-}  // namespace pros
+} // namespace c
+} // namespace pros
 }
 #endif
 
