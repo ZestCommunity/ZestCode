@@ -444,7 +444,6 @@ static task_stack_t touch_handle_task_stack[TASK_STACK_DEPTH_DEFAULT];
 static static_task_s_t touch_handle_task_buffer;
 static task_t touch_handle_task;
 
-// volatile because some linters think this is going to be optimized out
 static void _handle_cb(ll_node_s_t* current, void* extra_data) {
     (current->payload.func)();
 }
