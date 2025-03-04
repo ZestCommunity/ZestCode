@@ -18,14 +18,14 @@
 #include "vdml/vdml.h"
 
 #ifdef __cplusplus
-#define v5_device_e_t pros::c::v5_device_e_t
+    #define v5_device_e_t pros::c::v5_device_e_t
 extern "C" {
 #endif
 
 typedef struct {
-	v5_device_e_t device_type;
-	V5_DeviceT device_info;
-	uint8_t pad[128];  // 16 bytes in adi_data_s_t times 8 ADI Ports = 128
+    v5_device_e_t device_type;
+    V5_DeviceT device_info;
+    uint8_t pad[128]; // 16 bytes in adi_data_s_t times 8 ADI Ports = 128
 } v5_smart_device_s_t;
 
 /*
@@ -95,5 +95,5 @@ int32_t registry_validate_binding(uint8_t port, v5_device_e_t expected_t);
 
 #ifdef __cplusplus
 }
-#undef v5_device_e_t
+    #undef v5_device_e_t
 #endif

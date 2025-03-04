@@ -21,18 +21,18 @@
 #include <unistd.h>
 
 struct fs_driver {
-	ssize_t (*read_r)(struct _reent*, void* const, uint8_t*, const size_t);
-	int (*write_r)(struct _reent*, void* const, const uint8_t*, const size_t);
-	int (*close_r)(struct _reent*, void* const);
-	int (*fstat_r)(struct _reent*, void* const, struct stat*);
-	int (*isatty_r)(struct _reent*, void* const);
-	off_t (*lseek_r)(struct _reent*, void* const, off_t, int);
-	int (*ctl)(void* const, const uint32_t, void* const);
+    ssize_t (*read_r)(struct _reent*, void* const, uint8_t*, const size_t);
+    int (*write_r)(struct _reent*, void* const, const uint8_t*, const size_t);
+    int (*close_r)(struct _reent*, void* const);
+    int (*fstat_r)(struct _reent*, void* const, struct stat*);
+    int (*isatty_r)(struct _reent*, void* const);
+    off_t (*lseek_r)(struct _reent*, void* const, off_t, int);
+    int (*ctl)(void* const, const uint32_t, void* const);
 };
 
 struct file_entry {
-	struct fs_driver const* driver;
-	void* arg;
+    struct fs_driver const* driver;
+    void* arg;
 };
 
 // adds an entry to the file table

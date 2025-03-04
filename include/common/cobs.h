@@ -15,7 +15,9 @@
 
 #pragma once
 
+#include <stddef.h>
 #include <stdint.h>
+
 
 #define COBS_ENCODE_MEASURE_MAX(src_len) ((src_len) + (((src_len) + 253) / 254))
 
@@ -36,7 +38,12 @@
  *
  * \return The number of bytes written
  */
-int cobs_encode(uint8_t* restrict dest, const uint8_t* restrict src, const size_t src_len, const uint32_t prefix);
+int cobs_encode(
+    uint8_t* restrict dest,
+    const uint8_t* restrict src,
+    const size_t src_len,
+    const uint32_t prefix
+);
 
 /**
  * Same as cobs_encode() but doesn't write to an output buffer. Used to
@@ -51,4 +58,5 @@ int cobs_encode(uint8_t* restrict dest, const uint8_t* restrict src, const size_
  *
  * \return The size of src when encoded
  */
-size_t cobs_encode_measure(const uint8_t* restrict src, const size_t src_len, const uint32_t prefix);
+size_t
+cobs_encode_measure(const uint8_t* restrict src, const size_t src_len, const uint32_t prefix);

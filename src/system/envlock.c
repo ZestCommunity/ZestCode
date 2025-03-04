@@ -16,9 +16,9 @@
 #include "rtos/task.h"
 
 void __env_lock(void) {
-	rtos_suspend_all();
+    rtos_suspend_all();
 }
 
 void __env_unlock(void) {
-	rtos_resume_all();
+    rtos_resume_all();
 }

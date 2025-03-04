@@ -1,7 +1,7 @@
 /**
  * \file pros/llemu.hpp
  * \ingroup cpp-llemu
- * 
+ *
  * Legacy LCD Emulator
  *
  * \details This file defines a high-level API for emulating the three-button, UART-based
@@ -33,7 +33,7 @@
 /**   included into api.h.                                                   **/
 /******************************************************************************/
 #ifdef _PROS_INCLUDE_LIBLVGL_LLEMU_HPP
-#include "liblvgl/llemu.hpp"
+    #include "liblvgl/llemu.hpp"
 #endif
 
 /******************************************************************************/
@@ -43,104 +43,109 @@
 /******************************************************************************/
 
 namespace pros {
-    
+
 /**
- * \ingroup cpp-llemu 
+ * \ingroup cpp-llemu
  */
 #ifdef _PROS_INCLUDE_LIBLVGL_LLEMU_HPP
 namespace lcd {
 #else
-namespace [[deprecated("Without liblvgl, LLEMU functions will not display anything. To install liblvgl run \"pros c install liblvgl\" in the PROS terminal.")]] lcd {
+namespace
+    [[deprecated("Without liblvgl, LLEMU functions will not display anything. To install liblvgl "
+                 "run \"pros c install liblvgl\" in the PROS terminal.")]] lcd {
 #endif
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunused-function"
-    namespace {
-    template <typename T>
-    T convert_args(T arg) {
-        return arg;
-    }
-    const char* convert_args(const std::string& arg) {
-        return arg.c_str();
-    }
-    }  // namespace
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 
-    using lcd_btn_cb_fn_t = void (*)(void);
+namespace {
+template<typename T>
+T convert_args(T arg) {
+    return arg;
+}
 
-    /* 
-     * These weak symbols allow the example main.cpp in to compile even when 
-     * the liblvgl template is missing from the project. 
-     * 
-     * For documentation on these functions, please see the doxygen comments for
-     * these functions in the libvgl llemu headers.
-     */
-    extern __attribute__((weak)) bool is_initialized(void);
-    extern __attribute__((weak)) bool initialize(void);
-    extern __attribute__((weak)) bool shutdown(void);
-    extern __attribute__((weak)) bool set_text(std::int16_t line, std::string text);
-    extern __attribute__((weak)) bool clear(void);
-    extern __attribute__((weak)) bool clear_line(std::int16_t line);
-    // TODO: Text_Align is defined in liblvgl so this ain't going to compile for now. 
-    // extern __attribute__((weak)) void set_text_align(Text_Align text_align);
-    extern __attribute__((weak)) void register_btn0_cb(lcd_btn_cb_fn_t cb);
-    extern __attribute__((weak)) void register_btn1_cb(lcd_btn_cb_fn_t cb);
-    extern __attribute__((weak)) void register_btn2_cb(lcd_btn_cb_fn_t cb);
-    extern __attribute__((weak)) std::uint8_t read_buttons(void);
-    
-    /**
-     * \addtogroup cpp-llemu
-     * @{ 
-     */
-    
-    /*
-     * Note: This template resides in this file since the 
-     */
+const char* convert_args(const std::string& arg) {
+    return arg.c_str();
+}
+} // namespace
 
-    /**
-     * Displays a formatted string on the emulated three-button LCD screen.
-     *
-     * This function uses the following values of errno when an error state is
-     * reached:
-     * ENXIO  - The LCD has not been initialized. Call lcd_initialize() first.
-     * EINVAL - The line number specified is not in the range [0-7]
-     *
-     * \param line
-     *        The line on which to display the text [0-7]
-     * \param fmt
-     *        Format string
-     * \param ...args
-     *        Optional list of arguments for the format string
-     *
-     * \return True if the operation was successful, or false otherwise, setting
-     * errno values as specified above.
-     * 
-     * \b Example
-     * \code
-     * #include "pros/llemu.hpp"
-     * 
-     * void initialize() {
-     *   pros::lcd::initialize();
-     *   pros::lcd::print(0, "My formatted text: %d!", 2);
-     * }
-     * \endcode
-     */
-    template <typename... Params>
-    bool print(std::int16_t line, const char* fmt, Params... args) {
-	    return pros::c::lcd_print(line, fmt, convert_args(args)...);
-    }
+#pragma GCC diagnostic pop
 
-    #ifndef LCD_BTN_LEFT
-        #define LCD_BTN_LEFT 4
-    #endif
+using lcd_btn_cb_fn_t = void (*)(void);
 
-    #ifndef LCD_BTN_CENTER
-        #define LCD_BTN_CENTER 2
-    #endif
+/*
+ * These weak symbols allow the example main.cpp in to compile even when
+ * the liblvgl template is missing from the project.
+ *
+ * For documentation on these functions, please see the doxygen comments for
+ * these functions in the libvgl llemu headers.
+ */
+extern __attribute__((weak)) bool is_initialized(void);
+extern __attribute__((weak)) bool initialize(void);
+extern __attribute__((weak)) bool shutdown(void);
+extern __attribute__((weak)) bool set_text(std::int16_t line, std::string text);
+extern __attribute__((weak)) bool clear(void);
+extern __attribute__((weak)) bool clear_line(std::int16_t line);
+// TODO: Text_Align is defined in liblvgl so this ain't going to compile for now.
+// extern __attribute__((weak)) void set_text_align(Text_Align text_align);
+extern __attribute__((weak)) void register_btn0_cb(lcd_btn_cb_fn_t cb);
+extern __attribute__((weak)) void register_btn1_cb(lcd_btn_cb_fn_t cb);
+extern __attribute__((weak)) void register_btn2_cb(lcd_btn_cb_fn_t cb);
+extern __attribute__((weak)) std::uint8_t read_buttons(void);
 
-    #ifndef LCD_BTN_RIGHT
-        #define LCD_BTN_RIGHT 1
-    #endif
-    /// @}
+/**
+ * \addtogroup cpp-llemu
+ * @{
+ */
+
+/*
+ * Note: This template resides in this file since the
+ */
+
+/**
+ * Displays a formatted string on the emulated three-button LCD screen.
+ *
+ * This function uses the following values of errno when an error state is
+ * reached:
+ * ENXIO  - The LCD has not been initialized. Call lcd_initialize() first.
+ * EINVAL - The line number specified is not in the range [0-7]
+ *
+ * \param line
+ *        The line on which to display the text [0-7]
+ * \param fmt
+ *        Format string
+ * \param ...args
+ *        Optional list of arguments for the format string
+ *
+ * \return True if the operation was successful, or false otherwise, setting
+ * errno values as specified above.
+ *
+ * \b Example
+ * \code
+ * #include "pros/llemu.hpp"
+ *
+ * void initialize() {
+ *   pros::lcd::initialize();
+ *   pros::lcd::print(0, "My formatted text: %d!", 2);
+ * }
+ * \endcode
+ */
+template<typename... Params>
+bool print(std::int16_t line, const char* fmt, Params... args) {
+    return pros::c::lcd_print(line, fmt, convert_args(args)...);
+}
+
+#ifndef LCD_BTN_LEFT
+    #define LCD_BTN_LEFT 4
+#endif
+
+#ifndef LCD_BTN_CENTER
+    #define LCD_BTN_CENTER 2
+#endif
+
+#ifndef LCD_BTN_RIGHT
+    #define LCD_BTN_RIGHT 1
+#endif
+/// @}
 } // namespace lcd
 } // namespace pros
 

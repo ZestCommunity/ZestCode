@@ -1,5 +1,5 @@
 #ifndef FUNC
-#error "FUNC must be defined"
+    #error "FUNC must be defined"
 #endif
 
 #include "system/user_functions/c_list.h"

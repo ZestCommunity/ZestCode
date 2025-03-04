@@ -13,12 +13,13 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
 #include "vdml/registry.h"
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
-#define v5_device_e_t pros::c::v5_device_e_t
+    #define v5_device_e_t pros::c::v5_device_e_t
 #endif
 
 #ifdef __cplusplus
@@ -48,18 +49,18 @@ extern "C" {
  * \param error_code
  *        The error code that return if error checking failed
  */
-#define claim_port(port, device_type, error_code)          \
-  if (registry_validate_binding(port, device_type) != 0) { \
-    return error_code;                                     \
-  }                                                        \
-  v5_smart_device_s_t* device = registry_get_device(port); \
-  if (!port_mutex_take(port)) {                            \
-    errno = EACCES;                                        \
-    return error_code;                                     \
-  }
+#define claim_port(port, device_type, error_code)                                                  \
+    if (registry_validate_binding(port, device_type) != 0) {                                       \
+        return error_code;                                                                         \
+    }                                                                                              \
+    v5_smart_device_s_t* device = registry_get_device(port);                                       \
+    if (!port_mutex_take(port)) {                                                                  \
+        errno = EACCES;                                                                            \
+        return error_code;                                                                         \
+    }
 
 /**
- * Function like claim_port. This macro should only be used in functions 
+ * Function like claim_port. This macro should only be used in functions
  * that return int32_t or enums as PROS_ERR could be returned.
  *
  * \param port
@@ -70,7 +71,7 @@ extern "C" {
 #define claim_port_i(port, device_type) claim_port(port, device_type, PROS_ERR)
 
 /**
- * Function like claim_port. This macro should only be used in functions 
+ * Function like claim_port. This macro should only be used in functions
  * that return double or float as PROS_ERR_F could be returned.
  *
  * \param port
@@ -81,7 +82,7 @@ extern "C" {
 #define claim_port_f(port, device_type) claim_port(port, device_type, PROS_ERR_F)
 
 /**
- * A function that executes claim_port and allows you to execute a block of 
+ * A function that executes claim_port and allows you to execute a block of
  * code if an error occurs.
  *
  * This function uses the following values of errno when an error state is
@@ -110,9 +111,9 @@ int32_t claim_port_try(uint8_t port, v5_device_e_t type);
  *
  * \return The rtn parameter
  */
-#define return_port(port, rtn) \
-  port_mutex_give(port);       \
-  return rtn;
+#define return_port(port, rtn)                                                                     \
+    port_mutex_give(port);                                                                         \
+    return rtn;
 
 /**
  * Bitmap to indicate if a port has had an error printed or not.
@@ -240,5 +241,5 @@ int internal_port_mutex_give(uint8_t port);
 
 #ifdef __cplusplus
 }
-#undef v5_device_e_t
+    #undef v5_device_e_t
 #endif
