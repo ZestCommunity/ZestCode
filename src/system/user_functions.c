@@ -1,7 +1,7 @@
 #include "system/user_functions.h"
 
-#include "kapi.h"
-#include "system/hot.h"
+// this file abuses header files. As such this pragma is needed.
+#include "system/hot.h" // IWYU pragma: keep
 
 // how this all works...
 // system daemon starts an autonomous task which calls user_autonomous()
