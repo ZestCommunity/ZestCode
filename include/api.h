@@ -41,13 +41,11 @@
 
 #include "pros/colors.h"
 #include "pros/error.h"
-#include "pros/llemu.h"
 #include "pros/misc.h"
 #include "pros/rtos.h"
 
 #ifdef __cplusplus
     #include "pros/colors.hpp"
-    #include "pros/llemu.hpp"
     #include "pros/misc.hpp"
     #include "pros/rtos.hpp"
     #include "pros/screen.hpp"
