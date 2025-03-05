@@ -21,17 +21,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "system/dev/vfs.h"
+#include <errno.h>
+#include <stdint.h>
+#include <unistd.h>
 
 #include "common/gid.h"
 #include "kapi.h"
 #include "system/dev/dev.h"
 #include "system/dev/ser.h"
 #include "system/dev/usd.h"
-
-#include <errno.h>
-#include <stdint.h>
-#include <unistd.h>
+#include "system/dev/vfs.h"
 
 #define MAX_FILELEN 128
 #define MAX_FILES_OPEN 31
