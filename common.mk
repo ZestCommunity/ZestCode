@@ -157,7 +157,7 @@ ELF:=$(basename $(BIN)).elf
 
 -include $(wildcard $(FWDIR)/*.mk)
 
-.PHONY: all clean quicks
+.PHONY: all clean quick
 
 quick: $(BIN)
 
