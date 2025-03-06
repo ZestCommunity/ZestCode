@@ -33,7 +33,6 @@ void display_initialize() {}
 
 void rtos_sched_start();
 void vdml_initialize();
-void invoke_install_hot_table();
 
 // libc initialization
 void __libc_init_array();
@@ -60,7 +59,6 @@ static void pros_init() {
     display_initialize();
     // Note: system_daemon_initialize must be called last, per design requirements.
     system_daemon_initialize();
-    invoke_install_hot_table();
 }
 
 // the main function, starts the scheduler and ensures the program exits gracefully if it fails

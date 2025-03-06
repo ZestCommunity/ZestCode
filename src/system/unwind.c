@@ -15,7 +15,6 @@
 
 #include "rtos/task.h"
 #include "rtos/tcb.h"
-#include "system/hot.h"
 #include "unwind-arm-common.h"
 #include "v5_api.h"
 
@@ -101,13 +100,6 @@ extern struct __EIT_entry __exidx_end;
 extern uint8_t start_of_cold_mem, end_of_cold_mem, start_of_hot_mem, end_of_hot_mem;
 
 _Unwind_Ptr __gnu_Unwind_Find_exidx(_Unwind_Ptr pc, int* nrec) {
-    // check if pc is in the hot region
-    if (HOT_TABLE && (void*)&start_of_hot_mem < (void*)pc && (void*)pc < (void*)&end_of_hot_mem) {
-        *nrec = (struct __EIT_entry*)HOT_TABLE->__exidx_end
-                - (struct __EIT_entry*)HOT_TABLE->__exidx_start;
-        return (_Unwind_Ptr)HOT_TABLE->__exidx_start;
-    }
-    // otherwise, we're in a monolith build or the cold region of a hot/cold build
     *nrec = &__exidx_end - &__exidx_start;
     return (_Unwind_Ptr)&__exidx_start;
 }
