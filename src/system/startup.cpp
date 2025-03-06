@@ -75,7 +75,7 @@ int main() {
 }
 
 // program entrypoint. This is the first function that is run
-// it sets up memory, initializes libc, and then calls main
+// it sets up memory, calls constructors, and then calls main
 extern "C" [[gnu::section(".boot")]]
 void _start() {
     // Symbols provided by the linker script
@@ -91,7 +91,7 @@ void _start() {
     for (uint32_t* sbss = &__sbss_start; sbss < &__sbss_end; sbss++)
         *sbss = 0;
 
-    // Initialize libc
+    // call global constructors
     __libc_init_array();
 
     // call the main function
