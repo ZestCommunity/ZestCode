@@ -108,7 +108,3 @@ $(LIBAR): patch_sdk_headers $(call GETALLOBJ,$(EXCLUDE_SRC_FROM_LIB)) $(EXTRA_LI
 	
 	-$Drm -f $@
 	$(call test_output_2,Creating $@, $(AR) rcs $@ $(addprefix $(libv5rt_EXTRACTION_DIR)/, $(libv5rt_OBJECTS)) $(call GETALLOBJ,$(EXCLUDE_SRC_FROM_LIB)), $(DONE_STRING))
-
-
-# @echo -n "Stripping non-public symbols "
-# $(call test_output,$D$(OBJCOPY) -S -D -g --strip-unneeded --keep-symbols public_symbols.txt $@,$(DONE_STRING))

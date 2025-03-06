@@ -152,31 +152,16 @@ ARCHIVE_TEXT_LIST=$(subst $(SPACE),$(COMMA),$(notdir $(basename $(LIBRARIES))))
 
 LDTIMEOBJ:=$(BINDIR)/_pros_ld_timestamp.o
 
-MONOLITH_BIN:=$(BINDIR)/monolith.bin
-MONOLITH_ELF:=$(basename $(MONOLITH_BIN)).elf
-
-HOT_BIN:=$(BINDIR)/hot.package.bin
-HOT_ELF:=$(basename $(HOT_BIN)).elf
-COLD_BIN:=$(BINDIR)/cold.package.bin
-COLD_ELF:=$(basename $(COLD_BIN)).elf
-
-# Check if USE_PACKAGE is defined to check for migration steps from purduesigbots/pros#87
-ifndef USE_PACKAGE
-$(error Your Makefile must be migrated! Visit https://pros.cs.purdue.edu/v5/releases/kernel3.1.6.html to learn how)
-endif
-
-DEFAULT_BIN=$(MONOLITH_BIN)
-ifeq ($(USE_PACKAGE),1)
-DEFAULT_BIN=$(HOT_BIN)
-endif
+BIN:=$(BINDIR)/monolith.bin
+ELF:=$(basename $(BIN)).elf
 
 -include $(wildcard $(FWDIR)/*.mk)
 
 .PHONY: all clean quick
 
-quick: $(DEFAULT_BIN)
+quick: $(BIN)
 
-all: clean $(DEFAULT_BIN)
+all: clean $(BIN)
 
 clean::
 	@echo Cleaning project
@@ -216,32 +201,13 @@ else
 ELF_DEPS+=$(call GETALLOBJ,$(EXCLUDE_SRCDIRS))
 endif
 
-$(MONOLITH_BIN): $(MONOLITH_ELF) $(BINDIR)
-	$(call test_output_2,Creating $@ for $(DEVICE) ,$(OBJCOPY) $< -O binary -R .hot_init $@,$(DONE_STRING))
+$(BIN): $(ELF) $(BINDIR)
+	$(call test_output_2,Creating $@ for $(DEVICE) ,$(OBJCOPY) $< -O binary $@,$(DONE_STRING))
 
-$(MONOLITH_ELF): $(ELF_DEPS) $(LIBRARIES)
+$(ELF): $(ELF_DEPS) $(LIBRARIES)
 	$(call _pros_ld_timestamp)
 	$(call test_output_2,Linking project with $(ARCHIVE_TEXT_LIST) ,$(LD) $(LDFLAGS) $(ELF_DEPS) $(LDTIMEOBJ) $(call wlprefix,-T$(FWDIR)/v5.ld $(LNK_FLAGS)) -o $@,$(OK_STRING))
 	@echo Section sizes:
-	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
-
-$(COLD_BIN): $(COLD_ELF)
-	$(call test_output_2,Creating cold package binary for $(DEVICE) ,$(OBJCOPY) $< -O binary -R .hot_init $@,$(DONE_STRING))
-
-$(COLD_ELF): $(COLD_LIBRARIES)
-	$(VV)mkdir -p $(dir $@)
-	$(call test_output_2,Creating cold package with $(ARCHIVE_TEXT_LIST) ,$(LD) $(LDFLAGS) $(call wlprefix,--gc-keep-exported --whole-archive $^ -lstdc++ --no-whole-archive) $(call wlprefix,-T$(FWDIR)/v5.ld $(LNK_FLAGS) -o $@),$(OK_STRING))
-	$(call test_output_2,Stripping cold package ,$(OBJCOPY) --strip-symbol=install_hot_table --strip-symbol=__libc_init_array --strip-symbol=_PROS_COMPILE_DIRECTORY --strip-symbol=_PROS_COMPILE_TIMESTAMP --strip-symbol=_PROS_COMPILE_TIMESTAMP_INT $@ $@, $(DONE_STRING))
-	@echo Section sizes:
-	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
-
-$(HOT_BIN): $(HOT_ELF) $(COLD_BIN)
-	$(call test_output_2,Creating $@ for $(DEVICE) ,$(OBJCOPY) $< -O binary $@,$(DONE_STRING))
-
-$(HOT_ELF): $(COLD_ELF) $(ELF_DEPS)
-	$(call _pros_ld_timestamp)
-	$(call test_output_2,Linking hot project with $(COLD_ELF) and $(ARCHIVE_TEXT_LIST) ,$(LD) -nostartfiles $(LDFLAGS) $(call wlprefix,-R $<) $(filter-out $<,$^) $(LDTIMEOBJ) $(LIBRARIES) $(call wlprefix,-T$(FWDIR)/v5-hot.ld $(LNK_FLAGS) -o $@),$(OK_STRING))
-	@printf "%s\n" "Section sizes:"
 	-$(VV)$(SIZETOOL) $(SIZEFLAGS) $@ $(SIZES_SED) $(SIZES_NUMFMT)
 
 define asm_rule
