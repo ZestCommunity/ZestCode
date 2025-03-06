@@ -86,6 +86,8 @@ static inline void print_phase2_vrs(struct phase2_vrs* vrs) {
     fputs("\n", stderr);
 }
 
+// THE COMMENT BELOW IS RELEVANT TO THE OLD HOT/COLD LINKING SYSTEM
+// IT'S ONLY KEPT TEMPORARILY.
 // exidx is the table that tells the unwinder how to unwind a stack frame
 // for a PC. Under hot/cold, there's two tables and the unwinder was kind
 // enough to let us implement a function to give it a table for a PC so
@@ -97,7 +99,6 @@ struct __EIT_entry {
 // these are all defined by the linker
 extern struct __EIT_entry __exidx_start;
 extern struct __EIT_entry __exidx_end;
-extern uint8_t start_of_cold_mem, end_of_cold_mem, start_of_hot_mem, end_of_hot_mem;
 
 _Unwind_Ptr __gnu_Unwind_Find_exidx(_Unwind_Ptr pc, int* nrec) {
     *nrec = &__exidx_end - &__exidx_start;
