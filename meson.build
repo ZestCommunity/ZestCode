@@ -1,0 +1,1 @@
+project('ZestCode', 'cpp')

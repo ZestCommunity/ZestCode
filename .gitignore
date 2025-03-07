@@ -3,3 +3,4 @@
 .clangd/
 .DS_Store
 *.zip
+builddir/
