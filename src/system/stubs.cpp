@@ -84,9 +84,7 @@ caddr_t _sbrk(int incr) {
 [[gnu::visibility("hidden")]]
 extern const void* const __dso_handle = &__dso_handle;
 
-// This function is called by functions like std::abort.
-// it's not called on a normal program exit,
-// even though it probably should.
+// This function is called on exit
 void _exit(int status) {
     // dprintf doesn't work after freeRTOS is suspended
     // so it's run first
@@ -110,8 +108,9 @@ void _exit(int status) {
         vexTasksRun();
     }
 
-    // call libc destructors
-    __libc_fini_array();
+    // call global destructors destructors if this is a normal exit
+    if (status == 0)
+        __libc_fini_array();
 
     // request to exit the program
     vexSystemExitRequest();
