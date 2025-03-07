@@ -12,13 +12,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "vdml/registry.h"
+#include "vdml/registry.hpp"
 
 #include "kapi.h"
 #include "pros/apix.h"
 #include "pros/misc.h"
 #include "v5_api.h"
-#include "vdml/vdml.h"
+#include "vdml/vdml.hpp"
 
 #include <errno.h>
 #include <stdio.h>

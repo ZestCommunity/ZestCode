@@ -12,7 +12,7 @@
  */
 
 #include "v5_api.h"
-#include "vdml/vdml.h"
+#include "vdml/vdml.hpp"
 
 int32_t battery_get_voltage(void) {
     if (!internal_port_mutex_take(V5_PORT_BATTERY)) {
