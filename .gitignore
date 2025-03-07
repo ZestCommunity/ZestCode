@@ -1,6 +1,5 @@
 .vscode/
 .idea/
 .clangd/
-builddir/
 .DS_Store
 *.zip
