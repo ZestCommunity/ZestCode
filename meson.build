@@ -1,5 +1,5 @@
-project('testproject', 'cpp')
+project('ZestCode', 'cpp')
 
-exe = executable('testproject', 'testproject.cpp', install: true)
+exe = executable('ZestCode', 'src/main.cpp', install: true)
 
 test('basic', exe)

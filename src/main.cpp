@@ -1,6 +1,5 @@
-#include "main.h"
+#include <iostream>
 
-void initialize() {
-    pros::delay(3000);
-    std::cout << "hello world!" << std::endl;
+int main() {
+    std::cout << "Hello World!" << std::endl;
 }
