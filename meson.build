@@ -6,6 +6,15 @@ project('zestcode', ['c', 'cpp'],
   version : '0.0.0',
   default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=c++23'])
 
+# global defines to configure libm and libc
+global_defines = [
+  '-D_POSIX_THREADS',
+  '-D_UNIX98_THREAD_MUTEX_ATTRIBUTES',
+  '-D_POSIX_TIMERS',
+  '-D_POSIX_MONOTONIC_CLOCK'
+]
+
+add_global_arguments(global_defines, language: ['c', 'cpp'])
 
 src = [
   './src/system/rtos_hooks.c',
