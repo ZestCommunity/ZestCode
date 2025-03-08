@@ -1,3 +1,5 @@
+# build machine - the computer that will compile the program
+# host machine - the machine on which the compiled binary will run
 [binaries]
 c = 'arm-none-eabi-gcc'
 cpp = 'arm-none-eabi-g++'

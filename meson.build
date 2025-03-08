@@ -42,10 +42,11 @@ src = [
   './src/rtos/rtos.cpp',
   './src/rtos/timers.c',
   './src/rtos/stream_buffer.c',
-  './src/rtos/heap_4.c'
+  './src/rtos/heap_4.c',
+  './src/main.cpp'
 ]
 
-include = [
+inc = [
   './include/',
   './include/common/',
   './include/pros/',
@@ -59,3 +60,5 @@ v5rt_dep = declare_dependency(
   link_args: './firmware/libv5rt/sdk/vexv5/libv5rt.a',
   include_directories: include_directories('firmware/libv5rt/sdk/vexv5/include/')
 )
+
+executable('zestcode', sources: src, include_directories: inc, dependencies: v5rt_dep)
