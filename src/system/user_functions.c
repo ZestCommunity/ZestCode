@@ -1,8 +1,5 @@
 #include "system/user_functions.h"
 
-#include "kapi.h"
-#include "system/hot.h"
-
 // how this all works...
 // system daemon starts an autonomous task which calls user_autonomous()
 // user_autonomous will invoke a hot-linked autonomous if one is available
@@ -37,11 +34,7 @@
 // }
 #define FUNC(NAME)                                                                                 \
     void user_##NAME() {                                                                           \
-        if (HOT_TABLE && HOT_TABLE->functions.NAME) {                                              \
-            HOT_TABLE->functions.NAME();                                                           \
-        } else {                                                                                   \
-            NAME();                                                                                \
-        }                                                                                          \
+        NAME();                                                                                    \
     }
 #include "system/user_functions/list.h"
 #undef FUNC

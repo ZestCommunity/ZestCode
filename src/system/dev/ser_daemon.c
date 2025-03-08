@@ -18,11 +18,7 @@
 #include "kapi.h"
 #include "pros/version.h"
 #include "system/dev/banners.h"
-#include "system/hot.h"
-#include "system/optimizers.h"
 #include "v5_api.h"
-
-#include <errno.h>
 
 #define MAX_COMMAND_LENGTH 32
 
@@ -40,13 +36,16 @@ void print_small_banner(void) {
     if (!banner_is_enabled)
         return;
     uint32_t uptime = millis();
-    char const* const timestamp = (HOT_TABLE && HOT_TABLE->compile_timestamp)
-                                      ? HOT_TABLE->compile_timestamp
-                                      : _PROS_COMPILE_TIMESTAMP;
-    char const* const directory = (HOT_TABLE && HOT_TABLE->compile_directory)
-                                      ? HOT_TABLE->compile_directory
-                                      : _PROS_COMPILE_DIRECTORY;
-    iprintf(short_banner, PROS_VERSION_STRING, uptime / 1000, uptime % 1000, timestamp, directory);
+    char const* const timestamp = _PROS_COMPILE_TIMESTAMP;
+    char const* const directory = _PROS_COMPILE_DIRECTORY;
+    iprintf(
+        short_banner,
+        PROS_VERSION_STRING,
+        uptime / 1000, // clangd is lying to you
+        uptime % 1000, // clangd is lying to you
+        timestamp,
+        directory
+    );
 }
 
 void print_large_banner(void) {
@@ -56,12 +55,8 @@ void print_large_banner(void) {
     uint32_t* sys_ver = (uint32_t*)version;
     *sys_ver = vexSystemVersion();
     uint32_t uptime = millis();
-    char const* const timestamp = (HOT_TABLE && HOT_TABLE->compile_timestamp)
-                                      ? HOT_TABLE->compile_timestamp
-                                      : _PROS_COMPILE_TIMESTAMP;
-    char const* const directory = (HOT_TABLE && HOT_TABLE->compile_directory)
-                                      ? HOT_TABLE->compile_directory
-                                      : _PROS_COMPILE_DIRECTORY;
+    char const* const timestamp = _PROS_COMPILE_TIMESTAMP;
+    char const* const directory = _PROS_COMPILE_DIRECTORY;
     iprintf(
         large_banner,
         PROS_VERSION_STRING,
@@ -69,8 +64,8 @@ void print_large_banner(void) {
         version[2],
         version[1],
         version[0],
-        uptime / 1000,
-        uptime % 1000,
+        uptime / 1000, // clangd is lying to you
+        uptime % 1000, // clangd is lying to you
         timestamp,
         directory
     );
@@ -128,7 +123,7 @@ static inline uint8_t vex_read_char() {
         task_delay(1);
         b = vexSerialReadChar(1);
     }
-    // Don't get rid of the literal type suffix, it ensures optimiziations don't
+    // Don't get rid of the literal type suffix, it ensures optimizations don't
     // break this condition
     return (uint8_t)b;
 }

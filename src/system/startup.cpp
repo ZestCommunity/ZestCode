@@ -33,7 +33,6 @@ void display_initialize() {}
 
 void rtos_sched_start();
 void vdml_initialize();
-void invoke_install_hot_table();
 
 // libc initialization
 void __libc_init_array();
@@ -60,7 +59,6 @@ static void pros_init() {
     display_initialize();
     // Note: system_daemon_initialize must be called last, per design requirements.
     system_daemon_initialize();
-    invoke_install_hot_table();
 }
 
 // the main function, starts the scheduler and ensures the program exits gracefully if it fails
@@ -75,7 +73,7 @@ int main() {
 }
 
 // program entrypoint. This is the first function that is run
-// it sets up memory, initializes libc, and then calls main
+// it sets up memory, calls constructors, and then calls main
 extern "C" [[gnu::section(".boot")]]
 void _start() {
     // Symbols provided by the linker script
@@ -91,9 +89,14 @@ void _start() {
     for (uint32_t* sbss = &__sbss_start; sbss < &__sbss_end; sbss++)
         *sbss = 0;
 
-    // Initialize libc
+    // call global constructors
     __libc_init_array();
 
     // call the main function
+    // This GCC warning is a nuisance.
+    // This is the industry standard
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
     main();
+#pragma GCC diagnostic pop
 }

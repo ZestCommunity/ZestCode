@@ -13,8 +13,7 @@
 
 #include "kapi.h"
 #include "system/optimizers.h"
-#include "system/user_functions.h"
-#include "v5_api.h"
+#include "system/user_functions.h" // IWYU pragma: keep
 
 extern void vdml_background_processing();
 
