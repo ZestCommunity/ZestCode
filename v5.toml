@@ -1,5 +1,3 @@
-# build machine - the computer that will compile the program
-# host machine - the machine on which the compiled binary will run
 [binaries]
 c = 'arm-none-eabi-gcc'
 cpp = 'arm-none-eabi-g++'
@@ -7,3 +5,11 @@ ar = 'arm-none-eabi-ar'
 ld = 'arm-none-eabi-g++'
 objcopy = 'arm-none-eabi-objcopy'
 strip = 'arm-none-eabi-strip'
+
+# host machine - the machine on which the compiled binary will run
+[host_machine]
+system = ''
+kernel = 'none'
+cpu_family = 'arm'
+cpu = 'cortex-a9'
+endian = 'little'
