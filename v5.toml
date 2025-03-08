@@ -8,7 +8,7 @@ strip = 'arm-none-eabi-strip'
 
 # host machine - the machine on which the compiled binary will run
 [host_machine]
-system = ''
+system = 'none'
 kernel = 'none'
 cpu_family = 'arm'
 cpu = 'cortex-a9'
