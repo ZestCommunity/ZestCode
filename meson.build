@@ -1,6 +1,37 @@
 project('zestcode', 'c', 'cpp',
   version : '0.0.0',
-  default_options : ['warning_level=3', 'c_std=gnu2x', 'cpp_std=c++23'])
+  default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=c++23'])
+
+  # Compiler flags for C and C++
+add_project_arguments(
+  '-mcpu=cortex-a9',
+  '-mfpu=neon-fp16',
+  '-mfloat-abi=hard',
+  '-ffunction-sections',
+  '-fdata-sections',
+  '-fdiagnostics-color',
+  '-funwind-tables',
+  '-Wno-psabi',
+  '-D_POSIX_THREADS',
+  '-D_UNIX98_THREAD_MUTEX_ATTRIBUTES',
+  '-D_POSIX_TIMERS',
+  '-D_POSIX_MONOTONIC_CLOCK',
+  language : ['c', 'cpp']
+)
+
+# Linker flags
+add_project_link_arguments(
+  '-nostdlib',
+  '-Wl,--gc-sections',
+  '-Wl,--start-group',
+  '-lgcc',
+  '-lstdc++',
+  '-Wl,--end-group',
+  '-Wl,-T./firmware/v5-common.ld',
+  '-Wl,--no-warn-rwx-segments',
+  language : ['c', 'cpp']
+)
+
 
 src = [
   './src/system/rtos_hooks.c',

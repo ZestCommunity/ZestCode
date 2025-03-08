@@ -2,13 +2,6 @@
 c = 'arm-none-eabi-gcc'
 cpp = 'arm-none-eabi-g++'
 ar = 'arm-none-eabi-ar'
+ld = 'arm-none-eabi-g++'
+objcopy = 'arm-none-eabi-objcopy'
 strip = 'arm-none-eabi-strip'
-
-[properties]
-
-[host_machine]
-system = ''
-kernel = 'none'
-cpu_family = 'arm'
-cpu = 'cortex-a9'
-endian = 'little'
