@@ -53,7 +53,6 @@ inc = [
   './include/rtos/',
   './include/system/',
   './include/vdml',
-  'firmware/libv5rt/sdk/vexv5/include/',
 ]
 
 v5rt_dep = declare_dependency(
