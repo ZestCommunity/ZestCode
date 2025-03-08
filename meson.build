@@ -1,36 +1,10 @@
-project('zestcode', 'c', 'cpp',
+# main project config
+# here, we specify the name, what programming languages we use,
+# the project version, and some default options like the warning level
+# and c/c++ standards.
+project('zestcode', ['c', 'cpp'],
   version : '0.0.0',
   default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=c++23'])
-
-  # Compiler flags for C and C++
-add_project_arguments(
-  '-mcpu=cortex-a9',
-  '-mfpu=neon-fp16',
-  '-mfloat-abi=hard',
-  '-ffunction-sections',
-  '-fdata-sections',
-  '-fdiagnostics-color',
-  '-funwind-tables',
-  '-Wno-psabi',
-  '-D_POSIX_THREADS',
-  '-D_UNIX98_THREAD_MUTEX_ATTRIBUTES',
-  '-D_POSIX_TIMERS',
-  '-D_POSIX_MONOTONIC_CLOCK',
-  language : ['c', 'cpp']
-)
-
-# Linker flags
-add_project_link_arguments(
-  '-nostdlib',
-  '-Wl,--gc-sections',
-  '-Wl,--start-group',
-  '-lgcc',
-  '-lstdc++',
-  '-Wl,--end-group',
-  '-Wl,-T./firmware/v5-common.ld',
-  '-Wl,--no-warn-rwx-segments',
-  language : ['c', 'cpp']
-)
 
 
 src = [
@@ -81,25 +55,7 @@ include = [
   'firmware/libv5rt/sdk/vexv5/include/',
 ]
 
-lib_zestcode = static_library(
-  'zestcode',
-  sources: src,
-  include_directories: include,
-)
-
-project_src = [
-    './src/main.cpp'
-]
-
 v5rt_dep = declare_dependency(
   link_args: './firmware/libv5rt/sdk/vexv5/libv5rt.a',
   include_directories: include_directories('firmware/libv5rt/sdk/vexv5/include/')
-)
-
-executable('zestcode', 
-  sources : project_src,
-  link_with : lib_zestcode,
-  include_directories: include,
-  install : true,
-  dependencies: v5rt_dep
 )
