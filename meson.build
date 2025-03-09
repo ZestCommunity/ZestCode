@@ -65,9 +65,6 @@ inc = [
   './include/vdml',
 ]
 
-v5rt_dep = declare_dependency(
-  link_args: './firmware/libv5rt/sdk/vexv5/libv5rt.a',
-  include_directories: include_directories('firmware/libv5rt/sdk/vexv5/include/')
-)
+dependency('v5rt')
 
-executable('zestcode', sources: src, include_directories: inc, dependencies: v5rt_dep, link_args: '-nostdlib')
+executable('zestcode', sources: src, include_directories: inc, link_args: '-nostdlib')

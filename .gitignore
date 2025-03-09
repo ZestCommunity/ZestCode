@@ -16,3 +16,4 @@ temp.errors
 .DS_Store
 *.zip
 firmware/libv5rt
+subprojects/packagefiles
