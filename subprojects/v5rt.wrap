@@ -1,8 +1,8 @@
 [wrap-file]
-directory = libv5rt
+directory = V5_20240802_15_00_00
 
 source_url = https://content.vexrobotics.com/vexos/public/V5/vscode/sdk/cpp/V5_20240802_15_00_00.zip
-source_filename = libv5rt.zip
+source_filename = V5_20240802_15_00_00.zip
 source_hash = 51FC8695402DD39D5713D20BDA5D23699E85913D595E47CD550112EC290730A2
 
 [provide]
