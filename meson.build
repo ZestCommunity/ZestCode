@@ -4,7 +4,7 @@
 # and c/c++ standards.
 project('zestcode', ['c', 'cpp'],
   version : '0.0.0',
-  default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=c++23'])
+  default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=gnu++23'])
 
 # global defines to configure libm and libc
 global_defines = [
