@@ -70,4 +70,4 @@ v5rt_dep = declare_dependency(
   include_directories: include_directories('firmware/libv5rt/sdk/vexv5/include/')
 )
 
-executable('zestcode', sources: src, include_directories: inc, dependencies: v5rt_dep)
+executable('zestcode', sources: src, include_directories: inc, dependencies: v5rt_dep, link_args: '-nostdlib')
