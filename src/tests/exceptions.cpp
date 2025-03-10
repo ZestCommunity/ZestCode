@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include "rtos/FreeRTOS.h"
 #include "rtos/task.h"

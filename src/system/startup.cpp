@@ -13,7 +13,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include <cstdint>
 #include <cstdio>
