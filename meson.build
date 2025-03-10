@@ -65,6 +65,6 @@ inc = [
   './include/vdml',
 ]
 
-dependency('v5rt')
+dependency('v5')
 
 executable('zestcode', sources: src, include_directories: inc, link_args: '-nostdlib')
