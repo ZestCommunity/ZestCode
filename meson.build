@@ -71,6 +71,5 @@ executable(
   'zestcode',
   sources: src,
   include_directories: inc,
-  link_args: '-nostdlib',
   dependencies: v5dep
 )

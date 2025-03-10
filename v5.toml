@@ -15,4 +15,4 @@ cpu = 'cortex-a9'
 endian = 'little'
 
 [properties]
-arch_flags = ['-mcpu=cortex-a9', '-mfpu=neon-fp16', '-mfloat-abi=hard']
+arch_flags = ['-mcpu=cortex-a9', '-mfpu=neon-fp16', '-mfloat-abi=softfp']
