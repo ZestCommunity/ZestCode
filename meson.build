@@ -1,7 +1,3 @@
-# main project config
-# here, we specify the name, what programming languages we use,
-# the project version, and some default options like the warning level
-# and c/c++ standards.
 project('zestcode', ['c', 'cpp'],
   version : '0.0.0',
   default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=gnu++23'])
@@ -14,8 +10,10 @@ stdlib_conf = [
   '-D_POSIX_MONOTONIC_CLOCK'
 ]
 
-add_global_arguments(meson.get_external_property('arch_flags'), language: ['c', 'cpp'])
+# apply config from v5.ini
 add_global_arguments(stdlib_conf, language: ['c', 'cpp'])
+add_global_arguments(meson.get_external_property('arch_flags'), language: ['c', 'cpp'])
+add_global_link_arguments(meson.get_external_property('arch_flags'), language: ['c', 'cpp'])
 
 src = [
   './src/system/rtos_hooks.c',
@@ -68,13 +66,11 @@ inc = [
   './include/vdml',
 ]
 
-v5dep = dependency('v5')
-
 executable(
   'zestcode',
   sources: src,
   include_directories: inc,
-  dependencies: v5dep,
+  dependencies: dependency('v5'),
   link_args: [
     '-nostdlib',
     '-T' + meson.get_external_property('linkerscript'),
