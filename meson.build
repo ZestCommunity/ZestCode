@@ -43,7 +43,7 @@ src = [
   './src/common/gid.c',
   './src/common/set.c',
   './src/common/linkedlist.c',
-  './src/common/string.c',
+  './src/common/string2.c',
   './src/common/cobs.c',
   './src/rtos/queue.c',
   './src/rtos/semphr.c',
