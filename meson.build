@@ -72,5 +72,12 @@ executable(
   sources: src,
   include_directories: inc,
   dependencies: v5dep,
-  link_args: '-T' + meson.get_cross_property('linkerscript')
+  link_args: [
+    '-nostdlib',
+    '-T' + meson.get_cross_property('linkerscript'),
+    '-lc',
+    '-lm',
+    '-lgcc',
+    '-lstdc++',
+  ]
 )
