@@ -1,5 +1,5 @@
-#include "FreeRTOS.h"
-#include "semphr.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/semphr.h"
 
 /**
  * semphr. h

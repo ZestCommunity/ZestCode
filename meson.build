@@ -59,11 +59,6 @@ src = [
 
 inc = [
   './include/',
-  './include/common/',
-  './include/pros/',
-  './include/rtos/',
-  './include/system/',
-  './include/vdml',
 ]
 
 executable(
