@@ -43,12 +43,19 @@ src = [
   './src/rtos/stream_buffer.c',
   './src/rtos/heap_4.c',
   './src/rtos/portASM.S',
-  './src/main.cpp'
 ]
 
-executable(
+libzestcode = static_library(
   'zestcode',
   sources: src,
   include_directories: './include/',
-  dependencies: dependency('v5'),
+  dependencies: dependency('v5_header'),
+)
+
+executable(
+  'monolith',
+  sources: './src/main.cpp',
+  include_directories: './include/',
+  link_with: libzestcode,
+  dependencies: dependency('v5')
 )
