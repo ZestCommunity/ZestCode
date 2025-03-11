@@ -56,7 +56,7 @@ elf = executable(
   meson.project_name() + '.elf',
   sources: './src/main.cpp',
   include_directories: './include/',
-  link_with: [libzestcode],
+  link_whole: [libzestcode],
   dependencies: dependency('v5'),
 )
 
