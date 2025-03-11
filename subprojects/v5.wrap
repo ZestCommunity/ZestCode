@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://github.com/SizzinSeal/libv5rt-meson.git
+revision = HEAD
+depth = 1
+ 
+[provide]
+v5 = v5_dep

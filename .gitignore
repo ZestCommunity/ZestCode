@@ -16,4 +16,5 @@ temp.errors
 .DS_Store
 *.zip
 firmware/libv5rt
-subprojects/**
+# only ignore subfolders, not files
+subprojects/*/
