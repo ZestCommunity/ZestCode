@@ -77,7 +77,7 @@ executable(
   dependencies: v5dep,
   link_args: [
     '-nostdlib',
-    '-T' + meson.get_cross_property('linkerscript'),
+    '-T' + meson.get_external_property('linkerscript'),
     '-lc',
     '-lm',
     '-lgcc',
