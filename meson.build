@@ -32,12 +32,14 @@ src = [
   './src/system/envlock.c',
   './src/system/stubs.cpp',
   './src/system/system_daemon.c',
+  './src/system/xilinx_vectors.s',
   './src/devices/screen.c',
   './src/devices/battery.cpp',
   './src/devices/vdml_usd.c',
   './src/devices/vdml.c',
   './src/devices/registry.c',
   './src/devices/battery.c',
+  './src/devices/competition.cpp',
   './src/common/gid.c',
   './src/common/set.c',
   './src/common/linkedlist.c',
@@ -53,6 +55,7 @@ src = [
   './src/rtos/timers.c',
   './src/rtos/stream_buffer.c',
   './src/rtos/heap_4.c',
+  './src/rtos/portASM.S',
   './src/main.cpp'
 ]
 
