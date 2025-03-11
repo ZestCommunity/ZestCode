@@ -57,14 +57,10 @@ src = [
   './src/main.cpp'
 ]
 
-inc = [
-  './include/',
-]
-
 executable(
   'zestcode',
   sources: src,
-  include_directories: inc,
+  include_directories: './include/',
   dependencies: dependency('v5'),
   link_args: [
     '-nostdlib',
