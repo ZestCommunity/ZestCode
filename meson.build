@@ -1,19 +1,8 @@
-project('zestcode', ['c', 'cpp'],
-  version : '0.0.0',
-  default_options : ['warning_level=0', 'c_std=gnu2x', 'cpp_std=gnu++23'])
-
-# global defines to configure standard library
-stdlib_conf = [
-  '-D_POSIX_THREADS',
-  '-D_UNIX98_THREAD_MUTEX_ATTRIBUTES',
-  '-D_POSIX_TIMERS',
-  '-D_POSIX_MONOTONIC_CLOCK'
-]
-
-# apply config from v5.ini
-add_global_arguments(stdlib_conf, language: ['c', 'cpp'])
-add_global_arguments(meson.get_external_property('arch_flags'), language: ['c', 'cpp'])
-add_global_link_arguments(meson.get_external_property('arch_flags'), language: ['c', 'cpp'])
+project(
+  'zestcode',
+  ['c', 'cpp'],
+  version : '0.0.0'
+)
 
 src = [
   './src/system/rtos_hooks.c',
@@ -62,12 +51,4 @@ executable(
   sources: src,
   include_directories: './include/',
   dependencies: dependency('v5'),
-  link_args: [
-    '-nostdlib',
-    '-T' + meson.get_external_property('linkerscript'),
-    '-lc',
-    '-lm',
-    '-lgcc',
-    '-lstdc++',
-  ]
 )
