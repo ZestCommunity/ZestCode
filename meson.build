@@ -52,10 +52,21 @@ libzestcode = static_library(
   dependencies: dependency('v5_header'),
 )
 
-executable(
-  'monolith',
+elf = executable(
+  meson.project_name() + '.elf',
   sources: './src/main.cpp',
   include_directories: './include/',
-  link_with: libzestcode,
-  dependencies: dependency('v5')
+  link_with: [libzestcode],
+  dependencies: dependency('v5'),
+)
+
+objcopy = find_program('arm-none-eabi-objcopy')
+
+# meson won't strip the executable, so we have to do it ourselves
+custom_target(
+  meson.project_name() + '.bin',
+  output: meson.project_name() + '.bin',
+  input: elf,
+  build_by_default: true,
+  command: [objcopy, ['-O', 'binary', '-S', '@INPUT@', '@OUTPUT@']],
 )
