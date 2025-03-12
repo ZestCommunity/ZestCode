@@ -51,9 +51,8 @@ arm_none_eabi_gcc = find_program('arm-none-eabi-gcc')
 python = find_program('python3')
 run_command(python, 'build/patch_clangd.py', arm_none_eabi_gcc, check: true)
 
-# this is what user projects will link against
-lib = static_library(
-  'libzestcode.a',
+# this is what user projects will link against, so we use declare_dependency instead of static_library
+zestcode_dep = declare_dependency(
   sources: src,
   include_directories: './include/',
   dependencies: dependency('v5_header'), # vex sdk header files
@@ -63,14 +62,14 @@ elf = executable(
   'program.elf',
   sources: './src/main.cpp',
   include_directories: './include/',
-  link_whole: lib, # link_whole to override libc weak symbols
-  dependencies: dependency('v5'), # link to the vex sdk
+  dependencies: [
+    dependency('v5'), # link to the vex sdk
+    zestcode_dep.as_link_whole() # link whole so libc symbols are overridden
+  ]
 )
 
-# by using find_program, we enable meson to do some checks that it's all working properly.
-objcopy = find_program('arm-none-eabi-objcopy')
-
 # meson won't strip the executable, so we have to do it ourselves
+objcopy = find_program('arm-none-eabi-objcopy')
 custom_target(
   'program.bin',
   output: 'program.bin',
