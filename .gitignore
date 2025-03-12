@@ -12,6 +12,7 @@ temp.log
 temp.errors
 .d/
 .clangd/
+/.clangd
 .cache/
 .DS_Store
 *.zip
