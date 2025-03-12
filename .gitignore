@@ -19,3 +19,4 @@ temp.errors
 firmware/libv5rt
 # only ignore subfolders, not files
 subprojects/*/
+builddir/
