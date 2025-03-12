@@ -1,22 +1,9 @@
+# IDEs
 .vscode/
 .idea/
-bin/
-.*.sw*
-template/
-version
-cquery_log.txt
-compile_commands.json
-.ccls-cache/
-.ccls
-temp.log
-temp.errors
-.d/
-.clangd/
-/.clangd
-.cache/
+# OS
 .DS_Store
-*.zip
-firmware/libv5rt
-# only ignore subfolders, not files
+# Meson
+/.clangd
 subprojects/*/
 builddir/
