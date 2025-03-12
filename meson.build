@@ -4,6 +4,15 @@ project(
   version : '0.0.0'
 )
 
+python = find_program('python3')
+
+# Run a script during configuration
+result = run_command(python, 'myscript.py', '--some-option')
+if result.returncode() != 0
+  error('myscript.py failed with error: ' + result.stderr())
+endif
+message('Script output: ' + result.stdout())
+
 src = [
   './src/system/rtos_hooks.c',
   './src/system/user_functions.c',
