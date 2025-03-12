@@ -49,7 +49,7 @@ src = [
 # it patches the .clangd file so the system includes work.
 arm_none_eabi_gcc = find_program('arm-none-eabi-gcc')
 python = find_program('python3')
-run_command(python, 'scripts/patch_clangd.py', arm_none_eabi_gcc, check: true)
+run_command(python, 'build/patch_clangd.py', arm_none_eabi_gcc, check: true)
 
 # this is what user projects will link against
 lib = static_library(
