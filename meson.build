@@ -45,28 +45,30 @@ src = [
   './src/rtos/portASM.S',
 ]
 
-libzestcode = static_library(
-  'zestcode',
+# this is what user projects will link against
+lib = static_library(
+  'libzestcode.a',
   sources: src,
   include_directories: './include/',
-  dependencies: dependency('v5_header'),
+  dependencies: dependency('v5_header'), # vex sdk header files
 )
 
 elf = executable(
-  meson.project_name() + '.elf',
+  'program.elf',
   sources: './src/main.cpp',
   include_directories: './include/',
-  link_whole: [libzestcode],
-  dependencies: dependency('v5'),
+  link_whole: lib, # link_whole to override libc weak symbols
+  dependencies: dependency('v5'), # link to the vex sdk
 )
 
+# by using find_program, we enable meson to do some checks that it's all working properly.
 objcopy = find_program('arm-none-eabi-objcopy')
 
 # meson won't strip the executable, so we have to do it ourselves
 custom_target(
-  meson.project_name() + '.bin',
-  output: meson.project_name() + '.bin',
+   'program.bin',
+  output: 'program.bin',
   input: elf,
-  build_by_default: true,
+  build_by_default: true, # otherwise it won't be built
   command: [objcopy, ['-O', 'binary', '-S', '@INPUT@', '@OUTPUT@']],
 )
