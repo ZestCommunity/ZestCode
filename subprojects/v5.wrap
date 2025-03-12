@@ -1,5 +1,5 @@
 [wrap-git]
-url = https://github.com/SizzinSeal/libv5rt-meson.git
+url = https://github.com/ZestCommunity/libv5rt-meson.git
 revision = v1.0
 depth = 1
  
