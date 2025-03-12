@@ -1,11 +1,12 @@
 CompileFlags:
   CompilationDatabase: builddir # this is where meson generates compile_commands.json
   Add: [
-    # DO NOT CHANGE THESE FIRST FIVE LINES OF COMMENTS!!!
-    # Meson will call a script whenever you configure the project, which will replace
-    # these 5 lines with the path to the arm-none-eabi system headers.
-    # If you are reading this, you haven't configured the project yet. Run
-    # "meson setup --wipe --cross-file v5.ini builddir" in your terminal.
+    "-isystemC:/Users/Liam Teale/AppData/Roaming/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-windows/usr/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/include/c++/13.3.1",
+    "-isystemC:/Users/Liam Teale/AppData/Roaming/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-windows/usr/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/include/c++/13.3.1/arm-none-eabi/thumb/v7-a+simd/softfp",
+    "-isystemC:/Users/Liam Teale/AppData/Roaming/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-windows/usr/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/include/c++/13.3.1/backward",
+    "-isystemC:/Users/Liam Teale/AppData/Roaming/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-windows/usr/bin/../lib/gcc/arm-none-eabi/13.3.1/include",       
+    "-isystemC:/Users/Liam Teale/AppData/Roaming/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-windows/usr/bin/../lib/gcc/arm-none-eabi/13.3.1/include-fixed", 
+    "-isystemC:/Users/Liam Teale/AppData/Roaming/Code/User/globalStorage/sigbots.pros/install/pros-toolchain-windows/usr/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/include",
   ]
 Index:
   StandardLibrary: No # we use headers from arm-none-eabi. We can turn this off with no downside.

@@ -45,6 +45,17 @@ src = [
   './src/rtos/portASM.S',
 ]
 
+# this script runs whenever meson is configured.
+# it patches the .clangd file so the system includes work.
+arm_none_eabi_gcc = find_program('arm-none-eabi-gcc')
+python = find_program('python3')
+clangd_patch_result = run_command(python, 'scripts/patch_clangd.py', arm_none_eabi_gcc)
+if clangd_patch_result.returncode() != 0
+  error('patch_clangd.py failed: ' + clangd_patch_result.stderr())
+else
+  message('patched .clangd successfully')
+endif
+
 # this is what user projects will link against
 lib = static_library(
   'libzestcode.a',
