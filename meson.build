@@ -66,7 +66,7 @@ objcopy = find_program('arm-none-eabi-objcopy')
 
 # meson won't strip the executable, so we have to do it ourselves
 custom_target(
-   'program.bin',
+  'program.bin',
   output: 'program.bin',
   input: elf,
   build_by_default: true, # otherwise it won't be built
