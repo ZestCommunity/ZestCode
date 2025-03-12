@@ -1,12 +1,7 @@
 CompileFlags:
   CompilationDatabase: builddir # this is where meson generates compile_commands.json
   Add: [
-    # DO NOT CHANGE THESE FIRST 6 LINES OF COMMENTS!!!
-    # Meson will call a script whenever you configure the project, which will replace
-    # these 5 lines with the path to the arm-none-eabi system headers.
-    # If you are reading this, you haven't configured the project yet. Run
-    # "meson setup --wipe --cross-file v5.ini builddir" in your terminal.
-    # YOU'VE BEEN WARNED!!!
+    # system include paths will be inserted, making them the first 6 elements of the array
   ]
 Index:
   StandardLibrary: No # we use headers from arm-none-eabi. We can turn this off with no downside.
