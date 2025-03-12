@@ -39,7 +39,7 @@ def main():
     # Construct the six include strings.
     outputs = [
         f"-isystem{base_dir}/lib/gcc/arm-none-eabi/{gcc_version}/../../../../arm-none-eabi/include/c++/{gcc_version}",
-        f"-isystem{base_dir}/lib/gcc/arm-none-eabi/{gcc_version}/../../../../arm-none-eabi/include/c++/{gcc_version}/arm-none-eabi/thumb/v7-a+simd/softfp",
+        f"-isystem{base_dir}/lib/gcc/arm-none-eabi/{gcc_version}/../../../../arm-none-eabi/include/c++/{gcc_version}/arm-none-eabi/thumb/v7-a+simd/hard",
         f"-isystem{base_dir}/lib/gcc/arm-none-eabi/{gcc_version}/../../../../arm-none-eabi/include/c++/{gcc_version}/backward",
         f"-isystem{base_dir}/lib/gcc/arm-none-eabi/{gcc_version}/include",
         f"-isystem{base_dir}/lib/gcc/arm-none-eabi/{gcc_version}/include-fixed",
