@@ -116,7 +116,7 @@ include = include_directories('./include')
 zestcode_dep = declare_dependency(
   sources: source,
   include_directories: include,
-  dependencies: dependency('v5_header'), # vex sdk header files
+  dependencies: dependency('v5_header'),
 )
 
 elf = executable(
