@@ -7,7 +7,7 @@ import shutil
 
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python3 script.py <absolute-path-to-arm-none-eabi-gcc>")
+        print(f"Usage: python3 {sys.argv[0]} <absolute-path-to-arm-none-eabi-gcc>")
         sys.exit(1)
 
     gcc_executable = sys.argv[1]
