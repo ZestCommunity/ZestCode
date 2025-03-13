@@ -16,7 +16,6 @@
  */
 
 #include "kapi.h"
-#include "pros/version.h"
 #include "system/dev/banners.h"
 #include "v5_api_patched.h"
 
@@ -40,7 +39,7 @@ void print_small_banner(void) {
     char const* const directory = _PROS_COMPILE_DIRECTORY;
     iprintf(
         short_banner,
-        PROS_VERSION_STRING,
+        "0.0.0", // PROS_VERSION_STRING,
         uptime / 1000, // clangd is lying to you
         uptime % 1000, // clangd is lying to you
         timestamp,
@@ -59,7 +58,7 @@ void print_large_banner(void) {
     char const* const directory = _PROS_COMPILE_DIRECTORY;
     iprintf(
         large_banner,
-        PROS_VERSION_STRING,
+        "0.0.0", // PROS_VERSION_STRING,
         version[3],
         version[2],
         version[1],
