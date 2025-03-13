@@ -4749,6 +4749,13 @@ uint32_t uxReturn;
 
 #if( configUSE_TASK_NOTIFICATIONS == 1 )
 
+	void task_notify_when_deleting(
+		task_t target_task,
+		task_t task_to_notify,
+		uint32_t value,
+		notify_action_e_t notify_action
+	);
+
 	void task_join(task_t task) {
 		if(!task) return;
 		TaskStatus_t xTaskDetails;
