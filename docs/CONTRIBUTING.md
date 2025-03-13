@@ -55,7 +55,7 @@ In Visual Studio Code, open the command palette with (`ctrl+shift+p` or `command
 
 ![VSC repo selection](./assets/contributing/clone.png)
 
-### Step 3: Compiling
+### Step 3: Compile
 
 > [!IMPORTANT]
 > You'll need [Meson](https://mesonbuild.com/Getting-meson.html), and [arm-none-eabi-gcc](https://learn.arm.com/install-guides/gcc/arm-gnu/) for this step.
@@ -75,7 +75,7 @@ meson compile -C build
 > [!TIP]
 > You might have to restart your editor before Clangd starts working properly
 
-### Step 4: Making your changes
+### Step 4: Make your changes
 
 > [!IMPORTANT]
 > If you add any new source files, you will need to add them to [meson.build](../meson.build)
