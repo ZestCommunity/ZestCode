@@ -1,3 +1,8 @@
+/* Linkerscript for the VEX V5.
+ * This script tells the compiler how to structure the program binary,
+ * and where it should be stored in RAM.
+ */
+
 /* This stack is used during initialization, but FreeRTOS tasks have their own
    stack allocated in BSS or Heap (kernel tasks in FreeRTOS .bss heap; user tasks
    in standard heap) */
