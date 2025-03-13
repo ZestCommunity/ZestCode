@@ -130,7 +130,7 @@ elf = executable(
   ]
 )
 
-# meson won't strip the executable, so we have to do it ourselves
+# meson won't create the binary file for uploading, so we have to do it ourselves
 objcopy = find_program('arm-none-eabi-objcopy')
 custom_target(
   'program.bin',
