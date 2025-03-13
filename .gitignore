@@ -6,4 +6,4 @@
 # Meson
 /.clangd
 subprojects/*/
-builddir/
+build/
