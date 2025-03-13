@@ -97,6 +97,10 @@ void _start() {
     // This is the industry standard
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmain"
     main();
+#pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 }
