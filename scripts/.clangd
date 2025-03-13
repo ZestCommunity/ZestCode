@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: builddir # this is where meson generates compile_commands.json
+  CompilationDatabase: build # this is where meson generates compile_commands.json
   Add: [
     # system include paths will be inserted, making them the first 6 elements of the array
   ]
