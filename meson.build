@@ -124,7 +124,7 @@ elf = executable(
   sources: './src/main.cpp',
   include_directories: include,
   dependencies: [
-    dependency('v5'), # link to the vex sdk
+    dependency('v5'),
     zestcode_dep.as_link_whole() # link whole so libc symbols are overridden
   ]
 )
