@@ -13,7 +13,7 @@ project(
     'cpp_std=gnu++23', # latest c++ standard supported in gcc v13
     'warning_level=3', # 0, 1, 2, 3, or everything. Higher means more warnings
     'optimization=s', # minimize binary size to minimize upload times. We have a ton of performance overhead
-    'debug=true' # debug symbols are not included in the final .bin file, so they don't increase upload time at all
+    'debug=true', # debug symbols are not included in the final .bin file, so they don't increase upload time at all
     'force_fallback_for=v5, v5_header'
   ],
 )
