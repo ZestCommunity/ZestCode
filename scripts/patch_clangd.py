@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# Generates a .clangd file from the template .clangd found in the scripts folder, and places it in the project root.
+# Necessary to automatically determine and tell clangd where to find system includes.
+
 import sys
 import os
 import subprocess
