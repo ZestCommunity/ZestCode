@@ -29,12 +29,18 @@ def main():
         print(f"Error: {gcc_dir} is not a valid directory")
         sys.exit(1)
 
+    # List all subdirectories in gcc_dir.
     subdirs = [d for d in os.listdir(gcc_dir) if os.path.isdir(os.path.join(gcc_dir, d))]
-    if len(subdirs) != 1:
-        print(f"Error: Expected exactly one directory in {gcc_dir}, found: {subdirs}")
+    if not subdirs:
+        print(f"Error: No directories found in {gcc_dir}")
         sys.exit(1)
-    
-    gcc_version = subdirs[0]
+
+    # Choose the directory with the highest semantic version.
+    try:
+        gcc_version = max(subdirs, key=lambda v: tuple(map(int, v.split("."))))
+    except Exception as e:
+        print(f"Error: Could not determine highest semantic version in {gcc_dir}: {e}")
+        sys.exit(1)
 
     # Construct the six include strings.
     outputs = [
