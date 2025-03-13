@@ -18,10 +18,25 @@ project(
   ],
 )
 
-# this script runs whenever meson is configured.
-# it patches the .clangd file so the system includes work.
+# patches the .clangd file so the system includes work.
+# runs whenever meson is configured
 python = find_program('python3')
-run_command(python, 'scripts/patch_clangd.py', meson.get_compiler('c'), check: true)
+patch_clangd = files('scripts' / 'patch_clangd.py')
+run_command(python, patch_clangd, meson.get_compiler('c'), check: true)
+
+# possible source file extensions
+file_exts = [
+  '*.s', # assembly
+  '*.S', # assembly
+  '*.c', # C
+  '*.h', # C
+  '*.cpp', # C++
+  '*.hpp' # C++
+]
+get_files = files('scripts' / 'get_files.py')
+# get all source files
+get_files_result = run_command(python, get_files, 'src', file_exts, check: true)
+source = get_files_result.stdout().strip().splitlines()
 
 # optimization flags passed to the compiler
 optimization_flags = [
@@ -67,48 +82,6 @@ add_global_arguments(optimization_flags, formatting_flags, stdlib_conf, language
 add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, system_deps, language: 'c')
 add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, system_deps, language: 'cpp')
 
-# source files
-source = [
-  './src/system/rtos_hooks.c',
-  './src/system/user_functions.c',
-  './src/system/cpp_support.cpp',
-  './src/system/startup.cpp',
-  './src/system/mlock.c',
-  './src/system/dev/file_system_stubs.c',
-  './src/system/dev/usd_driver.c',
-  './src/system/dev/ser_daemon.c',
-  './src/system/dev/ser_driver.c',
-  './src/system/dev/vfs.c',
-  './src/system/unwind.c',
-  './src/system/envlock.c',
-  './src/system/stubs.cpp',
-  './src/system/system_daemon.c',
-  './src/system/xilinx_vectors.s',
-  './src/devices/screen.c',
-  './src/devices/battery.cpp',
-  './src/devices/vdml_usd.c',
-  './src/devices/vdml.c',
-  './src/devices/registry.c',
-  './src/devices/battery.c',
-  './src/devices/competition.cpp',
-  './src/common/gid.c',
-  './src/common/set.c',
-  './src/common/linkedlist.c',
-  './src/common/string2.c',
-  './src/common/cobs.c',
-  './src/rtos/queue.c',
-  './src/rtos/semphr.c',
-  './src/rtos/list.c',
-  './src/rtos/task_notify_when_deleting.c',
-  './src/rtos/tasks.c',
-  './src/rtos/port.c',
-  './src/rtos/rtos.cpp',
-  './src/rtos/timers.c',
-  './src/rtos/stream_buffer.c',
-  './src/rtos/heap_4.c',
-  './src/rtos/portASM.S',
-]
-
 # include directories.
 # we only specify the top level in order to enforce paths in include directives.
 include = include_directories('./include')
@@ -122,7 +95,7 @@ zestcode_dep = declare_dependency(
 
 elf = executable(
   'program.elf',
-  sources: './src/main.cpp',
+  sources: './examples/basic.cpp',
   include_directories: include,
   dependencies: [
     dependency('v5'),
