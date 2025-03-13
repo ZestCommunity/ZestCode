@@ -93,9 +93,10 @@ zestcode_dep = declare_dependency(
   dependencies: dependency('v5_header'),
 )
 
+# TODO: figure out a better way to do this in a future Tests PR
 elf = executable(
   'program.elf',
-  sources: './examples/basic.cpp',
+  sources: './tests/examples/basic.cpp',
   include_directories: include,
   dependencies: [
     dependency('v5'),
