@@ -8,6 +8,7 @@ project(
   'zestcode', # project name (zestcode)
   ['c', 'cpp'], # written in both C and C++ (for now)
   version : '0.0.0',
+  meson_version: '>= 1.2.0', # we use splitlines which was introduced in meson v1.2.0
   default_options: [
     'c_std=gnu2x', # latest c standard supported in gcc v13
     'cpp_std=gnu++23', # latest c++ standard supported in gcc v13
