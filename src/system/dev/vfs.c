@@ -27,7 +27,6 @@
 
 #include "common/gid.h"
 #include "kapi.h"
-#include "system/dev/dev.h"
 #include "system/dev/ser.h"
 #include "system/dev/usd.h"
 #include "system/dev/vfs.h"
@@ -108,8 +107,6 @@ int _open(const char* file, int flags, int mode) {
         return ser_open_r(r, file + strlen("/ser"), flags, mode);
     } else if (strstr(file, "/usd") == file) {
         return usd_open_r(r, file + strlen("/usd"), flags, mode);
-    } else if (strstr(file, "/dev") == file) {
-        return dev_open_r(r, file + strlen("/dev"), flags, mode);
     } else {
         return usd_open_r(r, file, flags, mode);
     }
