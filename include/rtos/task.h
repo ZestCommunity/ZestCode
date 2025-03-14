@@ -25,7 +25,7 @@
  * 1 tab == 4 spaces!
  */
 
-#include "FreeRTOS.h"
+#include "rtos/FreeRTOS.h"
 
 #ifndef INC_TASK_H
 #define INC_TASK_H
@@ -34,7 +34,7 @@
 	#error "include FreeRTOS.h must appear in source files before include task.h"
 #endif
 
-#include "list.h"
+#include "rtos/list.h"
 
 #ifdef __cplusplus
 extern "C" {

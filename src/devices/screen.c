@@ -16,7 +16,7 @@
 
 #include "common/linkedlist.h"
 #include "kapi.h"
-#include "v5_api.h" // vexDisplay*
+#include "v5_api_patched.h" // vexDisplay*
 
 #include <stdint.h>
 #include <stdlib.h>

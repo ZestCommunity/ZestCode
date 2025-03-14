@@ -58,19 +58,29 @@ In Visual Studio Code, open the command palette with (`ctrl+shift+p` or `command
 ### Step 3: Compile
 
 > [!IMPORTANT]
-> You'll need the [clangd](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) and [PROS](https://marketplace.visualstudio.com/items?itemName=sigbots.pros) VSCode extensions for this step
+> You'll need [Meson](https://mesonbuild.com/Getting-meson.html), and [arm-none-eabi-gcc](https://learn.arm.com/install-guides/gcc/arm-gnu/) for this step.
 
-Once you have your ZestCode fork open in VSCode, you'll need to compile it so clangd (your linting tool) works properly. Open the PROS Integrated Terminal, and it should already be busy compiling. If not, run the following command:
+In your project, open your terminal to set up and configure meson with this command:
 
 ```
-make clean; pros build-compile-commands
+meson setup --wipe --cross-file scripts/v5.ini build
 ```
 
-It might take a while for the first build, but subsequent builds will be many times faster. After the build is done, open the command palette and run `clangd: Restart language server`. The linter should now be working properly.
+Then, you can compile the project with this command:
 
-### Step 4: Making your changes
+```
+meson compile -C build
+```
 
-The project file structure is explained in [STRUCTURE.md](./STRUCTURE.md). Read through it so you know where you should make your changes.
+> [!TIP]
+> You might have to restart your editor before Clangd starts working properly
+
+### Step 4: Make your changes
+
+> [!IMPORTANT]
+> If you add any new source files, you will need to add them to [meson.build](../meson.build)
+
+The project file structure is explained in [STRUCTURE.md](../STRUCTURE.md). Read through it so you know where you should make your changes.
 Details on the code style can be found in [STYLEGUIDE.md](./STYLEGUIDE.md).
 
 You should commit changes regularly. This isn't a requirement, but it will make your life easier, especially for more complex PRs.

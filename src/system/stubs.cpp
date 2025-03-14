@@ -18,7 +18,7 @@
 
 #include "pros/misc.h"
 #include "rtos/task.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include <errno.h>
 #include <iostream>

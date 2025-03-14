@@ -12,7 +12,7 @@
  */
 
 #include "pros/misc.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 // TODO: remove this C API
 extern "C" {

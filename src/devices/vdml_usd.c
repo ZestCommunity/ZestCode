@@ -12,7 +12,7 @@
  */
 
 #include "pros/error.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include <errno.h>
 #include <sys/unistd.h>

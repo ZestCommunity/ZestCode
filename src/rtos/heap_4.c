@@ -35,8 +35,8 @@
  */
 #include <stdlib.h>
 
-#include "FreeRTOS.h"
-#include "task.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/task.h"
 
 #if( configSUPPORT_DYNAMIC_ALLOCATION == 0 )
 	#error This file must not be used if configSUPPORT_DYNAMIC_ALLOCATION is 0

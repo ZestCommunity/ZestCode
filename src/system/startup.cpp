@@ -13,7 +13,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -97,6 +97,10 @@ void _start() {
     // This is the industry standard
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmain"
     main();
+#pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 }
