@@ -112,5 +112,5 @@ custom_target(
   output: 'program.bin',
   input: elf,
   build_by_default: true, # otherwise it won't be built
-  command: [objcopy, ['-O', 'binary', '-S', '@INPUT@', '@OUTPUT@']],
+  command: [objcopy, ['-O', 'binary', '-S', '@INPUT@', '@OUTPUT@']]
 )
