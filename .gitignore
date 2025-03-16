@@ -4,5 +4,7 @@
 # OS
 .DS_Store
 # Meson
-/.clangd
 subprojects/*/
+# clangd
+/.clangd
+.cache/

@@ -63,11 +63,7 @@ linker_flags = [
 
 # system libraries we depend on
 system_deps = [
-  '-nostdlib', # we still need to implement some newlib stubs
-  '-lc', # libc
-  '-lm', # libm
-  '-lgcc', #libgcc
-  '-lstdc++', # libstdc++
+  '-nostartfiles', # we still need to implement some newlib stubs
 ]
 add_global_link_arguments( system_deps, language: 'c')
 add_global_link_arguments(system_deps, language: 'cpp')
