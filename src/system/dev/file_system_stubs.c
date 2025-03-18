@@ -17,10 +17,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-int chdir(const char* path) {
-    errno = ENOSYS;
-    return -1;
-}
+
 
 int mkdir(const char* pathname, mode_t mode) {
     errno = ENOSYS;
