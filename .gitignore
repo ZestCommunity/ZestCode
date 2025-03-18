@@ -5,6 +5,8 @@
 .DS_Store
 # Meson
 subprojects/*/
+# vcpkg
+vcpkg_installed/
 # clangd
 /.clangd
 .cache/
