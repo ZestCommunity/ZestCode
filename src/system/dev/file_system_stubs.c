@@ -44,11 +44,6 @@ long pathconf(const char* path, int name) {
     return -1;
 }
 
-char* getcwd(char* buf, size_t size) {
-    errno = ENOSYS;
-    return NULL;
-}
-
 int _unlink(const char* name) {
     errno = ENOSYS;
     return -1;
