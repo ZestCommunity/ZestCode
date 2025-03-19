@@ -17,7 +17,7 @@ jobs:
 
       - name: Run LemLib/pros-build
         id: test
-        uses: ZestCommunity/build-action@v0.1.0
+        uses: ZestCommunity/build-action@v0.1.1
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
