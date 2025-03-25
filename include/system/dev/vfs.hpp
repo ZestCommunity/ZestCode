@@ -33,9 +33,6 @@ inline constexpr FileDescriptor FD_STDERR{2};
 
 class FileDriver : public std::enable_shared_from_this<FileDriver> {
   public:
-    virtual ~FileDriver() = default;
-
-  protected:
     virtual void init() = 0;
     virtual FileDescriptor open(const char* path, int flags, int mode) = 0;
     virtual ssize_t read(std::any, std::span<std::byte>) = 0;
@@ -47,6 +44,7 @@ class FileDriver : public std::enable_shared_from_this<FileDriver> {
     virtual int ctl(std::any, const uint32_t, void* const) = 0;
     FileDescriptor add_vfs_entry(std::any data);
     int32_t update_vfs_entry(FileDescriptor fd, std::any data);
+    virtual ~FileDriver() = default;
 };
 
 struct FileEntry {

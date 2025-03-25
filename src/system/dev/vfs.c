@@ -89,6 +89,7 @@ int vfs_update_entry(int file, struct fs_driver const* const driver, void* arg) 
     return 0;
 }
 
+/*
 int _open(const char* file, int flags, int mode) {
     struct _reent* r = _REENT;
     // Check if the filename is too long or not NULL terminated
@@ -111,6 +112,7 @@ int _open(const char* file, int flags, int mode) {
         return usd_open_r(r, file, flags, mode);
     }
 }
+*/
 
 ssize_t _write(int file, const void* buf, size_t len) {
     struct _reent* r = _REENT;
