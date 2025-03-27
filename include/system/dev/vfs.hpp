@@ -9,6 +9,8 @@
 #include <span>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <expected>
+#include <system_error>
 
 namespace zest::fs {
 
@@ -34,7 +36,7 @@ inline constexpr FileDescriptor FD_STDERR{2};
 class FileDriver : public std::enable_shared_from_this<FileDriver> {
   public:
     virtual void init() = 0;
-    virtual FileDescriptor open(const char* path, int flags, int mode) = 0;
+    virtual std::expected<FileDescriptor, std::error_condition> open(const char* path, int flags, int mode) = 0;
     virtual ssize_t read(std::any, std::span<std::byte>) = 0;
     virtual int write(std::any, std::span<std::byte>) = 0;
     virtual int close(std::any) = 0;
