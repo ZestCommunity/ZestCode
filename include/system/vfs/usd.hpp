@@ -1,5 +1,5 @@
 #include "pros/rtos.hpp"
-#include "system/dev/vfs.hpp"
+#include "system/vfs/vfs.hpp"
 
 namespace zest::fs {
 

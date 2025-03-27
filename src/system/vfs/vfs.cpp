@@ -1,4 +1,4 @@
-#include "system/dev/vfs.hpp"
+#include "system/vfs/vfs.hpp"
 
 #include "pros/rtos.hpp"
 
@@ -48,7 +48,8 @@ int _open(const char* file, int flags, int mode) {
     struct _reent* r = _REENT;
 
     std::string path = file;
-    if (!path.starts_with("/")) path = working_directory + path;
+    if (!path.starts_with("/"))
+        path = working_directory + path;
 
     auto idx = path.find("/", 1);
     if (idx == std::string::npos) {
@@ -61,16 +62,17 @@ int _open(const char* file, int flags, int mode) {
 
     auto driver = [&] {
         auto it = drivers.find(driver_name);
-        if (it != drivers.end()) return it->second;
+        if (it != drivers.end())
+            return it->second;
         return std::shared_ptr<zest::fs::FileDriver>{nullptr};
-    } ();
+    }();
 
     if (driver == nullptr) {
         r->_errno = ENOENT;
         return -1;
     }
 
-    return static_cast<int>(driver->open(trimmed_path.cbegin(), flags, mode));
+    return static_cast<int>(driver->open(trimmed_path.cbegin(), flags, mode).value_or(-1));
 }
 
 int chdir(const char* path) {

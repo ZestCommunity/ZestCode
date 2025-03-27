@@ -27,9 +27,9 @@
 
 #include "common/gid.h"
 #include "kapi.h"
-#include "system/dev/ser.h"
-#include "system/dev/usd.h"
-#include "system/dev/vfs.h"
+#include "system/vfs/ser.h"
+#include "system/vfs/usd.h"
+#include "system/vfs/vfs.h"
 
 #define MAX_FILELEN 128
 #define MAX_FILES_OPEN 31

@@ -17,7 +17,7 @@
 
 #include "kapi.h"
 #include "pros/version.h"
-#include "system/dev/banners.h"
+#include "system/vfs/banners.h"
 #include "system/hot.h"
 #include "v5_api.h"
 
