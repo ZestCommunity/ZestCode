@@ -87,7 +87,7 @@ class Result {
 
 template<typename E>
 struct std::formatter<zest::ResultError<E>> {
-    constexpr auto parse(std::format_parse_context& ctx) {
+    constexpr auto parse(std::format_parse_context& ctx) const {
         return ctx.begin();
     }
 
