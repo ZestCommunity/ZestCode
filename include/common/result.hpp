@@ -11,9 +11,9 @@ namespace zest {
 template<typename E>
     requires std::is_scoped_enum_v<E>
 struct ResultError {
-    E type;
     std::string message;
     std::stacktrace stacktrace;
+    E type;
 };
 
 /**
