@@ -54,10 +54,6 @@ class Result {
     Result(U&& val)
         : val(std::forward<T>(val)) {}
 
-    Result(Result&& other)
-        : val(std::move(other.val)),
-          error(std::move(other.error)) {}
-
     template<typename U, typename F>
         requires std::constructible_from<T, U> && std::constructible_from<ResultError<E>, F>
     Result(U&& val, F&& error)
