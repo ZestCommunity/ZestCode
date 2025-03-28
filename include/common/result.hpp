@@ -106,9 +106,6 @@ struct std::formatter<zest::ResultError<E>> {
 
 template<typename E>
 std::ostream& operator<<(std::ostream& os, const zest::ResultError<E>& error) {
-    os << error.message << std::endl
-       << "begin stacktrace" << std::endl
-       << error.stacktrace << std::endl
-       << "end stacktrace";
+    os << std::format("{}", error);
     return os;
 }
