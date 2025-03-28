@@ -17,10 +17,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-int chdir(const char* path) {
-    errno = ENOSYS;
-    return -1;
-}
+
 
 int mkdir(const char* pathname, mode_t mode) {
     errno = ENOSYS;
@@ -45,11 +42,6 @@ int fchmodat(int dirfd, const char* pathname, mode_t mode, int flags) {
 long pathconf(const char* path, int name) {
     errno = ENOSYS;
     return -1;
-}
-
-char* getcwd(char* buf, size_t size) {
-    errno = ENOSYS;
-    return NULL;
 }
 
 int _unlink(const char* name) {

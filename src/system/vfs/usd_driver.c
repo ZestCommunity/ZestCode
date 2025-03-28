@@ -13,8 +13,8 @@
 
 // the pragma below is needed due to a FreeRTOS oversight
 #include "kapi.h" // IWYU pragma: keep
-#include "system/dev/usd.h"
-#include "system/dev/vfs.h"
+#include "system/vfs/usd.h"
+#include "system/vfs/vfs.h"
 #include "v5_api_patched.h"
 
 #include <fcntl.h>

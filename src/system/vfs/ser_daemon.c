@@ -16,7 +16,7 @@
  */
 
 #include "kapi.h"
-#include "system/dev/banners.h"
+#include "system/vfs/banners.h"
 #include "v5_api_patched.h"
 
 #define MAX_COMMAND_LENGTH 32

@@ -17,8 +17,8 @@
 #include "common/cobs.h"
 #include "common/set.h"
 #include "kapi.h"
-#include "system/dev/ser.h"
-#include "system/dev/vfs.h"
+#include "system/vfs/ser.h"
+#include "system/vfs/vfs.h"
 #include "v5_api_patched.h"
 
 #include <string.h>
