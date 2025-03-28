@@ -79,8 +79,8 @@ class Result {
         return std::move(val);
     }
 
-    const T val;
-    const std::optional<const ResultError<E>> error;
+    T val;
+    std::optional<ResultError<E>> error;
 };
 
 } // namespace zest
