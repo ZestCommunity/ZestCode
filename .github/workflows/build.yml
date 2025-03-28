@@ -17,7 +17,7 @@ jobs:
 
       - name: Build Project
         id: build
-        uses: ZestCommunity/build-action@v0.1.1
+        uses: ZestCommunity/build-action@v0.1.2
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
