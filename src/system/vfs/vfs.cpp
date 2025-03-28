@@ -1,6 +1,5 @@
-#include "system/vfs/vfs.hpp"
-
 #include "pros/rtos.hpp"
+#include "system/vfs/file_driver.hpp"
 
 #include <array>
 #include <cerrno>
@@ -8,6 +7,15 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+
+namespace zest::fs {
+namespace {
+struct FileEntry {
+    std::shared_ptr<FileDriver> driver;
+    std::any data;
+};
+} // namespace
+} // namespace zest::fs
 
 constexpr static size_t MAX_FILE_DESCRIPTORS = 64;
 

@@ -1,30 +1,11 @@
-#include "system/vfs/usd.hpp"
+#include "system/vfs/usd_driver.hpp"
 
+#include "system/vfs/file_flags.hpp"
 #include "v5_api.h"
 #include "v5_apitypes.h"
 
 #include <any>
 #include <expected>
-#include <sys/_default_fcntl.h>
-
-// #include <sys/fcntl.h>
-
-namespace zest::fs {
-struct FileFlags {
-    FileFlags(int flags)
-        : read(flags & O_RDONLY),
-          write(flags & O_WRONLY || flags & O_CREAT),
-          append(flags & O_APPEND),
-          truncate(flags & O_TRUNC),
-          create_new(flags & O_CREAT && flags & O_EXCL) {}
-
-    bool read : 1;
-    bool write : 1;
-    bool append : 1;
-    bool truncate : 1;
-    bool create_new : 1;
-};
-} // namespace zest::fs
 
 static std::error_condition map_fresult(FRESULT result) {
     // See http://elm-chan.org/fsw/ff/doc/rc.html for a description of FRESULT codes
@@ -75,7 +56,7 @@ static std::error_condition map_fresult(FRESULT result) {
 }
 
 std::expected<zest::fs::FileDescriptor, std::error_condition>
-zest::fs::UsdDriver::open(const char* path, int _flags, int mode) {
+zest::fs::UsdDriver::open(const char* path, int _flags, int mode [[maybe_unused]]) {
     FRESULT result = vexFileMountSD();
     FIL* file = nullptr;
     if (result != FR_OK) {
@@ -85,6 +66,7 @@ zest::fs::UsdDriver::open(const char* path, int _flags, int mode) {
     const zest::fs::FileFlags flags{_flags};
 
     if (flags.create_new && vexFileStatus(path) != 0) {
+        // User specified create_new but the file already exists
         return std::unexpected{std::errc::file_exists};
     }
 
@@ -112,5 +94,5 @@ zest::fs::UsdDriver::open(const char* path, int _flags, int mode) {
 
 ssize_t zest::fs::UsdDriver::read(std::any _file, std::span<std::byte> output) {
     FIL* file = std::any_cast<FIL*>(_file);
-    return vexFileRead(reinterpret_cast<char*>(&output.front()), 1, output.size(), file);
+    return vexFileRead(reinterpret_cast<char*>(output.data()), 1, output.size(), file);
 }
