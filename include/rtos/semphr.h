@@ -32,8 +32,8 @@
 	#error "include FreeRTOS.h" must appear in source files before "include semphr.h"
 #endif
 
-#include "queue.h"
-#include "task.h"
+#include "rtos/queue.h"
+#include "rtos/task.h"
 
 typedef queue_t sem_t;
 typedef queue_t mutex_t;

@@ -7,8 +7,6 @@ Looking at the file structure of a project like this can feel intimidating. This
 
 - `docs` contains documentation and documentation generation config files
 
-- `firmware` contains static libraries that are used to compile ZestCode
-
 - `include` contains the header files
   - `include/common` headers used in various parts of the project
   - `include/pros` headers that are distributed to user projects
@@ -26,4 +24,8 @@ Looking at the file structure of a project like this can feel intimidating. This
   - `src/rtos` sources, build scripts, and misc files of FreeRTOS
   - `src/system` sources for low-level system functionality
     - `src/system/dev` sources for serial I/O and file management
-  - `src/tests` contain tests to ensure certain features work
+
+- `subprojects` contains wrap files for dependencies
+
+- `tests` contains unit tests
+  - `tests/examples` contains example code

@@ -1,0 +1,11 @@
+CompileFlags:
+  CompilationDatabase: build # this is where meson generates compile_commands.json
+  Add: [
+    # system include paths will be inserted, making them the first 6 elements of the array
+  ]
+Index:
+  StandardLibrary: No # we use headers from arm-none-eabi. We can turn this off with no downside.
+Diagnostics:
+  Suppress:
+  - redefinition_different_typedef # TODO: remove if possible once FreeRTOS has been updated
+  - language-extension-token # for asm calls in .c files

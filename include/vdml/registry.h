@@ -14,7 +14,7 @@
 #pragma once
 
 #include "pros/apix.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 #include "vdml/vdml.h"
 
 #ifdef __cplusplus

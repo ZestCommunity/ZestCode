@@ -27,8 +27,8 @@
 
 
 #include <stdlib.h>
-#include "FreeRTOS.h"
-#include "list.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/list.h"
 
 /*-----------------------------------------------------------
  * PUBLIC LIST API documented in list.h

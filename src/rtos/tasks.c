@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
 all the API functions to use the MPU wrappers.  That should only be done when
@@ -37,10 +37,10 @@ task.h is included from an application file. */
 #define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
 /* FreeRTOS includes. */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
-#include "stack_macros.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/task.h"
+#include "rtos/timers.h"
+#include "rtos/stack_macros.h"
 
 /* Lint e961 and e750 are suppressed as a MISRA exception justified because the
 MPU ports require MPU_WRAPPERS_INCLUDED_FROM_API_FILE to be defined for the
@@ -263,7 +263,7 @@ to its original value when it is released. */
 	#define taskEVENT_LIST_ITEM_VALUE_IN_USE	0x80000000UL
 #endif
 
-#include "tcb.h"
+#include "rtos/tcb.h"
 
 /*lint -save -e956 A manual analysis and inspection has been used to determine
 which static variables must be declared volatile. */
@@ -4748,6 +4748,13 @@ uint32_t uxReturn;
 /*-----------------------------------------------------------*/
 
 #if( configUSE_TASK_NOTIFICATIONS == 1 )
+
+	void task_notify_when_deleting(
+		task_t target_task,
+		task_t task_to_notify,
+		uint32_t value,
+		notify_action_e_t notify_action
+	);
 
 	void task_join(task_t task) {
 		if(!task) return;

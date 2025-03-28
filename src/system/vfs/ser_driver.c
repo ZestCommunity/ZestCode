@@ -19,7 +19,7 @@
 #include "kapi.h"
 #include "system/vfs/ser.h"
 #include "system/vfs/vfs.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include <string.h>
 

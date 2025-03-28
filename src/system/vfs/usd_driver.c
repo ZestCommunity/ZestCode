@@ -15,7 +15,7 @@
 #include "kapi.h" // IWYU pragma: keep
 #include "system/vfs/usd.h"
 #include "system/vfs/vfs.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 #include <fcntl.h>
 #include <stdio.h>

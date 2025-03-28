@@ -1,18 +1,10 @@
+# IDEs
 .vscode/
 .idea/
-bin/
-.*.sw*
-template/
-version
-cquery_log.txt
-compile_commands.json
-.ccls-cache/
-.ccls
-temp.log
-temp.errors
-.d/
-.clangd/
-.cache/
+# OS
 .DS_Store
-*.zip
-firmware/libv5rt
+# Meson
+subprojects/*/
+# clangd
+/.clangd
+.cache/

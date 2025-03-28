@@ -23,6 +23,7 @@
  *
  * \return The duplicate string
  */
+#include <stddef.h>
 char* kstrdup(const char* s);
 
 /**

@@ -28,9 +28,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
+#include "rtos/FreeRTOS.h"
+#include "rtos/task.h"
+#include "rtos/queue.h"
 
 
 /* Constants used with the cRxLock and cTxLock structure members. */

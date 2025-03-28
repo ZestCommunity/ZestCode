@@ -1,5 +1,0 @@
-Diagnostics:
-  Suppress:
-  - redefinition_different_typedef # hopefully this won't be needed once FreeRTOS has been updated
-  - main # _startup calls main after libc has been initialized. This is industry standard
-  - language-extension-token # for asm calls in .c files

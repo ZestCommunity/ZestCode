@@ -1,0 +1,8 @@
+[wrap-git]
+url = https://github.com/ZestCommunity/libv5rt-meson.git
+revision = v1.2
+depth = 1
+ 
+[provide]
+v5 = v5_lib_dep
+v5_header = v5_header_dep

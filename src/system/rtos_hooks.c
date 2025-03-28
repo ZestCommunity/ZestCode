@@ -16,7 +16,7 @@
 #include "rtos/FreeRTOS.h"
 #include "rtos/semphr.h"
 #include "rtos/task.h"
-#include "v5_api.h"
+#include "v5_api_patched.h"
 
 void vexTasksRun();
 
