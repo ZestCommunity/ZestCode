@@ -8,12 +8,12 @@
 
 namespace zest {
 
-template<typename E>
-    requires std::is_scoped_enum_v<E>
+template<typename T>
+    requires std::is_scoped_enum_v<T>
 struct ResultError {
     std::string message;
     std::stacktrace stacktrace;
-    E type;
+    T type;
 };
 
 /**
@@ -85,13 +85,13 @@ class Result {
 
 } // namespace zest
 
-template<typename E>
-struct std::formatter<zest::ResultError<E>> {
+template<typename T>
+struct std::formatter<zest::ResultError<T>> {
     constexpr auto parse(std::format_parse_context& ctx) const {
         return ctx.begin();
     }
 
-    auto format(const zest::ResultError<E>& error, std::format_context& ctx) const {
+    auto format(const zest::ResultError<T>& error, std::format_context& ctx) const {
         return std::format_to(
             ctx.out(),
             "{}\n"
@@ -104,8 +104,8 @@ struct std::formatter<zest::ResultError<E>> {
     }
 };
 
-template<typename E>
-std::ostream& operator<<(std::ostream& os, const zest::ResultError<E>& error) {
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const zest::ResultError<T>& error) {
     os << std::format("{}", error);
     return os;
 }
