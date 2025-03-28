@@ -95,9 +95,9 @@ struct std::formatter<zest::ResultError<E>> {
         return std::format_to(
             ctx.out(),
             "{}\n"
-            "begin stacktrace\n"
+            "<== BEGIN STACKTRACE ==>\n"
             "{}\n"
-            "end stacktrace",
+            "<== END STACKTRACE ==>",
             error.message,
             error.stacktrace
         );
