@@ -6,6 +6,17 @@
 #include <stacktrace>
 #include <type_traits>
 
+// library developers and advanced users may appreciate compiler checks to ensure they are actually
+// handling all errors.
+// By defining EXPLICIT_RESULTS, the Result conversion operators will be marked as explicit.
+// This does not break ABI, so libraries/projects dependencies can define EXPLICIT_RESULTS or not
+// and still be compatible.
+#ifndef EXPLICIT_RESULTS
+    #define RESULT_EXPLICIT_QUALIFIER
+#else
+    #define RESULT_EXPLICIT_QUALIFIER explicit
+#endif
+
 namespace zest {
 
 template<typename T>
@@ -67,11 +78,11 @@ class Result {
           error({type, std::format(fmt, std::forward<Args>(args)...), std::stacktrace::current()}) {
     }
 
-    operator T() const& {
+    RESULT_EXPLICIT_QUALIFIER operator T() const& {
         return val;
     }
 
-    operator T() && {
+    RESULT_EXPLICIT_QUALIFIER operator T() && {
         return std::move(val);
     }
 
