@@ -64,6 +64,7 @@ linker_flags = [
 # system libraries we depend on
 system_deps = [
   '-nostartfiles', # we still need to implement some newlib stubs
+  '-lstdc++exp',
 ]
 add_global_link_arguments( system_deps, language: 'c')
 add_global_link_arguments(system_deps, language: 'cpp')
@@ -73,11 +74,16 @@ stdlib_conf = [
   '-D_POSIX_MONOTONIC_CLOCK', # enable the POSIX monotonic clock
 ]
 
+# warning flags
+warning_flags = [
+  '-Wno-psabi' # all libraries (except libv5) are compiled from source, making this warning useless
+]
+
 # apply all these flags and configs
-add_global_arguments(optimization_flags, formatting_flags, stdlib_conf, language: 'c')
-add_global_arguments(optimization_flags, formatting_flags, stdlib_conf, language: 'cpp')
-add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, system_deps, language: 'c')
-add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, system_deps, language: 'cpp')
+add_global_arguments(optimization_flags, formatting_flags, warning_flags, stdlib_conf, language: 'c')
+add_global_arguments(optimization_flags, formatting_flags, warning_flags, stdlib_conf, language: 'cpp')
+add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, warning_flags, system_deps, language: 'c')
+add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, warning_flags, system_deps, language: 'cpp')
 
 # include directories.
 # we only specify the top level in order to enforce paths in include directives.
