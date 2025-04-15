@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <mutex>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -112,5 +113,53 @@ char* getcwd(char* buf, size_t size) {
     }
     std::copy(working_directory.cbegin(), working_directory.cend(), buf);
     return buf;
+}
+
+ssize_t _write(int file, void* buf, size_t len) {
+    struct _reent* r = _REENT;
+    try {
+        auto file_entry = fd_data.at(file).value();
+        auto result = file_entry.driver->write(
+            file_entry.data,
+            std::span<std::byte>{static_cast<std::byte*>(buf), len}
+        );
+        if (result) {
+            return result.value();
+        } else {
+            r->_errno = result.error().value();
+            return -1;
+        }
+    } catch (std::bad_optional_access) {
+        r->_errno = EBADF;
+        return -1;
+    } catch (std::out_of_range) {
+        r->_errno = EBADF;
+        return -1;
+    }
+}
+
+ssize_t _read(int file, void* buf, size_t len) {
+    struct _reent* r = _REENT;
+    zest::fs::FileEntry file_entry;
+    try {
+        file_entry = fd_data.at(file).value();
+
+    } catch (std::bad_optional_access) {
+        r->_errno = EBADF;
+        return -1;
+    } catch (std::out_of_range) {
+        r->_errno = EBADF;
+        return -1;
+    }
+    auto result = file_entry.driver->read(
+        file_entry.data,
+        std::span<std::byte>{static_cast<std::byte*>(buf), len}
+    );
+    if (result) {
+        return result.value();
+    } else {
+        r->_errno = result.error().value();
+        return -1;
+    }
 }
 }
