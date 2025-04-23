@@ -1,12 +1,15 @@
 #include "pros/rtos.hpp"
+#include "system/vfs/file_descriptor.hpp"
 #include "system/vfs/file_driver.hpp"
 
 #include <array>
 #include <cerrno>
+#include <concepts>
 #include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <sys/unistd.h>
 #include <unordered_map>
 
 namespace zest::fs {
@@ -45,6 +48,28 @@ int32_t zest::fs::FileDriver::update_vfs_entry(zest::fs::FileDescriptor fd, std:
         return -1;
     fd_data[static_cast<int>(fd)] = {.driver = this->shared_from_this(), .data = data};
     return 0;
+}
+
+static auto with_fd(int file, std::invocable<zest::fs::FileEntry> auto func) {
+    using ReturnType = decltype(func(zest::fs::FileEntry{}))::value_type;
+    struct _reent* r = _REENT;
+    zest::fs::FileEntry file_entry;
+    try {
+        file_entry = fd_data.at(file).value();
+    } catch (std::bad_optional_access) {
+        r->_errno = EBADF;
+        return ReturnType{-1};
+    } catch (std::out_of_range) {
+        r->_errno = EBADF;
+        return ReturnType{-1};
+    }
+    auto result = func(file_entry);
+    if (result) {
+        return result.value();
+    } else {
+        r->_errno = result.error().value();
+        return ReturnType{-1};
+    }
 }
 
 // newlib fs stubs: these must be extern "C" to prevent name mangling,
@@ -116,50 +141,20 @@ char* getcwd(char* buf, size_t size) {
 }
 
 ssize_t _write(int file, void* buf, size_t len) {
-    struct _reent* r = _REENT;
-    try {
-        auto file_entry = fd_data.at(file).value();
-        auto result = file_entry.driver->write(
+    return with_fd(file, [=](zest::fs::FileEntry file_entry) {
+        return file_entry.driver->write(
             file_entry.data,
             std::span<std::byte>{static_cast<std::byte*>(buf), len}
         );
-        if (result) {
-            return result.value();
-        } else {
-            r->_errno = result.error().value();
-            return -1;
-        }
-    } catch (std::bad_optional_access) {
-        r->_errno = EBADF;
-        return -1;
-    } catch (std::out_of_range) {
-        r->_errno = EBADF;
-        return -1;
-    }
+    });
 }
 
 ssize_t _read(int file, void* buf, size_t len) {
-    struct _reent* r = _REENT;
-    zest::fs::FileEntry file_entry;
-    try {
-        file_entry = fd_data.at(file).value();
-
-    } catch (std::bad_optional_access) {
-        r->_errno = EBADF;
-        return -1;
-    } catch (std::out_of_range) {
-        r->_errno = EBADF;
-        return -1;
-    }
-    auto result = file_entry.driver->read(
-        file_entry.data,
-        std::span<std::byte>{static_cast<std::byte*>(buf), len}
-    );
-    if (result) {
-        return result.value();
-    } else {
-        r->_errno = result.error().value();
-        return -1;
-    }
+    return with_fd(file, [=](zest::fs::FileEntry file_entry) {
+        return file_entry.driver->read(
+            file_entry.data,
+            std::span<std::byte>{static_cast<std::byte*>(buf), len}
+        );
+    });
 }
 }
