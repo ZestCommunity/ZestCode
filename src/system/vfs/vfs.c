@@ -133,7 +133,7 @@ ssize_t _read(int file, void* buf, size_t len) {
     }
     return file_table[file].driver->read_r(r, file_table[file].arg, buf, len);
 }*/
-
+/*
 int _close(int file) {
     struct _reent* r = _REENT;
     // NOTE: newlib automatically closes all open files for a given task when
@@ -190,4 +190,4 @@ int32_t fdctl(int file, const uint32_t action, void* const extra_arg) {
         return -1;
     }
     return file_table[file].driver->ctl(file_table[file].arg, action, extra_arg);
-}
+}*/

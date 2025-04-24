@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 #include <sys/unistd.h>
+#include <system_error>
 #include <unordered_map>
 
 namespace zest::fs {
@@ -56,10 +57,10 @@ static auto with_fd(int file, std::invocable<zest::fs::FileEntry> auto func) {
     zest::fs::FileEntry file_entry;
     try {
         file_entry = fd_data.at(file).value();
-    } catch (std::bad_optional_access) {
+    } catch (std::bad_optional_access&) {
         r->_errno = EBADF;
         return ReturnType{-1};
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range&) {
         r->_errno = EBADF;
         return ReturnType{-1};
     }
@@ -141,7 +142,7 @@ char* getcwd(char* buf, size_t size) {
 }
 
 ssize_t _write(int file, void* buf, size_t len) {
-    return with_fd(file, [=](zest::fs::FileEntry file_entry) {
+    return with_fd(file, [&](zest::fs::FileEntry file_entry) {
         return file_entry.driver->write(
             file_entry.data,
             std::span<std::byte>{static_cast<std::byte*>(buf), len}
@@ -150,11 +151,45 @@ ssize_t _write(int file, void* buf, size_t len) {
 }
 
 ssize_t _read(int file, void* buf, size_t len) {
-    return with_fd(file, [=](zest::fs::FileEntry file_entry) {
+    return with_fd(file, [&](zest::fs::FileEntry file_entry) {
         return file_entry.driver->read(
             file_entry.data,
             std::span<std::byte>{static_cast<std::byte*>(buf), len}
         );
+    });
+}
+
+int _close(int file) {
+    // TODO: implement
+    (void)file;
+    return 0;
+}
+
+int _fstat(int file, struct stat* st) {
+    return with_fd(file, [&](zest::fs::FileEntry file_entry) {
+        return file_entry.driver->fstat(file_entry.data, st).transform([]() {
+            return 0;
+        });
+    });
+}
+
+off_t _lseek(int file, off_t ptr, int dir) {
+    return with_fd(file, [&](zest::fs::FileEntry file_entry) {
+        return file_entry.driver->lseek(file_entry.data, ptr, dir);
+    });
+}
+
+int _isatty(int file) {
+    return with_fd(file, [&](zest::fs::FileEntry file_entry) {
+        bool is_atty = file_entry.driver->isatty(file_entry.data);
+        return std::expected<int, std::error_condition>{is_atty};
+    });
+}
+
+int32_t fdctl(int file, uint32_t action, void* extra_arg) {
+    return with_fd(file, [&](zest::fs::FileEntry file_entry) {
+        int ret_val = file_entry.driver->ctl(file_entry.data, action, extra_arg);
+        return std::expected<int, std::error_condition>{ret_val};
     });
 }
 }
