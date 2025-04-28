@@ -31,20 +31,20 @@ concept CustomError = std::derived_from<T, ResultError>;
 // This trait helps simplify DX.
 // This trait can also be specialized for custom types (e.g unitized types)
 template<typename T>
-class HasSentinel;
+class SentinelValue;
 
 // concept which can be used to determine if a type has a sentinel value
 template<typename T>
-concept Sentinel = requires(const T& val) { HasSentinel<T>::value; };
+concept Sentinel = requires(const T& val) { SentinelValue<T>::value; };
 
 // templated variable which can be used to simplify usage of HasSentinel
 template<Sentinel T>
-constexpr T sentinel_v = HasSentinel<T>::value;
+constexpr T sentinel_v = SentinelValue<T>::value;
 
 // partial specialization for HasSentinel.
 // any integral type (e.g double, int, uint8, etc) has a sentinel value equal to its maximum value
 template<std::integral T>
-class HasSentinel<T> {
+class SentinelValue<T> {
     static constexpr T value = std::numeric_limits<T>::max();
 };
 
@@ -57,6 +57,8 @@ class HasSentinel<T> {
 template<typename T, CustomError... Errs>
 class Result {
   public:
+    // concept
+
     // Construct a Result with a value and no error value.
     // Constraint: the value member variable must be able to be constructed with the value
     // parameter.
