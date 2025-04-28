@@ -83,7 +83,7 @@ class Result {
     // variable.
     template<CustomError U>
         requires Sentinel<T> && (std::is_same_v<Errs, std::remove_cvref<U>> || ...)
-    constexpr Result(U&& error)
+    explicit constexpr Result(U&& error)
         : value(sentinel_v<T>),
           error(std::forward<U>(error)) {}
 
