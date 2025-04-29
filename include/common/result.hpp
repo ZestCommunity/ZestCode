@@ -139,7 +139,9 @@ class Result {
     }
 
     // comparison operator overload
-    constexpr bool operator==(const Result& other) {
+    template<typename U, typename... Es>
+        requires std::equality_comparable_with<T, U>
+    constexpr bool operator==(const Result<U, Es...>& other) {
         return value == other.value;
     }
 

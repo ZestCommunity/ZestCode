@@ -2,6 +2,14 @@
 
 class MyError : public zest::ResultError {};
 
+class MyError2 : public zest::ResultError {};
+
 void initialize() {
-    zest::Result<int, MyError> res(2);
+    constexpr zest::Result<int, MyError> a(2);
+    static_assert(a == 2);
+    static_assert(a == a);
+    static_assert(a == a.get());
+    static_assert(a.get() == a.get<int>());
+    constexpr zest::Result<int, MyError2> b(2);
+    static_assert(a == b);
 }
