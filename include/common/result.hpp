@@ -58,7 +58,8 @@ class Result {
     template<typename U>
         requires std::constructible_from<T, U>
     constexpr Result(U&& value)
-        : value(std::forward<U>(value)) {}
+        : value(std::forward<U>(value)),
+          error(std::monostate()) {}
 
     // Construct a Result with a value and an error value.
     // Constraint: type T can be constructed from type U
@@ -143,4 +144,44 @@ class Result {
     T value;
 };
 
+template<typename... Errs>
+    requires(std::derived_from<Errs, ResultError> && ...)
+class Result<void, Errs...> {
+  public:
+    // construct with an error value
+    template<typename U>
+        requires(std::constructible_from<Errs, U> || ...)
+    constexpr Result(U&& error)
+        : error(std::forward<U>(error)) {}
+
+    // construct with no error value
+    constexpr Result()
+        : error(std::monostate()) {}
+
+    // Get the given error type, if it exists
+    // Constraint: some type Errs can be constructed from type U
+    template<typename U>
+        requires(std::same_as<U, Errs> || ...)
+    constexpr std::optional<U> get() const& {
+        if (std::holds_alternative<std::monostate>(error)) {
+            return std::nullopt;
+        } else {
+            return std::get<U>(error);
+        }
+    };
+
+    // Get the given error type, if it exists
+    // Constraint: some type Errs can be constructed from type U
+    template<typename U>
+        requires(std::same_as<U, Errs> || ...)
+    constexpr std::optional<U> get() && {
+        if (std::holds_alternative<std::monostate>(error)) {
+            return std::nullopt;
+        } else {
+            return std::move(std::get<U>(error));
+        }
+    };
+
+    std::variant<std::monostate, Errs...> error;
+};
 } // namespace zest
