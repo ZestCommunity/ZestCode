@@ -1,0 +1,27 @@
+name: Build Action
+
+on:
+  push:
+    branches: "**"
+  pull_request:
+    branches: "**"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Project
+        id: build
+        uses: ZestCommunity/build-action@v0.1.2
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        continue-on-error: true # The main point of this is to build the monolith file, not to try and upload it. Therefore, the action shouldn't fail if something were to be changed in the future that would cause this step to fail. (Especially considering ZestCode is still in development and this may very well change.
+        with:
+          name: ${{ steps.build.outputs.name }}
+          path: ${{ github.workspace }}/build/program.bin
