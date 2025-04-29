@@ -58,8 +58,8 @@ class Result {
     template<typename U>
         requires std::constructible_from<T, U>
     constexpr Result(U&& value)
-        : value(std::forward<U>(value)),
-          error(std::monostate()) {}
+        : error(std::monostate()),
+          value(std::forward<U>(value)) {}
 
     // Construct a Result with a value and an error value.
     // Constraint: type T can be constructed from type U
