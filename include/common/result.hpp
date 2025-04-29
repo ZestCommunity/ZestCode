@@ -138,6 +138,11 @@ class Result {
         return std::move(value);
     }
 
+    // comparison operator overload
+    constexpr bool operator==(const Result& other) {
+        return value == other.value;
+    }
+
     // a variant that could contain any of the specified error types
     std::variant<std::monostate, Errs...> error;
     // the normal value
