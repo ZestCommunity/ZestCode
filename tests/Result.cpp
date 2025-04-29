@@ -17,7 +17,5 @@ void initialize() {
     static_assert(a.get() == a.get<int>());
     constexpr zest::Result<int, MyError2> b(2);
     static_assert(a == b);
-
-    zest::Result<int, IntError> c(2);
-    zest::Result<int, IntError> d(IntError(2));
+    auto c = a.get<MyError>();
 }

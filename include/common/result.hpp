@@ -79,8 +79,8 @@ class Result {
         requires Sentinel<T> && (std::constructible_from<U, Errs> || ...)
                      && (!std::convertible_to<U, T>)
     constexpr Result(U&& error)
-        : value(sentinel_v<T>),
-          error(std::forward<U>(error)) {}
+        : error(std::forward<U>(error)),
+          value(sentinel_v<T>) {}
 
     // Construct a Result with an error, initializing the normal value to its sentinel value.
     // Constraint: type T has a sentinel value
@@ -88,8 +88,8 @@ class Result {
     template<typename U>
         requires Sentinel<U> && (std::constructible_from<U, Errs> || ...)
     explicit constexpr Result<U>(U&& error)
-        : value(sentinel_v<T>),
-          error(std::forward<U>(error)) {}
+        : error(std::forward<U>(error)),
+          value(sentinel_v<T>) {}
 
     // Get the given error type, if it exists
     // Constraint: some type Errs can be constructed from type U
