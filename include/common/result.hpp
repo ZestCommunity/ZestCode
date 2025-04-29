@@ -40,6 +40,7 @@ constexpr T sentinel_v = SentinelValue<T>::value;
 // any integral type (e.g double, int, uint8, etc) has a sentinel value equal to its maximum value
 template<std::integral T>
 class SentinelValue<T> {
+  public:
     static constexpr T value = std::numeric_limits<T>::max();
 };
 
