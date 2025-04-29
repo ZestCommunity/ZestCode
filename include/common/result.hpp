@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <concepts>
 #include <limits>
 #include <optional>
@@ -15,9 +16,11 @@ class ResultError {
     // since this constructor has no arguments, it'll be called implicitly by the constructor of any
     // child class.
     ResultError()
-        : stacktrace(std::stacktrace::current()) {}
+        : stacktrace(std::stacktrace::current()),
+          time(std::chrono::system_clock::now()) {}
 
     std::stacktrace stacktrace;
+    std::chrono::time_point<std::chrono::system_clock> time;
 };
 
 // Some primitive types such as float, double, etc may have a standardized "sentinel" value.
