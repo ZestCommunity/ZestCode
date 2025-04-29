@@ -50,7 +50,7 @@ class SentinelValue<T> {
 // Therefore, if the user does not check if a function returned an error, an exception will NOT be
 // thrown, and therefore the thread won't crash.
 template<typename T, typename... Errs>
-    requires(std::derived_from<Errs, ResultError> && ...)
+    requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
 class Result {
   public:
     // Construct a Result with a value and no error value.
@@ -145,7 +145,7 @@ class Result {
 };
 
 template<typename... Errs>
-    requires(std::derived_from<Errs, ResultError> && ...)
+    requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
 class Result<void, Errs...> {
   public:
     // construct with an error value
