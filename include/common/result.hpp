@@ -89,10 +89,10 @@ class Result {
         : value(sentinel_v<T>),
           error(std::forward<U>(error)) {}
 
-    // Check whether the result contains an error of the given type.
+    // Get the given error type, if it exists
     // Constraint: some type Errs can be constructed from type U
     template<typename U>
-        requires(std::constructible_from<U, Errs> || ...)
+        requires(std::same_as<U, Errs> || ...)
     constexpr std::optional<U> get() const& {
         if (std::holds_alternative<std::monostate>(error)) {
             return std::nullopt;
@@ -101,12 +101,38 @@ class Result {
         }
     };
 
-    // implicit conversion operator, on an l-value
+    // Get the given error type, if it exists
+    // Constraint: some type Errs can be constructed from type U
+    template<typename U>
+        requires(std::same_as<U, Errs> || ...)
+    constexpr std::optional<U> get() && {
+        if (std::holds_alternative<std::monostate>(error)) {
+            return std::nullopt;
+        } else {
+            return std::move(std::get<U>(error));
+        }
+    };
+
+    // get the normal value
+    template<typename U = T>
+        requires std::same_as<U, T>
+    constexpr T get() const& {
+        return value;
+    }
+
+    // get the normal value
+    template<typename U = T>
+        requires std::same_as<U, T>
+    constexpr T get() && {
+        return std::move(value);
+    }
+
+    // implicit conversion operator
     constexpr operator T() const& {
         return value;
     };
 
-    // implicit conversion operator, on an r-value
+    // implicit conversion operator
     constexpr operator T() && {
         return std::move(value);
     }
