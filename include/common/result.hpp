@@ -40,11 +40,20 @@ template<Sentinel T>
 constexpr T sentinel_v = SentinelValue<T>::value;
 
 // partial specialization for HasSentinel.
-// any integral type (e.g double, int, uint8, etc) has a sentinel value equal to its maximum value
+// any integral type (e.g double, int, uint8, etc) has a sentinel value equal to its maximum value.
+// floating-point numbers with infinity support have sentinel values equal to infinity.
 template<std::integral T>
 class SentinelValue<T> {
   public:
-    static constexpr T value = std::numeric_limits<T>::max();
+    static constexpr T get() {
+        if constexpr (std::numeric_limits<T>::has_infinity) {
+            return std::numeric_limits<T>::infinity();
+        } else {
+            return std::numeric_limits<T>::max();
+        }
+    }
+
+    static constexpr T value = get();
 };
 
 // Result class.
