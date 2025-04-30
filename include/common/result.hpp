@@ -53,6 +53,8 @@ class SentinelValue<T> {
 // This means that Result will always contain an expected value.
 // Therefore, if the user does not check if a function returned an error, an exception will NOT be
 // thrown, and therefore the thread won't crash.
+// Constraint: requires at least 1 possible Error type
+// Constraint: Error types must inherit from ResultError
 template<typename T, typename... Errs>
     requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
 class Result {
@@ -67,56 +69,45 @@ class Result {
 
     // Construct a Result with a value and an error value.
     // Constraint: type T can be constructed from type U
-    // Constraint: some type in Errs can be constructed from type E
+    // Constraint: E in Errs
     template<typename U, typename E>
-        requires std::constructible_from<T, U> && (std::constructible_from<E, Errs> || ...)
+        requires std::constructible_from<T, U> && (std::same_as<std::remove_cvref<E>, Errs> || ...)
     constexpr Result(U&& value, E&& error)
         : value(std::forward<U>(value)),
           error(std::forward<E>(error)) {}
 
     // Construct a Result with an error, initializing the normal value to its sentinel value.
     // Constraint: type T has a sentinel value
-    // Constraint: some type in Errs can be constructed from type U
-    // Constraint: type U can't be implicitly converted to type T
-    template<typename U>
-        requires Sentinel<T> && (std::constructible_from<U, Errs> || ...)
-                     && (!std::convertible_to<U, T>)
-    constexpr Result(U&& error)
-        : error(std::forward<U>(error)),
-          value(sentinel_v<T>) {}
-
-    // Construct a Result with an error, initializing the normal value to its sentinel value.
-    // Constraint: type T has a sentinel value
-    // Constraint: some type in Errs can be constructed from type U
-    template<typename U>
-        requires Sentinel<U> && (std::constructible_from<U, Errs> || ...)
-    explicit constexpr Result<U>(U&& error)
-        : error(std::forward<U>(error)),
+    // Constraint: E in Errs
+    template<typename E>
+        requires Sentinel<T> && (std::same_as<std::remove_cvref<E>, Errs> || ...)
+    constexpr Result(E&& error)
+        : error(std::forward<E>(error)),
           value(sentinel_v<T>) {}
 
     // Get the given error type, if it exists
-    // Constraint: some type Errs can be constructed from type U
-    template<typename U>
-        requires(std::same_as<U, Errs> || ...)
-    constexpr std::optional<U> get() const& {
+    // Constraint: E in Errs
+    template<typename E>
+        requires(std::same_as<E, Errs> || ...)
+    constexpr std::optional<E> get() const& {
         if (std::holds_alternative<std::monostate>(error)) {
             return std::nullopt;
         } else {
-            return std::get<U>(error);
+            return std::get<E>(error);
         }
-    };
+    }
 
     // Get the given error type, if it exists
-    // Constraint: some type Errs can be constructed from type U
-    template<typename U>
-        requires(std::same_as<U, Errs> || ...)
-    constexpr std::optional<U> get() && {
+    // Constraint: E in Errs
+    template<typename E>
+        requires(std::same_as<E, Errs> || ...)
+    constexpr std::optional<E> get() && {
         if (std::holds_alternative<std::monostate>(error)) {
             return std::nullopt;
         } else {
-            return std::move(std::get<U>(error));
+            return std::move(std::get<E>(error));
         }
-    };
+    }
 
     // get the normal value
     template<typename U = T>
@@ -155,43 +146,47 @@ class Result {
     T value;
 };
 
+// Result specialization for a value of type void, which would otherwise be impossible.
+// This specialization simply does not hold a "normal" value
+// Constraint: requires at least 1 possible Error type
+// Constraint: Error types must inherit from ResultError
 template<typename... Errs>
     requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
 class Result<void, Errs...> {
   public:
     // construct with an error value
-    template<typename U>
-        requires(std::constructible_from<Errs, U> || ...)
-    constexpr Result(U&& error)
-        : error(std::forward<U>(error)) {}
+    template<typename E>
+        requires(std::same_as<std::remove_cvref<E>, Errs> || ...)
+    constexpr Result(E&& error)
+        : error(std::forward<E>(error)) {}
 
     // construct with no error value
     constexpr Result()
         : error(std::monostate()) {}
 
     // Get the given error type, if it exists
-    // Constraint: some type Errs can be constructed from type U
-    template<typename U>
-        requires(std::same_as<U, Errs> || ...)
-    constexpr std::optional<U> get() const& {
+    // Constraint: E in Errs
+    template<typename E>
+        requires(std::same_as<E, Errs> || ...)
+    constexpr std::optional<E> get() const& {
         if (std::holds_alternative<std::monostate>(error)) {
             return std::nullopt;
         } else {
-            return std::get<U>(error);
+            return std::get<E>(error);
         }
-    };
+    }
 
     // Get the given error type, if it exists
-    // Constraint: some type Errs can be constructed from type U
-    template<typename U>
-        requires(std::same_as<U, Errs> || ...)
-    constexpr std::optional<U> get() && {
+    // Constraint: E in Errs
+    template<typename E>
+        requires(std::same_as<E, Errs> || ...)
+    constexpr std::optional<E> get() && {
         if (std::holds_alternative<std::monostate>(error)) {
             return std::nullopt;
         } else {
-            return std::move(std::get<U>(error));
+            return std::move(std::get<E>(error));
         }
-    };
+    }
 
     std::variant<std::monostate, Errs...> error;
 };
