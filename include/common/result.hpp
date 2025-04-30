@@ -99,10 +99,10 @@ class Result {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() const& {
-        if (std::holds_alternative<std::monostate>(error)) {
-            return std::nullopt;
-        } else {
+        if (std::holds_alternative<E>(error)) {
             return std::get<E>(error);
+        } else {
+            return std::nullopt;
         }
     }
 
@@ -111,10 +111,10 @@ class Result {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() && {
-        if (std::holds_alternative<std::monostate>(error)) {
-            return std::nullopt;
-        } else {
+        if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
+        } else {
+            return std::nullopt;
         }
     }
 
