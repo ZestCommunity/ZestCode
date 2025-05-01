@@ -98,7 +98,8 @@ class Result {
      * @param error Error to store.
      */
     template<typename U, typename E>
-        requires std::constructible_from<T, U> && (std::same_as<std::remove_cvref<E>, Errs> || ...)
+        requires std::constructible_from<T, U>
+                     && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
     constexpr Result(U&& value, E&& error)
         : value(std::forward<U>(value)),
           error(std::forward<E>(error)) {}
@@ -110,7 +111,7 @@ class Result {
      * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
      */
     template<typename E>
-        requires Sentinel<T> && (std::same_as<std::remove_cvref<E>, Errs> || ...)
+        requires Sentinel<T> && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
     constexpr Result(E&& error)
         : error(std::forward<E>(error)),
           value(sentinel_v<T>) {}
@@ -210,7 +211,7 @@ class Result<void, Errs...> {
      * @param error Error to store.
      */
     template<typename E>
-        requires(std::same_as<std::remove_cvref<E>, Errs> || ...)
+        requires(std::same_as<std::remove_cvref_t<E>, Errs> || ...)
     constexpr Result(E&& error)
         : error(std::forward<E>(error)) {}
 
