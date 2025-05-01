@@ -9,41 +9,53 @@
 
 namespace zest {
 
-// custom error types inherit from the ResultError class, which enforces that custom error types
-// have some shared functionality.
+/**
+ * @brief Base class for custom error types used in the Result class.
+ * @details Enforces stacktrace and timestamp functionality for derived error types.
+ */
 class ResultError {
   public:
-    // since this constructor has no arguments, it'll be called implicitly by the constructor of any
-    // child class.
+    /**
+     * @brief Construct a new ResultError object.
+     * @details Captures the current stacktrace and system time automatically.
+     */
     ResultError()
         : stacktrace(std::stacktrace::current()),
           time(std::chrono::system_clock::now()) {}
 
-    std::stacktrace stacktrace;
-    std::chrono::time_point<std::chrono::system_clock> time;
+    std::stacktrace stacktrace; ///< Captured stacktrace at error creation.
+    std::chrono::time_point<std::chrono::system_clock> time; ///< Timestamp of error creation.
 };
 
-// Some primitive types such as float, double, etc may have a standardized "sentinel" value.
-// For example, a function that returns a float may return INFINITY if an error occurs.
-// Usually the maximum value of the type is returned if there is an error.
-// This trait helps simplify DX.
-// This trait can also be specialized for custom types (e.g unitized types)
+/**
+ * @brief Trait to define a "sentinel" value for types indicating an error state.
+ * @tparam T Type to provide a sentinel value for.
+ * @note Specialize this template for custom types if needed.
+ */
 template<typename T>
 class SentinelValue;
 
-// concept which can be used to determine if a type has a sentinel value
+/**
+ * @brief Concept to check if a type has a defined sentinel value.
+ * @tparam T Type to check.
+ */
 template<typename T>
 concept Sentinel = requires(const T& val) { SentinelValue<T>::value; };
 
-// templated variable which can be used to simplify usage of HasSentinel
+/**
+ * @brief Helper variable to simplify access to a type's sentinel value.
+ * @tparam T Type with a defined sentinel (must satisfy Sentinel concept).
+ */
 template<Sentinel T>
 constexpr T sentinel_v = SentinelValue<T>::value;
 
-// partial specialization for HasSentinel.
-// any integral type (e.g double, int, uint8, etc) has a sentinel value equal to its maximum value.
-// floating-point numbers with infinity support have sentinel values equal to infinity.
+/**
+ * @brief Partial specialization of SentinelValue for integral and floating-point types.
+ * @tparam T Integral or floating-point type.
+ * @details Uses infinity for floating-point types if available; otherwise uses max value.
+ */
 template<typename T>
-    requires (std::integral<T> || std::floating_point<T>)
+    requires(std::integral<T> || std::floating_point<T>)
 class SentinelValue<T> {
   public:
     static constexpr T get() {
@@ -54,49 +66,60 @@ class SentinelValue<T> {
         }
     }
 
-    static constexpr T value = get();
+    static constexpr T value = get(); ///< Precomputed sentinel value for type T.
 };
 
-// Result class.
-// An alternative to std::expected, where an expected value can be contained alongside an unexpected
-// error value.
-// This means that Result will always contain an expected value.
-// Therefore, if the user does not check if a function returned an error, an exception will NOT be
-// thrown, and therefore the thread won't crash.
-// Constraint: requires at least 1 possible Error type
-// Constraint: Error types must inherit from ResultError
+/**
+ * @brief Result class for expected value or error handling (similar to std::expected).
+ * @tparam T Type of the expected value.
+ * @tparam Errs List of possible error types (must inherit from ResultError).
+ * @note Errors are stored in a variant, and the value is always initialized.
+ */
 template<typename T, typename... Errs>
     requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
 class Result {
   public:
-    // Construct a Result with a value and no error value.
-    // Constraint: type T can be constructed from type U
+    /**
+     * @brief Construct a Result with a normal value (no error).
+     * @tparam U Type convertible to T.
+     * @param value Value to initialize the result with.
+     */
     template<typename U>
         requires std::constructible_from<T, U>
     constexpr Result(U&& value)
         : error(std::monostate()),
           value(std::forward<U>(value)) {}
 
-    // Construct a Result with a value and an error value.
-    // Constraint: type T can be constructed from type U
-    // Constraint: E in Errs
+    /**
+     * @brief Construct a Result with a value and an error.
+     * @tparam U Type convertible to T.
+     * @tparam E Error type (must be in Errs).
+     * @param value Value to store.
+     * @param error Error to store.
+     */
     template<typename U, typename E>
         requires std::constructible_from<T, U> && (std::same_as<std::remove_cvref<E>, Errs> || ...)
     constexpr Result(U&& value, E&& error)
         : value(std::forward<U>(value)),
           error(std::forward<E>(error)) {}
 
-    // Construct a Result with an error, initializing the normal value to its sentinel value.
-    // Constraint: type T has a sentinel value
-    // Constraint: E in Errs
+    /**
+     * @brief Construct a Result with an error, initializing the value to its sentinel.
+     * @tparam E Error type (must be in Errs).
+     * @param error Error to store.
+     * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
+     */
     template<typename E>
         requires Sentinel<T> && (std::same_as<std::remove_cvref<E>, Errs> || ...)
     constexpr Result(E&& error)
         : error(std::forward<E>(error)),
           value(sentinel_v<T>) {}
 
-    // Get the given error type, if it exists
-    // Constraint: E in Errs
+    /**
+     * @brief Get an error of type E if present (const-qualified overload).
+     * @tparam E Error type to retrieve.
+     * @return std::optional<E> Contains the error if present; otherwise nullopt.
+     */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() const& {
@@ -107,8 +130,11 @@ class Result {
         }
     }
 
-    // Get the given error type, if it exists
-    // Constraint: E in Errs
+    /**
+     * @brief Get an error of type E if present (rvalue overload).
+     * @tparam E Error type to retrieve.
+     * @return std::optional<E> Contains the error if present; otherwise nullopt.
+     */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() && {
@@ -119,63 +145,86 @@ class Result {
         }
     }
 
-    // get the normal value
+    /**
+     * @brief Get the stored value (const-qualified overload).
+     * @return T Copy of the stored value.
+     */
     template<typename U = T>
         requires std::same_as<U, T>
     constexpr T get() const& {
         return value;
     }
 
-    // get the normal value
+    /**
+     * @brief Get the stored value (rvalue overload).
+     * @return T Moved value.
+     */
     template<typename U = T>
         requires std::same_as<U, T>
     constexpr T get() && {
         return std::move(value);
     }
 
-    // implicit conversion operator
+    /**
+     * @brief Implicit conversion to the stored value (const-qualified).
+     */
     constexpr operator T() const& {
         return value;
     };
 
-    // implicit conversion operator
+    /**
+     * @brief Implicit conversion to the stored value (rvalue).
+     */
     constexpr operator T() && {
         return std::move(value);
     }
 
-    // comparison operator overload
+    /**
+     * @brief Equality comparison operator.
+     * @tparam U Type of the other result's value.
+     * @tparam Es Other result's error types.
+     * @param other Result to compare with.
+     * @return true If values are equal.
+     */
     template<typename U, typename... Es>
         requires std::equality_comparable_with<T, U>
     constexpr bool operator==(const Result<U, Es...>& other) {
         return value == other.value;
     }
 
-    // a variant that could contain any of the specified error types
-    std::variant<std::monostate, Errs...> error;
-    // the normal value
-    T value;
+    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
+    T value;                                     ///< The stored value (always initialized).
 };
 
-// Result specialization for a value of type void, which would otherwise be impossible.
-// This specialization simply does not hold a "normal" value
-// Constraint: requires at least 1 possible Error type
-// Constraint: Error types must inherit from ResultError
+/**
+ * @brief Result specialization for void value type (no stored value).
+ * @tparam Errs List of possible error types (must inherit from ResultError).
+ */
 template<typename... Errs>
     requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
 class Result<void, Errs...> {
   public:
-    // construct with an error value
+    /**
+     * @brief Construct a Result with an error.
+     * @tparam E Error type (must be in Errs).
+     * @param error Error to store.
+     */
     template<typename E>
         requires(std::same_as<std::remove_cvref<E>, Errs> || ...)
     constexpr Result(E&& error)
         : error(std::forward<E>(error)) {}
 
-    // construct with no error value
+    /**
+     * @brief Construct a Result with no error (success state).
+     */
     constexpr Result()
         : error(std::monostate()) {}
 
-    // Get the given error type, if it exists
-    // Constraint: E in Errs
+    /**
+     * @brief Get an error of type E if present (const-qualified overload).
+     * @tparam E Error type to retrieve.
+     * @return std::optional<E> Contains the error if present; otherwise nullopt.
+     */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() const& {
@@ -186,8 +235,11 @@ class Result<void, Errs...> {
         }
     }
 
-    // Get the given error type, if it exists
-    // Constraint: E in Errs
+    /**
+     * @brief Get an error of type E if present (rvalue overload).
+     * @tparam E Error type to retrieve.
+     * @return std::optional<E> Contains the error if present; otherwise nullopt.
+     */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() && {
@@ -198,6 +250,7 @@ class Result<void, Errs...> {
         }
     }
 
-    std::variant<std::monostate, Errs...> error;
+    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
 };
+
 } // namespace zest
