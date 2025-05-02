@@ -7,6 +7,13 @@ class MyError : public zest::ResultError {};
 
 class MyError2 : public zest::ResultError {};
 
+zest::Result<void, MyError> test_function_1() {
+    // return nothing
+    return {};
+    // return MyError
+    return MyError();
+}
+
 constexpr void compile_time_tests() {
     // test sentinel values
     static_assert(zest::sentinel_v<int32_t> == INT32_MAX);
