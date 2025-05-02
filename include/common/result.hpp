@@ -180,22 +180,28 @@ class Result {
         return std::move(value);
     }
 
-    /**
-     * @brief Equality comparison operator.
-     * @tparam U Type of the other result's value.
-     * @tparam Es Other result's error types.
-     * @param other Result to compare with.
-     * @return true If values are equal.
-     */
-    template<typename U, typename... Es>
-        requires std::equality_comparable_with<T, U>
-    constexpr bool operator==(const Result<U, Es...>& other) {
-        return value == other.value;
-    }
-
     std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
     T value;                                     ///< The stored value (always initialized).
 };
+
+/**
+ * @brief compare Result instances with comparable normal values
+ *
+ * @tparam LhsT the normal value type of the left-hand side argument
+ * @tparam RhsT the normal value type of the right-hand side argument
+ * @tparam LhsErrs the error value types of the left-hand side argument
+ * @tparam RhsErrs the error value types of the right-hand side argument
+ * @param lhs the left-hand side of the expression
+ * @param rhs the right-hand side of the expression
+ * @return true if the values are equal
+ * @return false if the values are not equal
+ */
+template<typename LhsT, typename RhsT, typename... LhsErrs, typename... RhsErrs>
+    requires std::equality_comparable_with<LhsT, RhsT>
+constexpr bool
+operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& rhs) {
+    return lhs.value == rhs.value;
+}
 
 /**
  * @brief Result specialization for void value type (no stored value).
