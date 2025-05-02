@@ -192,14 +192,6 @@ class Result {
         return &value;
     };
 
-    constexpr operator T&&() && {
-        return std::move(value);
-    }
-
-    constexpr operator const T&&() const&& {
-        return std::move(value);
-    }
-
     /**
      * @brief error value
      * @details instead of wrapping the variant in std::optional, it's more efficient to use
