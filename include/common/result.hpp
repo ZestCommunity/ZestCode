@@ -180,17 +180,21 @@ class Result {
         return std::move(value);
     }
 
-    constexpr operator T() {
+    constexpr operator T&() & {
         return value;
     }
 
-    constexpr operator T&() & {
-        return &value;
+    constexpr operator const T&() const& {
+        return value;
+    };
+
+    constexpr operator T&&() && {
+        return std::move(value);
     }
 
-    constexpr operator const T&() const& {
-        return &value;
-    };
+    constexpr operator const T&&() const&& {
+        return std::move(value);
+    }
 
     /**
      * @brief error value
