@@ -180,17 +180,23 @@ class Result {
         return std::move(value);
     }
 
-    /**
-     * @brief Implicit conversion to the stored value (const-qualified).
-     */
-    constexpr operator T() const& {
+    constexpr operator T() {
         return value;
+    }
+
+    constexpr operator T&() & {
+        return &value;
+    }
+
+    constexpr operator const T&() const& {
+        return &value;
     };
 
-    /**
-     * @brief Implicit conversion to the stored value (rvalue).
-     */
-    constexpr operator T() && {
+    constexpr operator T&&() && {
+        return std::move(value);
+    }
+
+    constexpr operator const T&&() const&& {
         return std::move(value);
     }
 
