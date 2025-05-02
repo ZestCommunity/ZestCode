@@ -11,20 +11,34 @@ namespace zest {
 
 /**
  * @brief Base class for custom error types used in the Result class.
- * @details Enforces stacktrace and timestamp functionality for derived error types.
+ *
  */
 class ResultError {
   public:
     /**
-     * @brief Construct a new ResultError object.
-     * @details Captures the current stacktrace and system time automatically.
+     * @brief struct containing data that can only be known at runtime.
+     *
      */
-    ResultError()
-        : stacktrace(std::stacktrace::current()),
-          time(std::chrono::system_clock::now()) {}
+    struct RuntimeData {
+        std::stacktrace stacktrace;
+        std::chrono::time_point<std::chrono::system_clock> time;
+    };
 
-    std::stacktrace stacktrace; ///< Captured stacktrace at error creation.
-    std::chrono::time_point<std::chrono::system_clock> time; ///< Timestamp of error creation.
+    /**
+     * @brief Construct a new ResultError object.
+     *
+     * @details Captures the current stacktrace and system time if called at runtime.
+     */
+    constexpr ResultError() {
+        if !consteval {
+            runtime_data = {
+                .stacktrace = std::stacktrace::current(),
+                .time = std::chrono::system_clock::now()
+            };
+        }
+    }
+
+    std::optional<RuntimeData> runtime_data;
 };
 
 /**
@@ -100,7 +114,7 @@ class Result {
     template<typename U, typename E>
         requires std::constructible_from<T, U>
                      && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
-    Result(U&& value, E&& error)
+    constexpr Result(U&& value, E&& error)
         : value(std::forward<U>(value)),
           error(std::forward<E>(error)) {}
 
@@ -112,7 +126,7 @@ class Result {
      */
     template<typename E>
         requires Sentinel<T> && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
-    Result(E&& error)
+    constexpr Result(E&& error)
         : error(std::forward<E>(error)),
           value(sentinel_v<T>) {}
 
@@ -123,7 +137,7 @@ class Result {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    std::optional<E> get() const& {
+    constexpr std::optional<E> get() const& {
         if (std::holds_alternative<E>(error)) {
             return std::get<E>(error);
         } else {
@@ -138,7 +152,7 @@ class Result {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    std::optional<E> get() && {
+    constexpr std::optional<E> get() && {
         if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
         } else {
@@ -180,8 +194,13 @@ class Result {
         return std::move(value);
     }
 
-    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
-    T value;                                     ///< The stored value (always initialized).
+    /**
+     * @brief error value
+     * @details instead of wrapping the variant in std::optional, it's more efficient to use
+     * std::monostate. since we have to use std::variant in any case.
+     */
+    std::variant<std::monostate, Errs...> error;
+    T value;
 };
 
 /**
