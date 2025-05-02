@@ -100,7 +100,7 @@ class Result {
     template<typename U, typename E>
         requires std::constructible_from<T, U>
                      && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
-    constexpr Result(U&& value, E&& error)
+    Result(U&& value, E&& error)
         : value(std::forward<U>(value)),
           error(std::forward<E>(error)) {}
 
@@ -112,7 +112,7 @@ class Result {
      */
     template<typename E>
         requires Sentinel<T> && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
-    constexpr Result(E&& error)
+    Result(E&& error)
         : error(std::forward<E>(error)),
           value(sentinel_v<T>) {}
 
@@ -123,7 +123,7 @@ class Result {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    constexpr std::optional<E> get() const& {
+    std::optional<E> get() const& {
         if (std::holds_alternative<E>(error)) {
             return std::get<E>(error);
         } else {
@@ -138,7 +138,7 @@ class Result {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    constexpr std::optional<E> get() && {
+    std::optional<E> get() && {
         if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
         } else {
