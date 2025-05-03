@@ -17,6 +17,13 @@ zest::Result<void, MyError> test_function_1() {
     return MyError();
 }
 
+zest::Result<int, MyError> test_function_2() {
+    // return an integer
+    return 1;
+    // return MyError
+    return MyError();
+}
+
 constexpr void compile_time_tests() {
     // test sentinel values
     static_assert(zest::sentinel_v<int32_t> == INT32_MAX);
