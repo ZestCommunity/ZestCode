@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-    #define v5_device_e_t pros::c::v5_device_e_t
+    #define V5Device pros::c::V5Device
 #endif
 
 #ifdef __cplusplus
@@ -45,7 +45,7 @@ extern "C" {
  * \param port
  *        The V5 port number from 0-20
  * \param device_type
- *        The v5_device_e_t that the port is configured as
+ *        The V5Device that the port is configured as
  * \param error_code
  *        The error code that return if error checking failed
  */
@@ -66,7 +66,7 @@ extern "C" {
  * \param port
  *        The V5 port number from 0-20
  * \param device_type
- *        The v5_device_e_t that the port is configured as
+ *        The V5Device that the port is configured as
  */
 #define claim_port_i(port, device_type) claim_port(port, device_type, PROS_ERR)
 
@@ -77,7 +77,7 @@ extern "C" {
  * \param port
  *        The V5 port number from 0-20
  * \param device_type
- *        The v5_device_e_t that the port is configured as
+ *        The V5Device that the port is configured as
  */
 #define claim_port_f(port, device_type) claim_port(port, device_type, PROS_ERR_F)
 
@@ -93,12 +93,12 @@ extern "C" {
  * \param port
  *        The V5 port number from 0-20
  * \param device_type
- *        The v5_device_e_t that the port is configured as
+ *        The V5Device that the port is configured as
  *
  * \return 1 if the operation was successful or 0 if the operation
  * failed, setting errno.
  */
-int32_t claim_port_try(uint8_t port, v5_device_e_t type);
+int32_t claim_port_try(uint8_t port, V5Device type);
 
 /**
  * Macro that release the mutex for the given port and sets errno to 0 if the
@@ -241,5 +241,5 @@ int internal_port_mutex_give(uint8_t port);
 
 #ifdef __cplusplus
 }
-    #undef v5_device_e_t
+    #undef V5Device
 #endif

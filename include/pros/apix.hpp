@@ -570,22 +570,21 @@ void queue_reset(queue_t queue);
  * This list contains all current V5 Devices, and mirrors V5_DeviceType from the
  * api.
  */
-typedef enum v5_device_e {
-    E_DEVICE_NONE = 0,      ///< No device is plugged into the port
-    E_DEVICE_MOTOR = 2,     ///< A motor is plugged into the port
-    E_DEVICE_ROTATION = 4,  ///< A rotation sensor is plugged into the port
-    E_DEVICE_IMU = 6,       ///< An inertial sensor is plugged into the port
-    E_DEVICE_DISTANCE = 7,  ///< A distance sensor is plugged into the port
-    E_DEVICE_RADIO = 8,     ///< A radio is plugged into the port
-    E_DEVICE_VISION = 11,   ///< A vision sensor is plugged into the port
-    E_DEVICE_ADI = 12,      ///< This port is an ADI expander
-    E_DEVICE_OPTICAL = 16,  ///< An optical sensor is plugged into the port
-    E_DEVICE_GPS = 20,      ///< A GPS sensor is plugged into the port
-    E_DEVICE_AIVISION = 29, ///< An AI Vision sensor is plugged into the port
-    E_DEVICE_SERIAL = 129,  ///< A serial device is plugged into the port
-    E_DEVICE_GENERIC __attribute__((deprecated("use E_DEVICE_SERIAL instead"))) = E_DEVICE_SERIAL,
+enum class V5Device {
+    E_DEVICE_NONE = 0,       ///< No device is plugged into the port
+    E_DEVICE_MOTOR = 2,      ///< A motor is plugged into the port
+    E_DEVICE_ROTATION = 4,   ///< A rotation sensor is plugged into the port
+    E_DEVICE_IMU = 6,        ///< An inertial sensor is plugged into the port
+    E_DEVICE_DISTANCE = 7,   ///< A distance sensor is plugged into the port
+    E_DEVICE_RADIO = 8,      ///< A radio is plugged into the port
+    E_DEVICE_VISION = 11,    ///< A vision sensor is plugged into the port
+    E_DEVICE_ADI = 12,       ///< This port is an ADI expander
+    E_DEVICE_OPTICAL = 16,   ///< An optical sensor is plugged into the port
+    E_DEVICE_GPS = 20,       ///< A GPS sensor is plugged into the port
+    E_DEVICE_AIVISION = 29,  ///< An AI Vision sensor is plugged into the port
+    E_DEVICE_SERIAL = 129,   ///< A serial device is plugged into the port
     E_DEVICE_UNDEFINED = 255 ///< The device type is not defined, or is not a valid device
-} v5_device_e_t;
+};
 
 /**
  * Registers a device in the given zero-indexed port
@@ -613,7 +612,7 @@ typedef enum v5_device_e {
  * }
  * \endcode
  */
-int registry_bind_port(uint8_t port, v5_device_e_t device_type);
+int registry_bind_port(uint8_t port, V5Device device_type);
 
 /**
  * Deregisters a devices from the given zero-indexed port
@@ -660,7 +659,7 @@ int registry_unbind_port(uint8_t port);
  * }
  * \endcode
  */
-v5_device_e_t registry_get_bound_type(uint8_t port);
+V5Device registry_get_bound_type(uint8_t port);
 
 /**
  * Returns the type of the device plugged into the zero-indexed port.
@@ -683,7 +682,7 @@ v5_device_e_t registry_get_bound_type(uint8_t port);
  * }
  * \endcode
  */
-v5_device_e_t registry_get_plugged_type(uint8_t port);
+V5Device registry_get_plugged_type(uint8_t port);
 
 ///@}
 

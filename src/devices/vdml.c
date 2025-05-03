@@ -28,7 +28,7 @@ int32_t port_errors;
 extern void registry_init();
 extern void port_mutex_init();
 
-int32_t claim_port_try(uint8_t port, v5_device_e_t type) {
+int32_t claim_port_try(uint8_t port, V5Device type) {
     if (!VALIDATE_PORT_NO(port)) {
         errno = ENXIO;
         return 0;
