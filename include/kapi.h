@@ -19,7 +19,7 @@
 #pragma once
 
 #include "api.h"
-#include "pros/apix.h"
+#include "pros/apix.hpp"
 #include "rtos/FreeRTOS.h"
 #include "rtos/stream_buffer.h"
 
