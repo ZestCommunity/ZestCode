@@ -41,6 +41,14 @@ constexpr void compile_time_tests() {
         const int&& e = zest::Result<int, MyError>(2);
         int f = a;
     }
+
+    {
+        // test error getting
+        static_assert(zest::Result<int, MyError>(MyError()).get<MyError>());
+        static_assert(!zest::Result<int, MyError>(1).get<MyError>());
+        static_assert(zest::Result<int, MyError>(1).get<int>());
+        static_assert(zest::Result<int, MyError>(1).get());
+    }
 }
 
 void runtime_tests() {}
