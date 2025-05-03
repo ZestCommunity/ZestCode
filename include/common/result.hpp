@@ -152,7 +152,7 @@ class Result {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    constexpr std::optional<E>&& get() && {
+    constexpr std::optional<E> get() && {
         if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
         } else {
@@ -167,7 +167,7 @@ class Result {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    constexpr const std::optional<E>&& get() const&& {
+    constexpr const std::optional<E> get() const&& {
         if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
         } else {
@@ -285,7 +285,7 @@ class Result<void, Errs...> {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    constexpr std::optional<E>&& get() && {
+    constexpr std::optional<E> get() && {
         if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
         } else {
@@ -300,7 +300,7 @@ class Result<void, Errs...> {
      */
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
-    constexpr const std::optional<E>&& get() const&& {
+    constexpr const std::optional<E> get() const&& {
         if (std::holds_alternative<E>(error)) {
             return std::move(std::get<E>(error));
         } else {
