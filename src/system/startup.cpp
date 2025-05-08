@@ -32,7 +32,6 @@ void graphical_context_daemon_initialize();
 void display_initialize() {}
 
 void rtos_sched_start();
-void vdml_initialize();
 
 // libc initialization
 void __libc_init_array();
@@ -54,7 +53,6 @@ vcodesig vexCodeSig = {V5_SIG_MAGIC, V5_SIG_TYPE_USER, V5_SIG_OWNER_PARTNER, V5_
 static void pros_init() {
     rtos_initialize();
     vfs_initialize();
-    vdml_initialize();
     graphical_context_daemon_initialize();
     display_initialize();
     // Note: system_daemon_initialize must be called last, per design requirements.

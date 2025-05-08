@@ -23,6 +23,8 @@
 
 #include <string.h>
 
+#define PROS_ERR INT32_MAX
+
 #define VEX_SERIAL_BUFFER_SIZE 2047
 
 // ser_file_arg is 2 words (64 bits). The first word is the stream_id
