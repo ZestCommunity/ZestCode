@@ -21,17 +21,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "system/dev/vfs.h"
-
-#include "common/gid.h"
-#include "kapi.h"
-#include "system/dev/dev.h"
-#include "system/dev/ser.h"
-#include "system/dev/usd.h"
-
 #include <errno.h>
 #include <stdint.h>
 #include <unistd.h>
+
+#include "common/gid.h"
+#include "kapi.h"
+#include "system/vfs/ser.h"
+#include "system/vfs/usd.h"
+#include "system/vfs/vfs.h"
 
 #define MAX_FILELEN 128
 #define MAX_FILES_OPEN 31
@@ -91,6 +89,7 @@ int vfs_update_entry(int file, struct fs_driver const* const driver, void* arg) 
     return 0;
 }
 
+/*
 int _open(const char* file, int flags, int mode) {
     struct _reent* r = _REENT;
     // Check if the filename is too long or not NULL terminated
@@ -109,13 +108,12 @@ int _open(const char* file, int flags, int mode) {
         return ser_open_r(r, file + strlen("/ser"), flags, mode);
     } else if (strstr(file, "/usd") == file) {
         return usd_open_r(r, file + strlen("/usd"), flags, mode);
-    //} else if (strstr(file, "/dev") == file) {
-        // return dev_open_r(r, file + strlen("/dev"), flags, mode);
     } else {
         return usd_open_r(r, file, flags, mode);
     }
 }
-
+*/
+/*
 ssize_t _write(int file, const void* buf, size_t len) {
     struct _reent* r = _REENT;
     if (file < 0 || !gid_check(&file_table_gids, file)) {
@@ -124,8 +122,8 @@ ssize_t _write(int file, const void* buf, size_t len) {
         return -1;
     }
     return file_table[file].driver->write_r(r, file_table[file].arg, buf, len);
-}
-
+}*/
+/*
 ssize_t _read(int file, void* buf, size_t len) {
     struct _reent* r = _REENT;
     if (file < 0 || !gid_check(&file_table_gids, file)) {
@@ -134,8 +132,8 @@ ssize_t _read(int file, void* buf, size_t len) {
         return -1;
     }
     return file_table[file].driver->read_r(r, file_table[file].arg, buf, len);
-}
-
+}*/
+/*
 int _close(int file) {
     struct _reent* r = _REENT;
     // NOTE: newlib automatically closes all open files for a given task when
@@ -192,4 +190,4 @@ int32_t fdctl(int file, const uint32_t action, void* const extra_arg) {
         return -1;
     }
     return file_table[file].driver->ctl(file_table[file].arg, action, extra_arg);
-}
+}*/
