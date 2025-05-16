@@ -14,7 +14,7 @@ namespace zest {
 class SmartPort {
   public:
     /**
-     * @brief Construct a Smart Port from its number
+     * @brief Create a Smart Port using its number
      *
      * @note the smart port labelled "1" on the brain has a port number of 1
      *
@@ -26,7 +26,7 @@ class SmartPort {
     }
 
     /**
-     * @brief Construct a Smart Port from its index
+     * @brief Create a Smart Port using its index
      *
      * @note the smart port labelled "1" on the brain has a port index of 0
      *
@@ -100,11 +100,23 @@ constexpr auto PORT_20 = SmartPort::from_number(20);
 constexpr auto PORT_21 = SmartPort::from_number(21);
 } // namespace ports
 
+/**
+ * @brief ADI Port class. Represents an ADI Port on a the brain or on a 3-wire expander.
+ *
+ * ADI Ports may be represented as a 0-indexed number, or a char (e.g 'a' or 'C'). This class
+ * provides an interface so the developer doesn't have to worry about conversions.
+ */
 class AdiPort {
   public:
-    static constexpr AdiPort from_letter(char port) {
+    /**
+     * @brief Create an ADI Port using its character
+     *
+     * @param port can be lowercase, uppercase, or even an index
+     * @return constexpr AdiPort
+     */
+    static constexpr AdiPort from_char(char port) {
         // if the index is provided as a character
-        if (port >= '0' && port <= '9') {
+        if (port >= '0' && port <= '8') {
             return AdiPort(port - '0');
         }
         // convert to uppercase if needed
@@ -115,34 +127,65 @@ class AdiPort {
         return AdiPort(port - 'A');
     }
 
+    /**
+     * @brief Create an ADI Port using its index
+     *
+     * @param index the port as an index (e.g 'A' has an index of 0)
+     * @return constexpr AdiPort
+     */
     static constexpr AdiPort from_index(uint8_t index) {
         return AdiPort(index);
     }
 
-    constexpr char as_letter() const {
-        return m_index;
+    /**
+     * @brief Get the ADI Port as a char
+     *
+     * @note the returned char will be uppercase
+     *
+     * @return constexpr char
+     */
+    constexpr char as_char() const {
+        // convert index to an uppercase letter
+        return m_index + 'A';
     }
 
+    /**
+     * @brief Get the ADI Port as an index
+     *
+     * @return constexpr uint8_t
+     */
     constexpr uint8_t as_index() const {
         return m_index;
     }
 
   private:
-    uint8_t m_index;
-
-    constexpr AdiPort(uint8_t index)
+    /**
+     * @brief construct an ADI Port from an index
+     *
+     * This constructor is private to enforce the use of the `from_char` and `from_index` member
+     * functions. Having this construct be public defeats the purpose of this class, which is to
+     * prevent bugs by abstracting the port index.
+     */
+    explicit constexpr AdiPort(uint8_t index)
         : m_index(index) {}
+
+    uint8_t m_index;
 };
 
 namespace ports {
-constexpr auto PORT_A = AdiPort::from_letter('A');
-constexpr auto PORT_B = AdiPort::from_letter('B');
-constexpr auto PORT_C = AdiPort::from_letter('C');
-constexpr auto PORT_D = AdiPort::from_letter('D');
-constexpr auto PORT_E = AdiPort::from_letter('E');
-constexpr auto PORT_F = AdiPort::from_letter('F');
-constexpr auto PORT_G = AdiPort::from_letter('G');
-constexpr auto PORT_H = AdiPort::from_letter('H');
-
+/*
+ * ADI ports have a char from 'A' to 'H'. While compile-time error checking could prevent an invalid
+ * port being constructed, the error messages that would be produced wouldn't be very concise.
+ * However, if the user tried constructing a device on the imaginary port I, the project wouldn't
+ * compile since PORT_I isn't declared. This error message is much clearer.
+ */
+constexpr auto PORT_A = AdiPort::from_char('A');
+constexpr auto PORT_B = AdiPort::from_char('B');
+constexpr auto PORT_C = AdiPort::from_char('C');
+constexpr auto PORT_D = AdiPort::from_char('D');
+constexpr auto PORT_E = AdiPort::from_char('E');
+constexpr auto PORT_F = AdiPort::from_char('F');
+constexpr auto PORT_G = AdiPort::from_char('G');
+constexpr auto PORT_H = AdiPort::from_char('H');
 } // namespace ports
 } // namespace zest
