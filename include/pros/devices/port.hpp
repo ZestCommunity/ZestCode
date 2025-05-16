@@ -59,14 +59,32 @@ class SmartPort {
         return m_index;
     }
 
+    /**
+     * @brief whether the smart port represents a physical or virtual smart port
+     *
+     * @return true the smart port is physical
+     * @return false the smart port is virtual or invalid
+     */
     constexpr bool is_physical() const {
         return m_index <= 20;
     }
 
+    /**
+     * @brief whether the smart port represents a physical or virtual smart port
+     *
+     * @return true the smart port is virtual
+     * @return false the smart port is physical or invalid
+     */
     constexpr bool is_virtual() const {
         return m_index >= 21 && m_index <= 31;
     }
 
+    /**
+     * @brief whether the smart port is valid or not
+     *
+     * @return true the smart port is valid
+     * @return false the smart port is invalid
+     */
     constexpr bool is_valid() const {
         return m_index <= 31;
     }
