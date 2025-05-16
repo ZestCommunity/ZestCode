@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstdint>
+#include <limits>
 
 namespace zest {
 
@@ -145,6 +146,7 @@ constexpr auto PORT_18 = SmartPort::from_number(18);
 constexpr auto PORT_19 = SmartPort::from_number(19);
 constexpr auto PORT_20 = SmartPort::from_number(20);
 constexpr auto PORT_21 = SmartPort::from_number(21);
+constexpr auto INVALID_SMART_PORT = SmartPort::from_index(std::numeric_limits<uint8_t>::max());
 } // namespace ports
 
 /**
@@ -155,6 +157,19 @@ constexpr auto PORT_21 = SmartPort::from_number(21);
  */
 class AdiPort {
   public:
+    // the default constructor is explicitly deleted to enforce the use of from_char and from_index
+    AdiPort(SmartPort, uint8_t) = delete;
+
+    /**
+     * @brief Construct an ADI Port on an ADI expander
+     *
+     * @param expander_port the port of the ADI expander
+     * @param adi_port the ADI port. Can be lowercase or lowercase
+     */
+    constexpr AdiPort(SmartPort expander_port, AdiPort adi_port)
+        : m_expander_port(expander_port),
+          m_index(adi_port.as_index()) {}
+
     /**
      * @brief Create an ADI Port using its character
      *
@@ -205,7 +220,25 @@ class AdiPort {
         return m_index;
     }
 
+    /**
+     * @brief Get the mutex for the given port
+     *
+     * @note if the expander port is not valid, a reference to a reserved mutex is returned.
+     *
+     * @return pros::RecursiveMutex&
+     */
+    pros::RecursiveMutex& get_mutex() const {
+        if (m_expander_port.as_number() > 22) {
+            return ports::INVALID_SMART_PORT.get_mutex();
+        } else {
+            return m_expander_port.get_mutex();
+        }
+    }
+
   private:
+    // the integrated ADI ports on the brain are represented by the virtual port 22
+    static constexpr auto INTEGRATED_PORT = SmartPort::from_number(22);
+
     /**
      * @brief construct an ADI Port from an index
      *
@@ -214,8 +247,10 @@ class AdiPort {
      * prevent bugs by abstracting the port index.
      */
     explicit constexpr AdiPort(uint8_t index)
-        : m_index(index) {}
+        : m_expander_port(INTEGRATED_PORT),
+          m_index(index) {}
 
+    SmartPort m_expander_port;
     uint8_t m_index;
 };
 
