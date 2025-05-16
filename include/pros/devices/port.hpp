@@ -232,12 +232,13 @@ class AdiPort {
     /**
      * @brief Get the mutex for the given port
      *
-     * @note if the expander port is not valid, a reference to a reserved mutex is returned.
+     * @note if the expander port or ADI port is not valid, a reference to a reserved mutex is
+     * returned.
      *
      * @return pros::RecursiveMutex&
      */
     pros::RecursiveMutex& get_mutex() const {
-        if (m_expander_port.as_number() > 22) {
+        if (m_expander_port.as_number() > 22 || m_index > 7) {
             return ports::INVALID_SMART_PORT.get_mutex();
         } else {
             return m_expander_port.get_mutex();
