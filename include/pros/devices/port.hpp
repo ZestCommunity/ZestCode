@@ -3,26 +3,68 @@
 #include <cstdint>
 
 namespace zest {
+
+/**
+ * @brief Smart Port class. Represents a Smart Port on the V5 brain.
+ *
+ * @details Smart Ports may be represented as a 1-indexed number or a 0-indexed number. While the
+ * user expects a 1-indexed number (matching the labels on the brain), treating it as an index makes
+ * development easier. This class abstracts that away so we don't have to worry about it.
+ *
+ */
 class SmartPort {
   public:
+    /**
+     * @brief Construct a Smart Port from its number
+     *
+     * @note the smart port labelled "1" on the brain has a port number of 1
+     *
+     * @param port_number the port number, 1-indexed
+     * @return constexpr SmartPort
+     */
     static constexpr SmartPort from_number(uint8_t port_number) {
         return SmartPort(port_number - 1);
     }
 
+    /**
+     * @brief Construct a Smart Port from its index
+     *
+     * @note the smart port labelled "1" on the brain has a port index of 0
+     *
+     * @param port_index the port index, 0-indexed
+     * @return constexpr SmartPort
+     */
     static constexpr SmartPort from_index(uint8_t port_index) {
         return SmartPort(port_index);
     }
 
+    /**
+     * @brief Get the Smart Port as a number (1-indexed)
+     *
+     * @return constexpr uint8_t
+     */
     constexpr uint8_t as_number() const {
         return m_index + 1;
     }
 
+    /**
+     * @brief Get the Smart Port as an index (0-indexed)
+     *
+     * @return constexpr uint8_t
+     */
     constexpr uint8_t as_index() const {
         return m_index;
     }
 
   private:
-    constexpr SmartPort(int port_index)
+    /**
+     * @brief construct a Smart Port from an index
+     *
+     * This constructor is private to enforce the use of the `from_number` and `from_index` member
+     * functions. Having this construct be public defeats the purpose of this class, which is to
+     * prevent bugs by abstracting the port index.
+     */
+    explicit constexpr SmartPort(uint8_t port_index)
         : m_index(port_index) {}
 
     uint8_t m_index;
