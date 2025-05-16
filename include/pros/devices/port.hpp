@@ -221,6 +221,15 @@ class AdiPort {
     }
 
     /**
+     * @brief Get the smart port of the ADI expander
+     *
+     * @return constexpr SmartPort
+     */
+    constexpr SmartPort get_expander_port() const {
+        return m_expander_port;
+    }
+
+    /**
      * @brief Get the mutex for the given port
      *
      * @note if the expander port is not valid, a reference to a reserved mutex is returned.
