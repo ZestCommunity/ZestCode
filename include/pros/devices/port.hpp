@@ -1,5 +1,8 @@
 #pragma once
 
+#include "pros/rtos.hpp"
+
+#include <array>
 #include <cstdint>
 
 namespace zest {
@@ -55,7 +58,51 @@ class SmartPort {
         return m_index;
     }
 
+    constexpr bool is_physical() const {
+        return m_index <= 20;
+    }
+
+    constexpr bool is_virtual() const {
+        return m_index >= 21 && m_index <= 31;
+    }
+
+    constexpr bool is_valid() const {
+        return m_index <= 31;
+    }
+
+    /**
+     * @brief Get the mutex for the given port
+     *
+     * @todo decide whether this should go in a source file
+     *
+     * @return pros::RecursiveMutex&
+     */
+    pros::RecursiveMutex& get_mutex() const {
+        if (this->is_valid()) {
+            return m_mutexes.at(m_index);
+        } else {
+            return *m_mutexes.end();
+        }
+    }
+
   private:
+    /**
+     * @brief array of recursive mutexes, with 33 elements.
+     *
+     * The mutexes in this array are used to ensure thread-safety when using devices.
+     *
+     * The decision to use recursive mutexes was made so device drivers could be made simpler, and
+     * performance is not a concern in this scenario.
+     *
+     * There are 22 physical smart ports, and 10 virtual smart ports, for a total of 32.
+     * Virtual smart ports are used by the VEX SDK to represent devices like the battery or a
+     * controller.
+     *
+     * This array has 33 elements instead of 32 as you may expect. The 33rd mutex is used for
+     * invalid ports.
+     */
+    static std::array<pros::RecursiveMutex, 33> m_mutexes;
+
     /**
      * @brief construct a Smart Port from an index
      *
