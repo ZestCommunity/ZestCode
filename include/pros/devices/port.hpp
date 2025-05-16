@@ -73,7 +73,7 @@ class SmartPort {
     /**
      * @brief Get the mutex for the given port
      *
-     * @todo decide whether this should go in a source file
+     * @note if the port is not valid (index > 31), a reference to a reserved mutex is returned.
      *
      * @return pros::RecursiveMutex&
      */
@@ -81,7 +81,7 @@ class SmartPort {
         if (this->is_valid()) {
             return m_mutexes.at(m_index);
         } else {
-            return *m_mutexes.end();
+            return m_mutexes.at(32);
         }
     }
 
