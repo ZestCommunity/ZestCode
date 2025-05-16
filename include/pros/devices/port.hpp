@@ -7,10 +7,9 @@ namespace zest {
 /**
  * @brief Smart Port class. Represents a Smart Port on the V5 brain.
  *
- * @details Smart Ports may be represented as a 1-indexed number or a 0-indexed number. While the
+ * Smart Ports may be represented as a 1-indexed number or a 0-indexed number. While the
  * user expects a 1-indexed number (matching the labels on the brain), treating it as an index makes
  * development easier. This class abstracts that away so we don't have to worry about it.
- *
  */
 class SmartPort {
   public:
@@ -71,6 +70,13 @@ class SmartPort {
 };
 
 namespace ports {
+/*
+ * Physical smart ports have a number from 1 to 21 (inclusive). While compile-time error checking
+ * could prevent an invalid port being constructed, the error messages that would be produced
+ * wouldn't be very concise.
+ * However, if the user tried constructing a device on the imaginary port 42, the project wouldn't
+ * compile since PORT_42 isn't declared. This error message is much clearer.
+ */
 constexpr auto PORT_1 = SmartPort::from_number(1);
 constexpr auto PORT_2 = SmartPort::from_number(2);
 constexpr auto PORT_3 = SmartPort::from_number(3);
