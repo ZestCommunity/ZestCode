@@ -243,14 +243,7 @@ class AdiPort {
      *
      * @return pros::RecursiveMutex&
      */
-    pros::RecursiveMutex& get_mutex() const {
-        if (m_host_port.as_number() > 22 || m_index > 7) {
-            // return a reference to the invalid port mutex
-            return SmartPort::from_number(33).get_mutex();
-        } else {
-            return m_host_port.get_mutex();
-        }
-    }
+    pros::RecursiveMutex& get_mutex() const;
 
   private:
     // the integrated ADI ports on the brain are represented by the virtual port 22
