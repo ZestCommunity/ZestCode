@@ -4,7 +4,6 @@
 
 #include <array>
 #include <cstdint>
-#include <limits>
 
 namespace zest {
 
@@ -135,38 +134,6 @@ class SmartPort {
     uint8_t m_index;
 };
 
-namespace ports {
-/*
- * Physical smart ports have a number from 1 to 21 (inclusive). While compile-time error checking
- * could prevent an invalid port being constructed, the error messages that would be produced
- * wouldn't be very concise.
- * However, if the user tried constructing a device on the imaginary port 42, the project wouldn't
- * compile since PORT_42 isn't declared. This error message is much clearer.
- */
-constexpr auto PORT_1 = SmartPort::from_number(1);
-constexpr auto PORT_2 = SmartPort::from_number(2);
-constexpr auto PORT_3 = SmartPort::from_number(3);
-constexpr auto PORT_4 = SmartPort::from_number(4);
-constexpr auto PORT_5 = SmartPort::from_number(5);
-constexpr auto PORT_6 = SmartPort::from_number(6);
-constexpr auto PORT_7 = SmartPort::from_number(7);
-constexpr auto PORT_8 = SmartPort::from_number(8);
-constexpr auto PORT_9 = SmartPort::from_number(9);
-constexpr auto PORT_10 = SmartPort::from_number(10);
-constexpr auto PORT_11 = SmartPort::from_number(11);
-constexpr auto PORT_12 = SmartPort::from_number(12);
-constexpr auto PORT_13 = SmartPort::from_number(13);
-constexpr auto PORT_14 = SmartPort::from_number(14);
-constexpr auto PORT_15 = SmartPort::from_number(15);
-constexpr auto PORT_16 = SmartPort::from_number(16);
-constexpr auto PORT_17 = SmartPort::from_number(17);
-constexpr auto PORT_18 = SmartPort::from_number(18);
-constexpr auto PORT_19 = SmartPort::from_number(19);
-constexpr auto PORT_20 = SmartPort::from_number(20);
-constexpr auto PORT_21 = SmartPort::from_number(21);
-constexpr auto INVALID_SMART_PORT = SmartPort::from_index(std::numeric_limits<uint8_t>::max());
-} // namespace ports
-
 /**
  * @brief ADI Port class. Represents an ADI Port on a the brain or on a 3-wire expander.
  *
@@ -185,7 +152,7 @@ class AdiPort {
      * @param adi_port the ADI port. Can be lowercase or lowercase
      */
     constexpr AdiPort(SmartPort expander_port, AdiPort adi_port)
-        : m_expander_port(expander_port),
+        : m_host_port(expander_port),
           m_index(adi_port.as_index()) {}
 
     /**
@@ -244,7 +211,7 @@ class AdiPort {
      * @return constexpr SmartPort
      */
     constexpr SmartPort get_expander_port() const {
-        return m_expander_port;
+        return m_host_port;
     }
 
     /**
@@ -256,10 +223,11 @@ class AdiPort {
      * @return pros::RecursiveMutex&
      */
     pros::RecursiveMutex& get_mutex() const {
-        if (m_expander_port.as_number() > 22 || m_index > 7) {
-            return ports::INVALID_SMART_PORT.get_mutex();
+        if (m_host_port.as_number() > 22 || m_index > 7) {
+            // return a reference to the invalid port mutex
+            return SmartPort::from_number(33).get_mutex();
         } else {
-            return m_expander_port.get_mutex();
+            return m_host_port.get_mutex();
         }
     }
 
@@ -275,27 +243,10 @@ class AdiPort {
      * prevent bugs by abstracting the port index.
      */
     explicit constexpr AdiPort(uint8_t index)
-        : m_expander_port(INTEGRATED_PORT),
+        : m_host_port(INTEGRATED_PORT),
           m_index(index) {}
 
-    SmartPort m_expander_port;
+    SmartPort m_host_port;
     uint8_t m_index;
 };
-
-namespace ports {
-/*
- * ADI ports have a char from 'A' to 'H'. While compile-time error checking could prevent an invalid
- * port being constructed, the error messages that would be produced wouldn't be very concise.
- * However, if the user tried constructing a device on the imaginary port I, the project wouldn't
- * compile since PORT_I isn't declared. This error message is much clearer.
- */
-constexpr auto PORT_A = AdiPort::from_char('A');
-constexpr auto PORT_B = AdiPort::from_char('B');
-constexpr auto PORT_C = AdiPort::from_char('C');
-constexpr auto PORT_D = AdiPort::from_char('D');
-constexpr auto PORT_E = AdiPort::from_char('E');
-constexpr auto PORT_F = AdiPort::from_char('F');
-constexpr auto PORT_G = AdiPort::from_char('G');
-constexpr auto PORT_H = AdiPort::from_char('H');
-} // namespace ports
 } // namespace zest
