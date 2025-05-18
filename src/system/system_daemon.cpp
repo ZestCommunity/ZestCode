@@ -12,29 +12,41 @@
  */
 
 #include "kapi.h"
+#include "pros/devices/port.hpp"
 #include "system/optimizers.h"
 #include "system/user_functions.h" // IWYU pragma: keep
 
-extern void vdml_background_processing();
+extern "C" {
+void vexTasksRun();
+void ser_output_flush();
+}
 
-extern void port_mutex_take_all();
-extern void port_mutex_give_all();
+void port_mutex_take_all() {
+    for (int i = 0; i < zest::SmartPort::MAX_SMART_PORTS; i++) {
+        zest::SmartPort::from_index(i).get_mutex().take();
+    }
+}
+
+void port_mutex_give_all() {
+    for (int i = 0; i < zest::SmartPort::MAX_SMART_PORTS; i++) {
+        zest::SmartPort::from_index(i).get_mutex().give();
+    }
+}
+
+static void _disabled_task(void*);
+static void _autonomous_task(void*);
+static void _opcontrol_task(void*);
+static void _competition_initialize_task(void*);
+static void _initialize_task(void*);
+static void _system_daemon_task(void*);
 
 static task_stack_t competition_task_stack[TASK_STACK_DEPTH_DEFAULT];
 static static_task_s_t competition_task_buffer;
-static task_t competition_task;
+static pros::task_t competition_task;
 
 static task_stack_t system_daemon_task_stack[TASK_STACK_DEPTH_DEFAULT];
 static static_task_s_t system_daemon_task_buffer;
-static task_t system_daemon_task;
-
-static void _disabled_task(void* ign);
-static void _autonomous_task(void* ign);
-static void _opcontrol_task(void* ign);
-static void _competition_initialize_task(void* ign);
-
-static void _initialize_task(void* ign);
-static void _system_daemon_task(void* ign);
+static pros::task_t system_daemon_task;
 
 enum state_task {
     E_OPCONTROL_TASK = 0,
@@ -43,18 +55,15 @@ enum state_task {
     E_COMP_INIT_TASK
 };
 
-char task_names[4][32] = {
+static const char task_names[4][32] = {
     "User Operator Control (PROS)",
     "User Autonomous (PROS)",
     "User Disabled (PROS)",
     "User Comp. Init. (PROS)"
 };
-task_fn_t task_fns[4] =
+
+static task_fn_t task_fns[4] =
     {_opcontrol_task, _autonomous_task, _disabled_task, _competition_initialize_task};
-
-extern void ser_output_flush(void);
-
-void vexTasksRun();
 
 // does the basic background operations that need to occur every 2ms
 static inline void do_background_operations() {
@@ -63,12 +72,11 @@ static inline void do_background_operations() {
     rtos_suspend_all();
     vexTasksRun();
     rtos_resume_all();
-    vdml_background_processing();
     port_mutex_give_all();
 }
 
-static void _system_daemon_task(void* ign) {
-    uint32_t time = millis();
+static void _system_daemon_task(void*) {
+    uint32_t time = pros::millis();
     // Initialize status to an invalid state to force an update the first loop
     uint32_t status = (uint32_t)(1 << 8);
     uint32_t task_state;
@@ -78,7 +86,7 @@ static void _system_daemon_task(void* ign) {
     // Take all port mutexes to prevent user code from attempting to access VDML during this time.
     // User code could be running if a task is created from a global ctor
     port_mutex_take_all();
-    task_delay(2);
+    pros::c::task_delay(2);
     port_mutex_give_all();
 
     // start up user initialize task. once the user initialize function completes,
@@ -94,18 +102,18 @@ static void _system_daemon_task(void* ign) {
         &competition_task_buffer
     );
 
-    time = millis();
-    while (!task_notify_take(true, 2)) {
+    time = pros::millis();
+    while (!pros::c::task_notify_take(true, 2)) {
         // wait for initialize to finish
         do_background_operations();
     }
     while (1) {
         do_background_operations();
 
-        if (unlikely(status != competition_get_status())) {
+        if (unlikely(status != pros::c::competition_get_status())) {
             // Have a new competition status, need to clean up whatever's running
             uint32_t old_status = status;
-            status = competition_get_status();
+            status = pros::c::competition_get_status();
             enum state_task state = E_OPCONTROL_TASK;
             if ((status & COMPETITION_DISABLED) && (old_status & COMPETITION_DISABLED)) {
                 // Don't restart the disabled task even if other bits have changed (e.g. auton bit)
@@ -124,13 +132,13 @@ static void _system_daemon_task(void* ign) {
                 state = E_AUTON_TASK;
             }
 
-            task_state = task_get_state(competition_task);
+            task_state = pros::c::task_get_state(competition_task);
             // delete the task only if it's in normal operation (e.g. not deleted)
             // The valid task states AREN'T deleted, invalid, or running (running
             // means it's the current task, which will never be the case)
-            if (task_state == E_TASK_STATE_READY || task_state == E_TASK_STATE_BLOCKED
-                || task_state == E_TASK_STATE_SUSPENDED) {
-                task_delete(competition_task);
+            if (task_state == pros::E_TASK_STATE_READY || task_state == pros::E_TASK_STATE_BLOCKED
+                || task_state == pros::E_TASK_STATE_SUSPENDED) {
+                pros::c::task_delete(competition_task);
             }
 
             competition_task = task_create_static(
@@ -144,7 +152,7 @@ static void _system_daemon_task(void* ign) {
             );
         }
 
-        task_delay_until(&time, 2);
+        pros::c::task_delay_until(&time, 2);
     }
 }
 
@@ -165,7 +173,7 @@ void system_daemon_initialize() {
 #define FUNC(NAME)                                                                                 \
     static void _##NAME##_task(void* ign) {                                                        \
         user_##NAME();                                                                             \
-        task_notify(system_daemon_task);                                                           \
+        pros::c::task_notify(system_daemon_task);                                                  \
     }
 #include "system/user_functions/c_list.h"
 #undef FUNC
