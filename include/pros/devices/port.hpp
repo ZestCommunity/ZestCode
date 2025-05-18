@@ -88,7 +88,7 @@ class SmartPort {
      * @return false the smart port is physical or invalid
      */
     constexpr bool is_virtual() const {
-        return m_index >= 21 && m_index <= 31;
+        return m_index >= 21 && is_valid();
     }
 
     /**
@@ -98,7 +98,7 @@ class SmartPort {
      * @return false the smart port is invalid
      */
     constexpr bool is_valid() const {
-        return m_index <= 31;
+        return m_index < MAX_SMART_PORTS;
     }
 
     /**
@@ -108,13 +108,9 @@ class SmartPort {
      *
      * @return pros::RecursiveMutex&
      */
-    pros::RecursiveMutex& get_mutex() const {
-        if (this->is_valid()) {
-            return m_mutexes.at(m_index);
-        } else {
-            return m_mutexes.at(32);
-        }
-    }
+    pros::RecursiveMutex& get_mutex() const;
+
+    static constexpr uint8_t MAX_SMART_PORTS = 32; /**< the maximum number of smart ports */
 
   private:
     /**
@@ -132,7 +128,7 @@ class SmartPort {
      * This array has 33 elements instead of 32 as you may expect. The 33rd mutex is used for
      * invalid ports.
      */
-    static std::array<pros::RecursiveMutex, 33> m_mutexes;
+    static std::array<pros::RecursiveMutex, MAX_SMART_PORTS + 1> m_mutexes;
 
     /**
      * @brief construct a Smart Port from an index
