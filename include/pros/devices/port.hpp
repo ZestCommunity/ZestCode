@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstdint>
+#include <limits>
 
 namespace zest {
 
@@ -16,6 +17,18 @@ namespace zest {
  */
 class SmartPort {
   public:
+    /**
+     * @brief Create an invalid Smart Port
+     *
+     * Users may want to create a device on an invalid port for testing. This function provides an
+     * idiomatic way to create an invalid port.
+     *
+     * @return constexpr SmartPort
+     */
+    static constexpr SmartPort make_invalid() {
+        return SmartPort(std::numeric_limits<uint8_t>::max());
+    }
+
     /**
      * @brief Create a Smart Port using its number
      *
@@ -144,6 +157,18 @@ class AdiPort {
   public:
     // the default constructor is explicitly deleted to enforce the use of from_char and from_index
     AdiPort(SmartPort, uint8_t) = delete;
+
+    /**
+     * @brief Create an invalid ADI Port
+     *
+     * Users may want to create a device on an invalid port for testing. This function provides an
+     * idiomatic way to create an invalid port.
+     *
+     * @return constexpr SmartPort
+     */
+    static constexpr AdiPort make_invalid() {
+        return AdiPort(std::numeric_limits<uint8_t>::max());
+    }
 
     /**
      * @brief Construct an ADI Port on an ADI expander

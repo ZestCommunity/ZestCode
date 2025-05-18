@@ -1,15 +1,16 @@
 #include "pros/devices/battery.hpp"
 
-#include "pros/devices/port.hpp"
+#include "pros/devices/brain.hpp"
 #include "v5_api_patched.h"
 
 #include <mutex>
 
-constexpr auto BATTERY_PORT = zest::SmartPort::from_index(25);
-
 namespace zest {
+
+static Brain brain;
+
 Result<double, UnknownError> Battery::get_capacity() {
-    std::lock_guard lock(get_port_mutex(BATTERY_PORT));
+    std::lock_guard lock(brain.battery_port.get_mutex());
     if (auto res = vexBatteryCapacityGet(); res == std::numeric_limits<typeof(res)>::max()) {
         return UnknownError("An unknown error has occurred");
     } else {
@@ -18,7 +19,7 @@ Result<double, UnknownError> Battery::get_capacity() {
 }
 
 Result<double, UnknownError> Battery::get_current() {
-    std::lock_guard lock(get_port_mutex(BATTERY_PORT));
+    std::lock_guard lock(brain.battery_port.get_mutex());
     if (auto res = vexBatteryCurrentGet(); res == std::numeric_limits<typeof(res)>::max()) {
         return UnknownError("An unknown error has occurred");
     } else {
@@ -27,7 +28,7 @@ Result<double, UnknownError> Battery::get_current() {
 }
 
 Result<double, UnknownError> Battery::get_temperature() {
-    std::lock_guard lock(get_port_mutex(BATTERY_PORT));
+    std::lock_guard lock(brain.battery_port.get_mutex());
     if (auto res = vexBatteryTemperatureGet(); res == std::numeric_limits<typeof(res)>::max()) {
         return UnknownError("An unknown error has occurred");
     } else {
@@ -36,7 +37,7 @@ Result<double, UnknownError> Battery::get_temperature() {
 }
 
 Result<double, UnknownError> Battery::get_voltage() {
-    std::lock_guard lock(get_port_mutex(BATTERY_PORT));
+    std::lock_guard lock(brain.battery_port.get_mutex());
     if (auto res = vexBatteryVoltageGet(); res == std::numeric_limits<typeof(res)>::max()) {
         return UnknownError("An unknown error has occurred");
     } else {
