@@ -6,27 +6,28 @@
 namespace zest {
 class AdiExpander {
   public:
-    constexpr AdiExpander(SmartPort port)
-        : port_a(port, AdiPort::from_char('A')),
-          port_b(port, AdiPort::from_char('B')),
-          port_c(port, AdiPort::from_char('C')),
-          port_d(port, AdiPort::from_char('D')),
-          port_e(port, AdiPort::from_char('E')),
-          port_f(port, AdiPort::from_char('F')),
-          port_g(port, AdiPort::from_char('G')),
-          port_h(port, AdiPort::from_char('H')),
+    AdiExpander(SmartPort& port)
+        : port_a(port, 'A'),
+          port_b(port, 'B'),
+          port_c(port, 'C'),
+          port_d(port, 'D'),
+          port_e(port, 'E'),
+          port_f(port, 'F'),
+          port_g(port, 'G'),
+          port_h(port, 'H'),
+          port_invalid(port, 'J'),
           smart_port(port) {}
 
-    const AdiPort port_a;
-    const AdiPort port_b;
-    const AdiPort port_c;
-    const AdiPort port_d;
-    const AdiPort port_e;
-    const AdiPort port_f;
-    const AdiPort port_g;
-    const AdiPort port_h;
-    const AdiPort port_invalid = AdiPort::make_invalid();
+    AdiPort port_a;
+    AdiPort port_b;
+    AdiPort port_c;
+    AdiPort port_d;
+    AdiPort port_e;
+    AdiPort port_f;
+    AdiPort port_g;
+    AdiPort port_h;
+    AdiPort port_invalid;
 
-    const SmartPort smart_port;
+    SmartPort& smart_port;
 };
 }; // namespace zest

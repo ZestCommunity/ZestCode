@@ -12,25 +12,39 @@
  */
 
 #include "kapi.h"
+#include "pros/devices/brain.hpp"
 #include "pros/devices/port.hpp"
+#include "pros/rtos.hpp"
 #include "system/optimizers.h"
 #include "system/user_functions.h" // IWYU pragma: keep
+
+#include <mutex>
 
 extern "C" {
 void vexTasksRun();
 void ser_output_flush();
 }
 
-void port_mutex_take_all() {
-    for (int i = 0; i < zest::SmartPort::MAX_SMART_PORTS; i++) {
-        zest::SmartPort::from_index(i).get_mutex().take();
-    }
+template<std::size_t... Is>
+static void lock_ports(std::index_sequence<Is...>) {
+    std::lock(zest::Brain::ports[Is].mutex...);
 }
 
-void port_mutex_give_all() {
-    for (int i = 0; i < zest::SmartPort::MAX_SMART_PORTS; i++) {
-        zest::SmartPort::from_index(i).get_mutex().give();
-    }
+template<std::size_t... Is>
+static void unlock_ports(std::index_sequence<Is...>) {
+    constexpr std::size_t N = sizeof...(Is);
+    // Unlock in reverse order (RAII best practice)
+    (zest::Brain::ports[N - 1 - Is].mutex.unlock(), ...);
+}
+
+static void port_mutex_lock_all() {
+    constexpr auto num_ports = std::tuple_size<decltype(zest::Brain::ports)>::value;
+    lock_ports(std::make_index_sequence<num_ports>{});
+}
+
+static void port_mutex_unlock_all() {
+    constexpr auto num_ports = std::tuple_size<decltype(zest::Brain::ports)>::value;
+    unlock_ports(std::make_index_sequence<num_ports>{});
 }
 
 static void _disabled_task(void*);
@@ -67,12 +81,12 @@ static task_fn_t task_fns[4] =
 
 // does the basic background operations that need to occur every 2ms
 static inline void do_background_operations() {
-    port_mutex_take_all();
+    port_mutex_lock_all();
     ser_output_flush();
     rtos_suspend_all();
     vexTasksRun();
     rtos_resume_all();
-    port_mutex_give_all();
+    port_mutex_unlock_all();
 }
 
 static void _system_daemon_task(void*) {
@@ -85,9 +99,9 @@ static void _system_daemon_task(void*) {
     // (discovered b/c VDML would crash and burn)
     // Take all port mutexes to prevent user code from attempting to access VDML during this time.
     // User code could be running if a task is created from a global ctor
-    port_mutex_take_all();
+    port_mutex_lock_all();
     pros::c::task_delay(2);
-    port_mutex_give_all();
+    port_mutex_unlock_all();
 
     // start up user initialize task. once the user initialize function completes,
     // the _initialize_task will notify us and we can go into normal competition
