@@ -34,6 +34,7 @@ void ser_output_flush();
  */
 template<std::size_t... Is>
 static void lock_ports(std::index_sequence<Is...>) {
+    // std::lock locks multiple mutexes without risk of a deadlock
     std::lock(zest::Brain::ports[Is].mutex...);
 }
 
