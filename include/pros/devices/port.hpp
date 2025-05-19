@@ -37,6 +37,9 @@ class SmartPort {
         return m_number - 1;
     }
 
+    // users should always use a reference to a SmartPort
+    SmartPort(SmartPort& other) = delete;
+
     pros::RecursiveMutex mutex;
 
   private:
@@ -82,6 +85,9 @@ class AdiPort {
         return m_index;
     }
 
+    // users should always use a reference to an AdiPort
+    AdiPort(AdiPort& other) = delete;
+
     SmartPort& host_port;
 
   private:
@@ -92,7 +98,7 @@ class AdiPort {
      * @param port must be uppercase, 'A' - 'H'
      * @return constexpr AdiPort
      */
-    constexpr AdiPort(SmartPort& host_port, char port)
+    AdiPort(SmartPort& host_port, char port)
         : host_port(host_port),
           m_index(port - 'A') {}
 
