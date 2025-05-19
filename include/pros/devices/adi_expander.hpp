@@ -4,8 +4,18 @@
 #include "pros/devices/port.hpp"
 
 namespace zest {
+
+/**
+ * @brief ADI Expander class. Used to control access to ADI ports
+ *
+ */
 class AdiExpander {
   public:
+    /**
+     * @brief Construct a new ADI Expander object
+     *
+     * @param port the smart port the ADI expander is connected to
+     */
     AdiExpander(SmartPort& port)
         : port_a(port, 'A'),
           port_b(port, 'B'),
