@@ -25,11 +25,25 @@ void vexTasksRun();
 void ser_output_flush();
 }
 
+/**
+ * @brief lock a sequence of smart ports
+ *
+ * For whatever reason, std::lock only compiles if you pass the mutexes like this:
+ * std::lock(mutex_a, mutex_b, mutex_c);
+ * You can't pass it an array or iterator or lambda, so we have to use this helper function instead.
+ */
 template<std::size_t... Is>
 static void lock_ports(std::index_sequence<Is...>) {
     std::lock(zest::Brain::ports[Is].mutex...);
 }
 
+/**
+ * @brief unlock a sequence of smart ports
+ *
+ * For whatever reason, std::unlock only compiles if you pass the mutexes like this:
+ * std::unlock(mutex_a, mutex_b, mutex_c);
+ * You can't pass it an array or iterator or lambda, so we have to use this helper function instead
+ */
 template<std::size_t... Is>
 static void unlock_ports(std::index_sequence<Is...>) {
     constexpr std::size_t N = sizeof...(Is);
@@ -37,12 +51,22 @@ static void unlock_ports(std::index_sequence<Is...>) {
     (zest::Brain::ports[N - 1 - Is].mutex.unlock(), ...);
 }
 
+/**
+ * @brief lock all smart port mutexes
+ *
+ */
 static void port_mutex_lock_all() {
+    // this looks weird because of how std::lock is implemented. See lock_ports for details.
     constexpr auto num_ports = std::tuple_size<decltype(zest::Brain::ports)>::value;
     lock_ports(std::make_index_sequence<num_ports>{});
 }
 
+/**
+ * @brief unlock all smart port mutexes
+ *
+ */
 static void port_mutex_unlock_all() {
+    // this looks weird because of how std::unlock is implemented. See unlock_ports for details.
     constexpr auto num_ports = std::tuple_size<decltype(zest::Brain::ports)>::value;
     unlock_ports(std::make_index_sequence<num_ports>{});
 }
