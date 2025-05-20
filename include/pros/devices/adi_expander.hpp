@@ -16,7 +16,7 @@ class AdiExpander {
      *
      * @param port the smart port the ADI expander is connected to
      */
-    AdiExpander(SmartPort& port)
+    consteval AdiExpander(SmartPort& port)
         : port_a(port, 'A'),
           port_b(port, 'B'),
           port_c(port, 'C'),
@@ -36,6 +36,7 @@ class AdiExpander {
     AdiPort port_f;
     AdiPort port_g;
     AdiPort port_h;
+    // users may use port_invalid as a placeholder or temporary port
     AdiPort port_invalid;
 
     SmartPort& smart_port;

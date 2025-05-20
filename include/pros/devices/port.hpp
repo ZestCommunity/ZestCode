@@ -24,7 +24,7 @@ class SmartPort {
      *
      * @return constexpr uint8_t
      */
-    uint8_t as_number() const {
+    constexpr uint8_t as_number() const {
         return m_number;
     }
 
@@ -33,7 +33,7 @@ class SmartPort {
      *
      * @return constexpr uint8_t
      */
-    uint8_t as_index() const {
+    constexpr uint8_t as_index() const {
         return m_number - 1;
     }
 
@@ -47,7 +47,7 @@ class SmartPort {
      * @brief construct a Smart Port from an index
      *
      */
-    SmartPort(uint8_t port_number)
+    constexpr SmartPort(uint8_t port_number)
         : m_number(port_number) {}
 
     uint8_t m_number;
@@ -71,7 +71,7 @@ class AdiPort {
      *
      * @return constexpr char
      */
-    char as_char() const {
+    constexpr char as_char() const {
         // convert index to an uppercase letter
         return m_index + 'A';
     }
@@ -81,7 +81,7 @@ class AdiPort {
      *
      * @return constexpr uint8_t
      */
-    uint8_t as_index() const {
+    constexpr uint8_t as_index() const {
         return m_index;
     }
 
@@ -98,7 +98,7 @@ class AdiPort {
      * @param port must be uppercase, 'A' - 'H'
      * @return constexpr AdiPort
      */
-    AdiPort(SmartPort& host_port, char port)
+    constexpr AdiPort(SmartPort& host_port, char port)
         : host_port(host_port),
           m_index(port - 'A') {}
 
