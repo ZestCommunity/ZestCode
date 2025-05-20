@@ -6,8 +6,6 @@ constinit std::array<SmartPort, 33> Brain::ports = {1,  2,  3,  4,  5,  6,  7,  
                                                     12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
                                                     23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33};
 
-// adi ports integrated in the brain
-constinit AdiExpander Brain::adi = AdiExpander(battery_port);
 // physical smart ports
 constinit SmartPort& Brain::port_1 = ports.at(0);
 constinit SmartPort& Brain::port_2 = ports.at(1);
@@ -35,4 +33,7 @@ constinit SmartPort& Brain::port_21 = ports.at(20);
 constinit SmartPort& Brain::integrated_adi_port = ports.at(21);
 constinit SmartPort& Brain::battery_port = ports.at(24);
 constinit SmartPort& Brain::invalid_port = ports.at(32);
+
+// adi ports integrated in the brain
+constinit AdiExpander Brain::adi = AdiExpander(integrated_adi_port);
 } // namespace zest

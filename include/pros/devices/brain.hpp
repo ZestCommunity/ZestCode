@@ -13,7 +13,6 @@ class Brain {
     // there are 21 physical smart ports, 11 virtual smart ports, and 1 reserved virtual smart port
     // for invalid ports. Totals 33.
     static constinit std::array<SmartPort, 33> ports;
-    static constinit AdiExpander adi;
 
     // physical smart ports
     // these references are simply a QoL feature
@@ -44,5 +43,8 @@ class Brain {
     static constinit SmartPort& battery_port;
     // users may use port_invalid as a placeholder or temporary port
     static constinit SmartPort& invalid_port;
+
+    // all adi ports on the brain
+    static constinit AdiExpander adi;
 };
 }; // namespace zest
