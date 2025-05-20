@@ -67,9 +67,10 @@ static void port_mutex_lock_all() {
  *
  */
 static void port_mutex_unlock_all() {
-    // this looks weird because of how std::unlock is implemented. See unlock_ports for details.
-    constexpr auto num_ports = std::tuple_size<decltype(zest::Brain::ports)>::value;
-    unlock_ports(std::make_index_sequence<num_ports>{});
+    []<size_t... Is>(std::index_sequence<Is...>) {
+        // unlock mutexes in reverse order of locking
+        (zest::Brain::ports[sizeof...(Is) - 1 - Is].mutex.unlock(), ...);
+    }(std::make_index_sequence<zest::Brain::ports.size()>{});
 }
 
 static void _disabled_task(void*);
