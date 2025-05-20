@@ -57,9 +57,9 @@ static void unlock_ports(std::index_sequence<Is...>) {
  *
  */
 static void port_mutex_lock_all() {
-    // this looks weird because of how std::lock is implemented. See lock_ports for details.
-    constexpr auto num_ports = std::tuple_size<decltype(zest::Brain::ports)>::value;
-    lock_ports(std::make_index_sequence<num_ports>{});
+    []<size_t... Is>(std::index_sequence<Is...>) {
+        std::lock(zest::Brain::ports[Is].mutex...);
+    }(std::make_index_sequence<zest::Brain::ports.size()>{});
 }
 
 /**
