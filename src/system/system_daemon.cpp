@@ -25,32 +25,6 @@ void vexTasksRun();
 void ser_output_flush();
 }
 
-/**
- * @brief lock a sequence of smart ports
- *
- * For whatever reason, std::lock only compiles if you pass the mutexes like this:
- * std::lock(mutex_a, mutex_b, mutex_c);
- * You can't pass it an array or iterator or lambda, so we have to use this helper function instead.
- */
-template<std::size_t... Is>
-static void lock_ports(std::index_sequence<Is...>) {
-    // std::lock locks multiple mutexes without risk of a deadlock
-    std::lock(zest::Brain::ports[Is].mutex...);
-}
-
-/**
- * @brief unlock a sequence of smart ports
- *
- * For whatever reason, std::unlock only compiles if you pass the mutexes like this:
- * std::unlock(mutex_a, mutex_b, mutex_c);
- * You can't pass it an array or iterator or lambda, so we have to use this helper function instead
- */
-template<std::size_t... Is>
-static void unlock_ports(std::index_sequence<Is...>) {
-    constexpr std::size_t N = sizeof...(Is);
-    // Unlock in reverse order (RAII best practice)
-    (zest::Brain::ports[N - 1 - Is].mutex.unlock(), ...);
-}
 
 /**
  * @brief lock all smart port mutexes
