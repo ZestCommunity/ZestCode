@@ -13,38 +13,13 @@
 
 #include "kapi.h"
 #include "pros/devices/brain.hpp"
-#include "pros/devices/port.hpp"
 #include "pros/rtos.hpp"
 #include "system/optimizers.h"
 #include "system/user_functions.h" // IWYU pragma: keep
 
-#include <mutex>
-
 extern "C" {
 void vexTasksRun();
 void ser_output_flush();
-}
-
-
-/**
- * @brief lock all smart port mutexes
- *
- */
-static void port_mutex_lock_all() {
-    []<size_t... Is>(std::index_sequence<Is...>) {
-        std::lock(zest::Brain::ports[Is].mutex...);
-    }(std::make_index_sequence<zest::Brain::ports.size()>{});
-}
-
-/**
- * @brief unlock all smart port mutexes
- *
- */
-static void port_mutex_unlock_all() {
-    []<size_t... Is>(std::index_sequence<Is...>) {
-        // unlock mutexes in reverse order of locking
-        (zest::Brain::ports[sizeof...(Is) - 1 - Is].mutex.unlock(), ...);
-    }(std::make_index_sequence<zest::Brain::ports.size()>{});
 }
 
 static void _disabled_task(void*);
@@ -81,12 +56,12 @@ static task_fn_t task_fns[4] =
 
 // does the basic background operations that need to occur every 2ms
 static inline void do_background_operations() {
-    port_mutex_lock_all();
+    zest::Brain::smart_port_mutex_lock_all();
     ser_output_flush();
     rtos_suspend_all();
     vexTasksRun();
     rtos_resume_all();
-    port_mutex_unlock_all();
+    zest::Brain::smart_port_mutex_unlock_all();
 }
 
 static void _system_daemon_task(void*) {
@@ -94,14 +69,6 @@ static void _system_daemon_task(void*) {
     // Initialize status to an invalid state to force an update the first loop
     uint32_t status = (uint32_t)(1 << 8);
     uint32_t task_state;
-
-    // XXX: Delay likely necessary for shared memory to get copied over
-    // (discovered b/c VDML would crash and burn)
-    // Take all port mutexes to prevent user code from attempting to access VDML during this time.
-    // User code could be running if a task is created from a global ctor
-    port_mutex_lock_all();
-    pros::c::task_delay(2);
-    port_mutex_unlock_all();
 
     // start up user initialize task. once the user initialize function completes,
     // the _initialize_task will notify us and we can go into normal competition

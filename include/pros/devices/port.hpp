@@ -1,7 +1,5 @@
 #pragma once
 
-#include "pros/rtos.hpp"
-
 #include <cstdint>
 
 namespace zest {
@@ -37,11 +35,6 @@ class SmartPort {
         return m_number - 1;
     }
 
-    // users should always use a reference to a SmartPort
-    SmartPort(SmartPort& other) = delete;
-
-    pros::RecursiveMutex mutex;
-
   private:
     /**
      * @brief construct a Smart Port from an index
@@ -65,15 +58,12 @@ class AdiPort {
 
   public:
     /**
-     * @brief Get the ADI Port as a char
-     *
-     * @note the returned char will be uppercase
+     * @brief Get the ADI Port as an uppercase letter
      *
      * @return constexpr char
      */
-    constexpr char as_char() const {
-        // convert index to an uppercase letter
-        return m_index + 'A';
+    constexpr char as_letter() const {
+        return m_letter;
     }
 
     /**
@@ -82,13 +72,13 @@ class AdiPort {
      * @return constexpr uint8_t
      */
     constexpr uint8_t as_index() const {
-        return m_index;
+        return m_letter - 'A';
     }
 
     // users should always use a reference to an AdiPort
     AdiPort(AdiPort& other) = delete;
 
-    SmartPort& host_port;
+    SmartPort host_port;
 
   private:
     /**
@@ -98,10 +88,11 @@ class AdiPort {
      * @param port must be uppercase, 'A' - 'H'
      * @return constexpr AdiPort
      */
-    constexpr AdiPort(SmartPort& host_port, char port)
+    constexpr AdiPort(SmartPort host_port, char port)
         : host_port(host_port),
-          m_index(port - 'A') {}
+          m_letter(port) {}
 
-    uint8_t m_index;
+    char m_letter;
 };
+
 } // namespace zest
