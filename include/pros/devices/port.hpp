@@ -54,11 +54,11 @@ class SmartPort {
  */
 class AdiPort {
     // AdiPort instances can only be constructed by the AdiExpander class
-    friend AdiExpander;
+    friend class AdiExpander;
 
   public:
     /**
-     * @brief Get the ADI Port as an uppercase letter
+     * @brief Get the ADI Port as an uppercase letter ('A' to 'H')
      *
      * @return constexpr char
      */
@@ -67,16 +67,13 @@ class AdiPort {
     }
 
     /**
-     * @brief Get the ADI Port as an index
+     * @brief Get the ADI Port as a 0-indexed number (0-7)
      *
      * @return constexpr uint8_t
      */
     constexpr uint8_t as_index() const {
         return m_letter - 'A';
     }
-
-    // users should always use a reference to an AdiPort
-    AdiPort(AdiPort& other) = delete;
 
     SmartPort host_port;
 
