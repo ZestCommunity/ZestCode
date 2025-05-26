@@ -37,7 +37,7 @@ class SmartPort {
 
   private:
     /**
-     * @brief construct a Smart Port from an index
+     * @brief construct a Smart Port from a number
      *
      */
     constexpr SmartPort(uint8_t port_number)
@@ -49,7 +49,7 @@ class SmartPort {
 /**
  * @brief ADI Port class. Represents an ADI Port on a the brain or on a 3-wire expander.
  *
- * ADI Ports may be represented as a 0-indexed number, or a char (e.g 'a' or 'C'). This class
+ * ADI Ports may be represented as a 0-indexed number, or a letter (e.g 'A' or 'C'). This class
  * provides an interface so the developer doesn't have to worry about conversions.
  */
 class AdiPort {
