@@ -39,16 +39,12 @@
     #include <unistd.h>
 #endif /* __cplusplus */
 
-#include "pros/colors.h"
-#include "pros/error.h"
 #include "pros/misc.h"
 #include "pros/rtos.h"
 
 #ifdef __cplusplus
-    #include "pros/colors.hpp"
     #include "pros/misc.hpp"
     #include "pros/rtos.hpp"
-    #include "pros/screen.hpp"
 #endif
 
 #endif // _PROS_API_H_

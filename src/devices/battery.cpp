@@ -1,36 +1,28 @@
-/**
- * \file devices/battery.cpp
- *
- * Contains functions for interacting with the V5 Battery.
- *
- * \copyright Copyright (c) 2017-2024, Purdue University ACM SIGBots.
- * All rights reserved.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
+#include "pros/devices/battery.hpp"
 
-#include "pros/misc.h"
+#include "pros/devices/brain.hpp"
+#include "v5_api_patched.h"
 
-namespace pros {
-namespace battery {
-using namespace pros::c;
+#include <mutex>
 
-double get_capacity(void) {
-    return battery_get_capacity();
+namespace zest {
+double Battery::get_capacity() {
+    std::lock_guard lock(Brain::get_smart_port_mutex(Brain::BATTERY_PORT));
+    return vexBatteryCapacityGet();
 }
 
-int32_t get_current(void) {
-    return battery_get_current();
+double Battery::get_current() {
+    std::lock_guard lock(Brain::get_smart_port_mutex(Brain::BATTERY_PORT));
+    return vexBatteryCurrentGet();
 }
 
-double get_temperature(void) {
-    return battery_get_temperature();
+double Battery::get_temperature() {
+    std::lock_guard lock(Brain::get_smart_port_mutex(Brain::BATTERY_PORT));
+    return vexBatteryTemperatureGet();
 }
 
-int32_t get_voltage(void) {
-    return battery_get_voltage();
+double Battery::get_voltage() {
+    std::lock_guard lock(Brain::get_smart_port_mutex(Brain::BATTERY_PORT));
+    return vexBatteryVoltageGet();
 }
-} // namespace battery
-} // namespace pros
+} // namespace zest

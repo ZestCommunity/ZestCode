@@ -42,6 +42,20 @@ class ResultError {
 };
 
 /**
+ * @brief Unknown Error
+ *
+ */
+class UnknownError : public ResultError {
+  public:
+    template<typename T>
+        requires std::convertible_to<T, std::string>
+    UnknownError(T&& message)
+        : message(std::forward<T>(message)) {}
+
+    std::string message;
+};
+
+/**
  * @brief Trait to define a "sentinel" value for types indicating an error state.
  * @tparam T Type to provide a sentinel value for.
  * @note Specialize this template for custom types if needed.

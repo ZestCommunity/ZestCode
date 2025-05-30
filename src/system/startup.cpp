@@ -25,14 +25,11 @@ extern "C" {
 // Initialization routines provided elsewhere
 void rtos_initialize();
 void vfs_initialize();
-void system_daemon_initialize();
-void graphical_context_daemon_initialize();
 
 [[gnu::weak]]
 void display_initialize() {}
 
 void rtos_sched_start();
-void vdml_initialize();
 
 // libc initialization
 void __libc_init_array();
@@ -40,6 +37,8 @@ void __libc_init_array();
 // tick vex tasks
 void vexTasksRun();
 } // extern "C"
+
+void system_daemon_initialize();
 
 // this goes in the first 32-byte chunk of the user program
 // which is why the entrypoint is offset from 0x3800000 by 0x20
@@ -54,8 +53,6 @@ vcodesig vexCodeSig = {V5_SIG_MAGIC, V5_SIG_TYPE_USER, V5_SIG_OWNER_PARTNER, V5_
 static void pros_init() {
     rtos_initialize();
     vfs_initialize();
-    vdml_initialize();
-    graphical_context_daemon_initialize();
     display_initialize();
     // Note: system_daemon_initialize must be called last, per design requirements.
     system_daemon_initialize();
