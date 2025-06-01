@@ -1,6 +1,5 @@
-#include "main.h"
+#include "v5_api_patched.h"
 
-void initialize() {
-    pros::delay(3000);
-    std::cout << "hello world!" << std::endl;
+int main() {
+    vexDisplayPrintf(10, 60, 1, "Hello World!\n");
 }

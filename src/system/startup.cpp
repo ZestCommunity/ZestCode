@@ -13,6 +13,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "pros/rtos.hpp"
 #include "v5_api_patched.h"
 
 #include <cstdint>
@@ -21,56 +22,37 @@
 #include <sys/unistd.h>
 
 extern "C" {
-
 // Initialization routines provided elsewhere
 void rtos_initialize();
 void vfs_initialize();
-
-[[gnu::weak]]
-void display_initialize() {}
-
 void rtos_sched_start();
-
-// libc initialization
 void __libc_init_array();
-
-// tick vex tasks
-void vexTasksRun();
-} // extern "C"
-
-void system_daemon_initialize();
+}
 
 // this goes in the first 32-byte chunk of the user program
 // which is why the entrypoint is offset from 0x3800000 by 0x20
 // only the first 16 bytes of this chunk is used however
 // see the vcodesig definition in the SDK for more details
 [[gnu::section(".boot_data")]]
-vcodesig vexCodeSig = {V5_SIG_MAGIC, V5_SIG_TYPE_USER, V5_SIG_OWNER_PARTNER, V5_SIG_OPTIONS_NONE};
+vcodesig vexCodeSig = {
+    .magic = V5_SIG_MAGIC,
+    .type = V5_SIG_TYPE_USER,
+    .owner = V5_SIG_OWNER_PARTNER,
+    .options = V5_SIG_OPTIONS_NONE,
+};
 
 // The pros_init function is executed early (via constructor attribute)
-// before most global C++ constructors are run.
-[[gnu::constructor(102)]]
+[[gnu::constructor(101)]]
 static void pros_init() {
     rtos_initialize();
     vfs_initialize();
-    display_initialize();
-    // Note: system_daemon_initialize must be called last, per design requirements.
-    system_daemon_initialize();
 }
 
-// the main function, starts the scheduler and ensures the program exits gracefully if it fails
-int main() {
-    // Start freeRTOS
-    rtos_sched_start();
+// forward-declare main function
+int main();
 
-    // If execution reaches here, the scheduler has failed.
-    vexDisplayPrintf(10, 60, 1, "failed to start scheduler\n");
-    std::printf("Failed to start Scheduler\n");
-    _exit(0); // exit with code 0 to stop spinlock
-}
-
-// program entrypoint. This is the first function that is run
-// it sets up memory, calls constructors, and then calls main
+// Program entrypoint. This is the first function that is run.
+// It sets up memory, calls constructors, and starts the scheduler
 extern "C" [[gnu::section(".boot")]]
 void _start() {
     // Symbols provided by the linker script
@@ -89,15 +71,23 @@ void _start() {
     // call global constructors
     __libc_init_array();
 
-    // call the main function
-    // This GCC warning is a nuisance.
-    // This is the industry standard
+// start main task
+// these pragmas are needed to silence the same warning on clang and gcc
+// normally you aren't supposed to reference the main function
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmain"
-    main();
+    pros::Task task(main);
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
+
+    // start the scheduler
+    rtos_sched_start();
+
+    // If execution reaches here, the scheduler has failed.
+    vexDisplayPrintf(10, 60, 1, "failed to start scheduler\n");
+    std::printf("Failed to start Scheduler\n");
+    _exit(0); // exit with code 0 to stop spinlock
 }
