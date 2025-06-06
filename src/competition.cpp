@@ -57,7 +57,7 @@ void initialize() {
 
             // if the competition state changed, or the control task has been notified,
             // the competition task should be changed
-            if (mode != prev_mode || pros::Task::notify_take(true, 0)) {
+            if (mode != prev_mode) {
                 prev_mode = mode;
 
                 switch (mode) {

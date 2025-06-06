@@ -35,7 +35,7 @@ void __libc_init_array();
 // only the first 16 bytes of this chunk is used however
 // see the vcodesig definition in the SDK for more details
 [[gnu::section(".boot_data")]]
-vcodesig vexCodeSig = {
+vcodesig boot_data = {
     .magic = V5_SIG_MAGIC,
     .type = V5_SIG_TYPE_USER,
     .owner = V5_SIG_OWNER_PARTNER,
@@ -72,15 +72,15 @@ void _start() {
     // call global constructors
     __libc_init_array();
 
-// start main task
-// these pragmas are needed to silence the same warning on clang and gcc
-// normally you aren't supposed to reference the main function
+    // start main task
+    // these pragmas are needed to silence the same warning on clang and gcc
+    // normally you aren't supposed to reference the main function
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmain"
-    pros::Task task([]() {
+    pros::Task main_task([]() {
         // run the main function
         main();
         // initialize the competition control task
