@@ -14,6 +14,7 @@
  */
 
 #include "pros/rtos.hpp"
+#include "src/system/competition.hpp"
 #include "v5_api_patched.h"
 
 #include <cstdint>
@@ -79,7 +80,12 @@ void _start() {
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmain"
-    pros::Task task(main);
+    pros::Task task([]() {
+        // run the main function
+        main();
+        // initialize the competition control task
+        zest::competition::initialize();
+    });
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 

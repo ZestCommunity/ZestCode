@@ -39,36 +39,3 @@ extern "C" void task_fn_wrapper(task_fn_t fn, void* args) {
     }
 #endif
 }
-
-/******************************************************************************/
-/**                        C++ Linkages for User Tasks                       **/
-/******************************************************************************/
-__attribute__((weak)) void autonomous() {}
-
-__attribute__((weak)) void initialize() {}
-
-__attribute__((weak)) void opcontrol() {}
-
-__attribute__((weak)) void disabled() {}
-
-__attribute__((weak)) void competition_initialize() {}
-
-extern "C" void cpp_autonomous() {
-    autonomous();
-}
-
-extern "C" void cpp_initialize() {
-    initialize();
-}
-
-extern "C" void cpp_opcontrol() {
-    opcontrol();
-}
-
-extern "C" void cpp_disabled() {
-    disabled();
-}
-
-extern "C" void cpp_competition_initialize() {
-    competition_initialize();
-}

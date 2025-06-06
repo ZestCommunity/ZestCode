@@ -16,7 +16,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-#include "pros/misc.h"
+#include "pros/competition.hpp"
 #include "rtos/task.h"
 #include "v5_api_patched.h"
 
@@ -242,7 +242,7 @@ int _gettimeofday(struct timeval* tp, void* tzvp) {
         tp->tv_sec = user_time_spec.tv_sec;
         tp->tv_usec = user_time_spec.tv_nsec * 1000;
         tp->tv_usec += vexSystemHighResTimeGet() - set_microseconds;
-    } else if (pros::c::competition_is_connected()) {
+    } else if (zest::competition::is_connected()) {
         // TODO: update this to get the date/time through VexOS. Apparently,
         // the time is kept properly only when competition controls are
         // connected. I haven't had time to check or confirm this.
