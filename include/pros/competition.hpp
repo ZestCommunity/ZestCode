@@ -74,4 +74,13 @@ void register_driver_control(std::function<void()> callable);
  * @param callable
  */
 void register_disabled(std::function<void()> callable);
+
+/**
+ * @brief initialize the competition control task
+ *
+ * TODO: figure out how to hide this from the user
+ *
+ * This function is called after `int main` is called.
+ */
+void initialize();
 } // namespace zest::competition
