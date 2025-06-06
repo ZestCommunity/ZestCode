@@ -14,7 +14,7 @@
  */
 
 #include "pros/rtos.hpp"
-#include "src/system/competition.hpp"
+#include "src/competition.hpp"
 #include "v5_api_patched.h"
 
 #include <cstdint>
