@@ -13,14 +13,15 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include "pros/competition.hpp"
 #include "pros/rtos.hpp"
-#include "src/competition.hpp"
 #include "v5_api_patched.h"
 
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <sys/unistd.h>
+
 
 extern "C" {
 // Initialization routines provided elsewhere
