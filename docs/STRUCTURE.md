@@ -14,7 +14,6 @@ Looking at the file structure of a project like this can feel intimidating. This
   - `include/rtos` headers for the scheduler (FreeRTOS)
   - `include/system` headers for low-level system functionality
     - `include/system/dev` headers for serial I/O and file management
-    - `include/system/user_functions` a horrifying mess that should be destroyed
 
 - `scripts` contains scripts used for building ZestCode and projects that use ZestCode
 

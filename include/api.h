@@ -39,11 +39,9 @@
     #include <unistd.h>
 #endif /* __cplusplus */
 
-#include "pros/misc.h"
 #include "pros/rtos.h"
 
 #ifdef __cplusplus
-    #include "pros/misc.hpp"
     #include "pros/rtos.hpp"
 #endif
 

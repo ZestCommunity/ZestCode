@@ -90,7 +90,8 @@ add_global_link_arguments(optimization_flags, linker_flags, formatting_flags, wa
 include = include_directories('./include')
 
 # this is what user projects will link against, so we use declare_dependency instead of static_library
-zestcode_dep = declare_dependency(
+zestcode = static_library(
+  'zestcode',
   sources: source,
   include_directories: include,
   dependencies: dependency('v5_header'),
@@ -103,8 +104,8 @@ elf = executable(
   include_directories: include,
   dependencies: [
     dependency('v5'),
-    zestcode_dep.as_link_whole() # link whole so libc symbols are overridden
-  ]
+  ],
+  link_whole: zestcode
 )
 
 # meson won't create the binary file for uploading, so we have to do it ourselves
