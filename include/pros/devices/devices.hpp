@@ -4,8 +4,26 @@
 
 namespace zest {
 
+/**
+ * @brief device type enum. Contains all the device types compatible with ZestCode
+ *
+ */
 enum class DeviceType {
-    Battery,
+    AdiExpander,
+    AiVision,
+    Bumper,
+    Controller,
+    Distance,
+    Gps,
+    Imu,
+    Motor,
+    Optical,
+    Radio,
+    Rotation,
+    Serial,
+    Vision,
+    None,
+    Unknown,
 };
 
 /**
