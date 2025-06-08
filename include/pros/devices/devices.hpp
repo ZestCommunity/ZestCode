@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/result.hpp"
+#include "pros/devices/port.hpp"
 
 namespace zest {
 
@@ -22,15 +23,24 @@ enum class DeviceType {
     Rotation,
     Serial,
     Vision,
+    Invalid,
     None,
     Unknown,
 };
 
 /**
+ * @brief Get the type of the device connected to the given smart port
+ *
+ * @param port
+ * @return DeviceType
+ */
+DeviceType get_device_type(SmartPort port);
+
+/**
  * @brief V5 Port Mismatch Error
  *
  */
-class V5PortMismatchError : public ResultError {
+class SmartPortError : public ResultError {
   public:
     /**
      * @brief Construct a new V5 Port Mismatch Error object
@@ -38,11 +48,9 @@ class V5PortMismatchError : public ResultError {
      * @param expected the device expected to be on the port
      * @param actual the device that is actually on the port
      */
-    V5PortMismatchError(DeviceType expected, DeviceType actual)
-        : expected(expected),
-          actual(actual) {}
+    SmartPortError(DeviceType expected, std::optional<DeviceType> actual = std::nullopt);
 
     DeviceType expected;
-    DeviceType actual;
+    std::optional<DeviceType> actual;
 };
 } // namespace zest
