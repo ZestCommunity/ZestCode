@@ -101,8 +101,8 @@ class Result {
     template<typename U>
         requires std::constructible_from<T, U>
     constexpr Result(U&& value)
-        : error(std::monostate()),
-          value(std::forward<U>(value)) {}
+        : m_error(std::monostate()),
+          m_value(std::forward<U>(value)) {}
 
     /**
      * @brief Construct a Result with a value and an error.
@@ -115,8 +115,8 @@ class Result {
         requires std::constructible_from<T, U>
                      && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
     constexpr Result(U&& value, E&& error)
-        : value(std::forward<U>(value)),
-          error(std::forward<E>(error)) {}
+        : m_value(std::forward<U>(value)),
+          m_error(std::forward<E>(error)) {}
 
     /**
      * @brief Construct a Result with an error, initializing the value to its sentinel.
@@ -127,8 +127,8 @@ class Result {
     template<typename E>
         requires Sentinel<T> && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
     constexpr Result(E&& error)
-        : error(std::forward<E>(error)),
-          value(sentinel_v<T>) {}
+        : m_error(std::forward<E>(error)),
+          m_value(sentinel_v<T>) {}
 
     /**
      * @brief Get an error of type E if present (const-qualified overload).
@@ -138,8 +138,8 @@ class Result {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() const& {
-        if (std::holds_alternative<E>(error)) {
-            return std::get<E>(error);
+        if (std::holds_alternative<E>(m_error)) {
+            return std::get<E>(m_error);
         } else {
             return std::nullopt;
         }
@@ -153,8 +153,8 @@ class Result {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() && {
-        if (std::holds_alternative<E>(error)) {
-            return std::move(std::get<E>(error));
+        if (std::holds_alternative<E>(m_error)) {
+            return std::move(std::get<E>(m_error));
         } else {
             return std::nullopt;
         }
@@ -168,8 +168,8 @@ class Result {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr const std::optional<E> get() const&& {
-        if (std::holds_alternative<E>(error)) {
-            return std::move(std::get<E>(error));
+        if (std::holds_alternative<E>(m_error)) {
+            return std::move(std::get<E>(m_error));
         } else {
             return std::nullopt;
         }
@@ -182,7 +182,7 @@ class Result {
     template<typename U = T>
         requires std::same_as<U, T>
     constexpr T get() const& {
-        return value;
+        return m_value;
     }
 
     /**
@@ -192,29 +192,33 @@ class Result {
     template<typename U = T>
         requires std::same_as<U, T>
     constexpr T get() && {
-        return std::move(value);
+        return std::move(m_value);
+    }
+
+    constexpr bool has_error() {
+        return !std::holds_alternative<std::monostate>(m_value);
     }
 
     constexpr operator T&() & {
-        return value;
+        return m_value;
     }
 
     constexpr operator const T&() const& {
-        return value;
+        return m_value;
     };
 
     constexpr operator T&&() && {
-        return std::move(value);
+        return std::move(m_value);
     }
 
     constexpr operator const T&&() const&& {
-        return std::move(value);
+        return std::move(m_value);
     }
 
   private:
     // instead of wrapping the variant in std::optional, we can use std::monostate
-    std::variant<std::monostate, Errs...> error;
-    T value;
+    std::variant<std::monostate, Errs...> m_error;
+    T m_value;
 };
 
 /**
@@ -233,7 +237,7 @@ template<typename LhsT, typename RhsT, typename... LhsErrs, typename... RhsErrs>
     requires std::equality_comparable_with<LhsT, RhsT>
 constexpr bool
 operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& rhs) {
-    return lhs.value == rhs.value;
+    return lhs.get() == rhs.get();
 }
 
 /**
@@ -252,13 +256,13 @@ class Result<void, Errs...> {
     template<typename E>
         requires(std::same_as<std::remove_cvref_t<E>, Errs> || ...)
     constexpr Result(E&& error)
-        : error(std::forward<E>(error)) {}
+        : m_error(std::forward<E>(error)) {}
 
     /**
      * @brief Construct a Result with no error (success state).
      */
     constexpr Result()
-        : error(std::monostate()) {}
+        : m_error(std::monostate()) {}
 
     /**
      * @brief Get an error of type E if present (const-qualified overload).
@@ -268,8 +272,8 @@ class Result<void, Errs...> {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() const& {
-        if (std::holds_alternative<E>(error)) {
-            return std::get<E>(error);
+        if (std::holds_alternative<E>(m_error)) {
+            return std::get<E>(m_error);
         } else {
             return std::nullopt;
         }
@@ -283,8 +287,8 @@ class Result<void, Errs...> {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr std::optional<E> get() && {
-        if (std::holds_alternative<E>(error)) {
-            return std::move(std::get<E>(error));
+        if (std::holds_alternative<E>(m_error)) {
+            return std::move(std::get<E>(m_error));
         } else {
             return std::nullopt;
         }
@@ -298,14 +302,16 @@ class Result<void, Errs...> {
     template<typename E>
         requires(std::same_as<E, Errs> || ...)
     constexpr const std::optional<E> get() const&& {
-        if (std::holds_alternative<E>(error)) {
-            return std::move(std::get<E>(error));
+        if (std::holds_alternative<E>(m_error)) {
+            return std::move(std::get<E>(m_error));
         } else {
             return std::nullopt;
         }
     }
 
-    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
+  private:
+    // instead of wrapping the variant in std::optional, we can use std::monostate
+    std::variant<std::monostate, Errs...> m_error; ///< Variant holding an error or monostate.
 };
 
 } // namespace zest
