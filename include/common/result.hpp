@@ -211,11 +211,8 @@ class Result {
         return std::move(value);
     }
 
-    /**
-     * @brief error value
-     * @details instead of wrapping the variant in std::optional, it's more efficient to use
-     * std::monostate. since we have to use std::variant in any case.
-     */
+  private:
+    // instead of wrapping the variant in std::optional, we can use std::monostate
     std::variant<std::monostate, Errs...> error;
     T value;
 };
