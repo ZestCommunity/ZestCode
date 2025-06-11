@@ -206,69 +206,19 @@ class Result {
         : m_error(std::forward<E>(error)),
           m_value(traits::sentinel_v<T>) {}
 
-    /**
-     * @brief Get an error of type E if present (const-qualified overload).
-     * @tparam E Error type to retrieve, must be in Errs and derived from ResultError.
-     * @return std::optional<E> Contains the error if present; otherwise nullopt.
-     */
-    template<traits::IsResultError E>
+    template<typename Self, traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
-    constexpr std::optional<E> get() const& {
-        if (std::holds_alternative<E>(m_error)) {
-            return std::get<E>(m_error);
+    constexpr auto&& get_error(this Self&& self) {
+        if (std::holds_alternative<E>(self.m_error)) {
+            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).m_error));
         } else {
-            return std::nullopt;
+            return std::optional<E>();
         }
     }
 
-    /**
-     * @brief Get an error of type E if present (rvalue overload).
-     * @tparam E Error type to retrieve.
-     * @return std::optional<E> Contains the error if present; otherwise nullopt.
-     */
-    template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
-    constexpr std::optional<E> get() && {
-        if (std::holds_alternative<E>(m_error)) {
-            return std::move(std::get<E>(m_error));
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    /**
-     * @brief Get an error of type E if present (const rvalue overload).
-     * @tparam E Error type to retrieve.
-     * @return std::optional<E> Contains the error if present; otherwise nullopt.
-     */
-    template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
-    constexpr const std::optional<E> get() const&& {
-        if (std::holds_alternative<E>(m_error)) {
-            return std::move(std::get<E>(m_error));
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    /**
-     * @brief Get the stored value (const-qualified overload).
-     * @return T Copy of the stored value.
-     */
-    template<typename U = T>
-        requires std::same_as<U, T>
-    constexpr T get() const& {
-        return m_value;
-    }
-
-    /**
-     * @brief Get the stored value (rvalue overload).
-     * @return T Moved value.
-     */
-    template<typename U = T>
-        requires std::same_as<U, T>
-    constexpr T get() && {
-        return std::move(m_value);
+    template<typename Self>
+    constexpr auto&& get_value(this Self&& self) {
+        return std::forward<Self>(self).m_value;
     }
 
     constexpr bool has_error() {
@@ -313,7 +263,7 @@ template<typename LhsT, typename RhsT, typename... LhsErrs, typename... RhsErrs>
     requires std::equality_comparable_with<LhsT, RhsT>
 constexpr bool
 operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& rhs) {
-    return lhs.get() == rhs.get();
+    return lhs.get_value() == rhs.get_value();
 }
 
 /**
@@ -340,49 +290,19 @@ class Result<void, Errs...> {
     constexpr Result()
         : m_error(std::monostate()) {}
 
-    /**
-     * @brief Get an error of type E if present (const-qualified overload).
-     * @tparam E Error type to retrieve.
-     * @return std::optional<E> Contains the error if present; otherwise nullopt.
-     */
-    template<traits::IsResultError E>
+    template<typename Self, traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
-    constexpr std::optional<E> get() const& {
-        if (std::holds_alternative<E>(m_error)) {
-            return std::get<E>(m_error);
+    constexpr auto&& get_error(this Self&& self) {
+        if (std::holds_alternative<E>(self.m_error)) {
+            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).m_error));
         } else {
-            return std::nullopt;
+            return std::optional<E>();
         }
     }
 
-    /**
-     * @brief Get an error of type E if present (rvalue overload).
-     * @tparam E Error type to retrieve.
-     * @return std::optional<E> Contains the error if present; otherwise nullopt.
-     */
-    template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
-    constexpr std::optional<E> get() && {
-        if (std::holds_alternative<E>(m_error)) {
-            return std::move(std::get<E>(m_error));
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    /**
-     * @brief Get an error of type E if present (const rvalue overload).
-     * @tparam E Error type to retrieve.
-     * @return std::optional<E> Contains the error if present; otherwise nullopt.
-     */
-    template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
-    constexpr const std::optional<E> get() const&& {
-        if (std::holds_alternative<E>(m_error)) {
-            return std::move(std::get<E>(m_error));
-        } else {
-            return std::nullopt;
-        }
+    template<typename Self>
+    constexpr auto&& get_value(this Self&& self) {
+        return std::forward<Self>(self).m_value;
     }
 
     constexpr bool has_error() {
