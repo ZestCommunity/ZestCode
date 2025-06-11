@@ -126,6 +126,8 @@ template<typename T, traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result;
 
+namespace traits {
+
 /**
  * @brief Type trait to check if a type is a Result.
  * @tparam T Type to check.
@@ -133,11 +135,29 @@ class Result;
 template<typename>
 struct is_result : std::false_type {};
 
+/**
+ * @brief Type trait to check if a type is a Result.
+ * @tparam T Type to check.
+ */
 template<typename T, typename... Errs>
 struct is_result<Result<T, Errs...>> : std::true_type {};
 
+/**
+ * @brief Check whether a type is a Result
+ * @tparam T Type to check
+ */
 template<typename T>
 inline constexpr bool is_result_v = is_result<T>::value;
+
+/**
+ * @brief Concept to check if a type is a Result
+ *
+ * @tparam T
+ */
+template<typename T>
+concept IsResult = is_result_v<T>;
+
+} // namespace traits
 
 /**
  * @brief Result class for expected value or error handling (similar to std::expected).
@@ -255,174 +275,6 @@ class Result {
         return !std::holds_alternative<std::monostate>(m_error);
     }
 
-    // and_then: lvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) & {
-        using ResultType = std::invoke_result_t<Fn, T>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return f(m_value);
-        }
-    }
-
-    // and_then: const lvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) const& {
-        using ResultType = std::invoke_result_t<Fn, const T&>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return f(m_value);
-        }
-    }
-
-    // and_then: rvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) && {
-        using ResultType = std::invoke_result_t<Fn, T&&>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return f(std::move(m_value));
-        }
-    }
-
-    // and_then: const rvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) const&& {
-        using ResultType = std::invoke_result_t<Fn, const T&&>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return f(std::move(m_value));
-        }
-    }
-
-    // or_else: lvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) & {
-        if (!has_error()) {
-            return *this;
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, m_error);
-    }
-
-    // or_else: const lvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) const& {
-        if (!has_error()) {
-            return *this;
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, m_error);
-    }
-
-    // or_else: rvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) && {
-        if (!has_error()) {
-            return std::move(*this);
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, std::move(m_error));
-    }
-
-    // or_else: const rvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) const&& {
-        if (!has_error()) {
-            return std::move(*this);
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, std::move(m_error));
-    }
-
-    // transform: lvalue
-    template<typename Fn>
-    auto transform(Fn&& f) & {
-        using U = std::invoke_result_t<Fn, T>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return ResultType(f(m_value));
-        }
-    }
-
-    // transform: const lvalue
-    template<typename Fn>
-    auto transform(Fn&& f) const& {
-        using U = std::invoke_result_t<Fn, const T&>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return ResultType(f(m_value));
-        }
-    }
-
-    // transform: rvalue
-    template<typename Fn>
-    auto transform(Fn&& f) && {
-        using U = std::invoke_result_t<Fn, T&&>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return ResultType(f(std::move(m_value)));
-        }
-    }
-
-    // transform: const rvalue
-    template<typename Fn>
-    auto transform(Fn&& f) const&& {
-        using U = std::invoke_result_t<Fn, const T&&>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return ResultType(f(std::move(m_value)));
-        }
-    }
-
     constexpr operator T&() & {
         return m_value;
     }
@@ -535,174 +387,6 @@ class Result<void, Errs...> {
 
     constexpr bool has_error() {
         return !std::holds_alternative<std::monostate>(m_error);
-    }
-
-    // and_then: lvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) & {
-        using ResultType = std::invoke_result_t<Fn>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return f();
-        }
-    }
-
-    // and_then: const lvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) const& {
-        using ResultType = std::invoke_result_t<Fn>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return f();
-        }
-    }
-
-    // and_then: rvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) && {
-        using ResultType = std::invoke_result_t<Fn>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return f();
-        }
-    }
-
-    // and_then: const rvalue
-    template<typename Fn>
-    auto and_then(Fn&& f) const&& {
-        using ResultType = std::invoke_result_t<Fn>;
-        static_assert(is_result_v<ResultType>, "Fn must return a Result type");
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return f();
-        }
-    }
-
-    // or_else: lvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) & {
-        if (!has_error()) {
-            return *this;
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, m_error);
-    }
-
-    // or_else: const lvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) const& {
-        if (!has_error()) {
-            return *this;
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, m_error);
-    }
-
-    // or_else: rvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) && {
-        if (!has_error()) {
-            return std::move(*this);
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, std::move(m_error));
-    }
-
-    // or_else: const rvalue
-    template<typename Fn>
-    auto or_else(Fn&& f) const&& {
-        if (!has_error()) {
-            return std::move(*this);
-        }
-
-        return std::visit([&f](auto&& err) {
-            return f(std::forward<decltype(err)>(err));
-        }, std::move(m_error));
-    }
-
-    // transform: lvalue
-    template<typename Fn>
-    auto transform(Fn&& f) & {
-        using U = std::invoke_result_t<Fn>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return ResultType(f());
-        }
-    }
-
-    // transform: const lvalue
-    template<typename Fn>
-    auto transform(Fn&& f) const& {
-        using U = std::invoke_result_t<Fn>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, m_error);
-        } else {
-            return ResultType(f());
-        }
-    }
-
-    // transform: rvalue
-    template<typename Fn>
-    auto transform(Fn&& f) && {
-        using U = std::invoke_result_t<Fn>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return ResultType(f());
-        }
-    }
-
-    // transform: const rvalue
-    template<typename Fn>
-    auto transform(Fn&& f) const&& {
-        using U = std::invoke_result_t<Fn>;
-        using ResultType = Result<U, Errs...>;
-
-        if (has_error()) {
-            return std::visit([](auto&& err) -> ResultType {
-                return ResultType(std::forward<decltype(err)>(err));
-            }, std::move(m_error));
-        } else {
-            return ResultType(f());
-        }
     }
 
   private:
