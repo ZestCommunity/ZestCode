@@ -24,6 +24,9 @@ class ResultError {
         std::chrono::time_point<std::chrono::system_clock> time;
     };
 
+    std::optional<RuntimeData> runtime_data;
+
+  protected:
     /**
      * @brief Construct a new ResultError object.
      *
@@ -37,8 +40,6 @@ class ResultError {
             };
         }
     }
-
-    std::optional<RuntimeData> runtime_data;
 };
 
 namespace traits {
