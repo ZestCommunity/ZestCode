@@ -41,6 +41,42 @@ class ResultError {
     std::optional<RuntimeData> runtime_data;
 };
 
+namespace traits {
+
+/**
+ * @brief Check whether a given type is in a typename pack
+ *
+ * @tparam T the type to check
+ * @tparam Ts the typename pack to check
+ */
+template<typename T, typename... Ts>
+inline constexpr bool is_in_pack_v = (std::is_same_v<std::remove_cvref_t<T>, Ts> || ...);
+
+/**
+ * @brief type trait for checking whether a type is derived from the ResultError class
+ */
+template<typename>
+struct is_result_error : std::false_type {};
+
+/**
+ * @brief type trait for checking whether a type is derived from the ResultError class
+ */
+template<typename T>
+    requires std::derived_from<ResultError, T>
+struct is_result_error<T> : std::true_type {};
+
+/**
+ * @brief whether the given type is derived from the ResultError class
+ */
+template<typename T>
+inline constexpr bool is_result_error_v = is_result_error<T>::value;
+
+/**
+ * @brief IsResultError concept. Enforces that the given type is derived from the ResultError class
+ */
+template<typename T>
+concept IsResultError = is_result_error_v<std::remove_cvref_t<T>>;
+
 /**
  * @brief Trait to define a "sentinel" value for types indicating an error state.
  * @tparam T Type to provide a sentinel value for.
@@ -48,20 +84,6 @@ class ResultError {
  */
 template<typename T>
 class SentinelValue;
-
-/**
- * @brief Concept to check if a type has a defined sentinel value.
- * @tparam T Type to check.
- */
-template<typename T>
-concept Sentinel = requires(const T& val) { SentinelValue<T>::value; };
-
-/**
- * @brief Helper variable to simplify access to a type's sentinel value.
- * @tparam T Type with a defined sentinel (must satisfy Sentinel concept).
- */
-template<Sentinel T>
-constexpr T sentinel_v = SentinelValue<T>::value;
 
 /**
  * @brief Partial specialization of SentinelValue for integral and floating-point types.
@@ -83,14 +105,26 @@ class SentinelValue<T> {
     static constexpr T value = get(); ///< Precomputed sentinel value for type T.
 };
 
-// forward declarations
-template<typename T, typename... Errs>
-    requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
-class Result;
+/**
+ * @brief Concept to check if a type has a defined sentinel value.
+ * @tparam T Type to check.
+ */
+template<typename T>
+concept HasSentinel = requires(const T& val) { SentinelValue<T>::value; };
 
-template<typename... Errs>
-    requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
-class Result<void, Errs...>;
+/**
+ * @brief Helper variable to simplify access to a type's sentinel value.
+ * @tparam T Type with a defined sentinel (must satisfy Sentinel concept).
+ */
+template<HasSentinel T>
+inline constexpr T sentinel_v = SentinelValue<T>::value;
+
+} // namespace traits
+
+// forward declarations, necessary to declare traits
+template<typename T, traits::IsResultError... Errs>
+    requires(sizeof...(Errs) > 0)
+class Result;
 
 /**
  * @brief Type trait to check if a type is a Result.
@@ -102,9 +136,6 @@ struct is_result : std::false_type {};
 template<typename T, typename... Errs>
 struct is_result<Result<T, Errs...>> : std::true_type {};
 
-template<typename... Errs>
-struct is_result<Result<void, Errs...>> : std::true_type {};
-
 template<typename T>
 inline constexpr bool is_result_v = is_result<T>::value;
 
@@ -114,54 +145,54 @@ inline constexpr bool is_result_v = is_result<T>::value;
  * @tparam Errs List of possible error types (must inherit from ResultError).
  * @note Errors are stored in a variant, and the value is always initialized.
  */
-template<typename T, typename... Errs>
-    requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
+template<typename T, traits::IsResultError... Errs>
+    requires(sizeof...(Errs) > 0)
 class Result {
   public:
     /**
      * @brief Construct a Result with a normal value (no error).
-     * @tparam U Type convertible to T.
+     * @tparam U Type convertible to T, and U not derived from ResultError
      * @param value Value to initialize the result with.
      */
     template<typename U>
-        requires std::constructible_from<T, U>
+        requires std::constructible_from<T, U> && (!traits::IsResultError<U>)
     constexpr Result(U&& value)
         : m_error(std::monostate()),
           m_value(std::forward<U>(value)) {}
 
     /**
      * @brief Construct a Result with a value and an error.
-     * @tparam U Type convertible to T.
-     * @tparam E Error type (must be in Errs).
+     * @tparam U Type convertible to T, and U not derived from ResultError
+     * @tparam E Error type, must be in Errs and must be derived from ResultError
      * @param value Value to store.
      * @param error Error to store.
      */
-    template<typename U, typename E>
-        requires std::constructible_from<T, U>
-                     && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
+    template<typename U, traits::IsResultError E>
+        requires std::constructible_from<T, U> && (!traits::IsResultError<U>)
+                     && traits::is_in_pack_v<E, Errs...>
     constexpr Result(U&& value, E&& error)
         : m_value(std::forward<U>(value)),
           m_error(std::forward<E>(error)) {}
 
     /**
      * @brief Construct a Result with an error, initializing the value to its sentinel.
-     * @tparam E Error type (must be in Errs).
+     * @tparam E Error type, must be in Errs and derived from ResultError.
      * @param error Error to store.
      * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
      */
-    template<typename E>
-        requires Sentinel<T> && (std::same_as<std::remove_cvref_t<E>, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::HasSentinel<T> && traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
         : m_error(std::forward<E>(error)),
-          m_value(sentinel_v<T>) {}
+          m_value(traits::sentinel_v<T>) {}
 
     /**
      * @brief Get an error of type E if present (const-qualified overload).
-     * @tparam E Error type to retrieve.
+     * @tparam E Error type to retrieve, must be in Errs and derived from ResultError.
      * @return std::optional<E> Contains the error if present; otherwise nullopt.
      */
-    template<typename E>
-        requires(std::same_as<E, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr std::optional<E> get() const& {
         if (std::holds_alternative<E>(m_error)) {
             return std::get<E>(m_error);
@@ -175,8 +206,8 @@ class Result {
      * @tparam E Error type to retrieve.
      * @return std::optional<E> Contains the error if present; otherwise nullopt.
      */
-    template<typename E>
-        requires(std::same_as<E, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr std::optional<E> get() && {
         if (std::holds_alternative<E>(m_error)) {
             return std::move(std::get<E>(m_error));
@@ -190,8 +221,8 @@ class Result {
      * @tparam E Error type to retrieve.
      * @return std::optional<E> Contains the error if present; otherwise nullopt.
      */
-    template<typename E>
-        requires(std::same_as<E, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr const std::optional<E> get() const&& {
         if (std::holds_alternative<E>(m_error)) {
             return std::move(std::get<E>(m_error));
@@ -437,8 +468,8 @@ operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& 
  * @brief Result specialization for void value type (no stored value).
  * @tparam Errs List of possible error types (must inherit from ResultError).
  */
-template<typename... Errs>
-    requires(sizeof...(Errs) > 0) && (std::derived_from<Errs, ResultError> && ...)
+template<traits::IsResultError... Errs>
+    requires(sizeof...(Errs) > 0)
 class Result<void, Errs...> {
   public:
     /**
@@ -446,8 +477,8 @@ class Result<void, Errs...> {
      * @tparam E Error type (must be in Errs).
      * @param error Error to store.
      */
-    template<typename E>
-        requires(std::same_as<std::remove_cvref_t<E>, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
         : m_error(std::forward<E>(error)) {}
 
@@ -462,8 +493,8 @@ class Result<void, Errs...> {
      * @tparam E Error type to retrieve.
      * @return std::optional<E> Contains the error if present; otherwise nullopt.
      */
-    template<typename E>
-        requires(std::same_as<E, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr std::optional<E> get() const& {
         if (std::holds_alternative<E>(m_error)) {
             return std::get<E>(m_error);
@@ -477,8 +508,8 @@ class Result<void, Errs...> {
      * @tparam E Error type to retrieve.
      * @return std::optional<E> Contains the error if present; otherwise nullopt.
      */
-    template<typename E>
-        requires(std::same_as<E, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr std::optional<E> get() && {
         if (std::holds_alternative<E>(m_error)) {
             return std::move(std::get<E>(m_error));
@@ -492,8 +523,8 @@ class Result<void, Errs...> {
      * @tparam E Error type to retrieve.
      * @return std::optional<E> Contains the error if present; otherwise nullopt.
      */
-    template<typename E>
-        requires(std::same_as<E, Errs> || ...)
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr const std::optional<E> get() const&& {
         if (std::holds_alternative<E>(m_error)) {
             return std::move(std::get<E>(m_error));
