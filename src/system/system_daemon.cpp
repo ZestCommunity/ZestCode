@@ -15,10 +15,6 @@ namespace zest {
 // This means it needs to be initialized by the _start function in startup.cpp
 static std::optional<pros::Task> system_daemon;
 
-/**
- * @brief Initialize the system daemon task
- *
- */
 void initialize_system_daemon() {
     if (!system_daemon) {
         system_daemon = pros::Task::create([]() {

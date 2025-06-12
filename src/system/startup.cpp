@@ -15,6 +15,7 @@
 
 #include "pros/competition.hpp"
 #include "pros/rtos.hpp"
+#include "src/system/system_daemon.hpp"
 #include "v5_api_patched.h"
 
 #include <cstdint>
@@ -49,8 +50,6 @@ static void pros_init() {
     vfs_initialize();
 }
 
-// forward-declare system daemon initialization function
-void initialize_system_daemon();
 // forward-declare main function
 int main();
 
@@ -75,7 +74,7 @@ void _start() {
     __libc_init_array();
 
     // initialize the system daemon
-    initialize_system_daemon();
+    zest::initialize_system_daemon();
 
     // start main task
     // these pragmas are needed to silence the same warning on clang and gcc
