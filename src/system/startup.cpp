@@ -22,7 +22,6 @@
 #include <cstdlib>
 #include <sys/unistd.h>
 
-
 extern "C" {
 // Initialization routines provided elsewhere
 void rtos_initialize();
@@ -50,6 +49,8 @@ static void pros_init() {
     vfs_initialize();
 }
 
+// forward-declare system daemon initialization function
+void initialize_system_daemon();
 // forward-declare main function
 int main();
 
@@ -72,6 +73,9 @@ void _start() {
 
     // call global constructors
     __libc_init_array();
+
+    // initialize the system daemon
+    initialize_system_daemon();
 
     // start main task
     // these pragmas are needed to silence the same warning on clang and gcc
