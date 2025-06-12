@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pros/devices/adi_expander.hpp"
+#include "pros/devices/screen.hpp"
 #include "pros/rtos.hpp"
 
 namespace zest {
@@ -67,6 +68,8 @@ class Brain {
      *
      */
     static void smart_port_mutex_unlock_all();
+
+    using Screen = zest::Screen;
 
   private:
     static constinit std::array<pros::RecursiveMutex, 33> m_mutexes;
