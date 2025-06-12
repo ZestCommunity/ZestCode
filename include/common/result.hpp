@@ -207,6 +207,14 @@ class Result {
         : m_error(std::forward<E>(error)),
           m_value(traits::sentinel_v<T>) {}
 
+    /**
+     * @brief Get the error of the given type, wrapped in std::optional
+     *
+     * @tparam Self the deduced self type
+     * @tparam E the error type to get
+     * @param self the self object
+     * @return the error type, wrapped in std::optional
+     */
     template<typename Self, traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr auto&& get_error(this Self&& self) {
@@ -217,11 +225,24 @@ class Result {
         }
     }
 
+    /**
+     * @brief Get the normal value
+     *
+     * @tparam Self the deduced self type
+     * @param self the self object
+     * @return the normal value
+     */
     template<typename Self>
     constexpr auto&& get_value(this Self&& self) {
         return std::forward<Self>(self).m_value;
     }
 
+    /**
+     * @brief whether there is an error value
+     *
+     * @return true
+     * @return false
+     */
     constexpr bool has_error() {
         return !std::holds_alternative<std::monostate>(m_error);
     }
@@ -291,6 +312,14 @@ class Result<void, Errs...> {
     constexpr Result()
         : m_error(std::monostate()) {}
 
+    /**
+     * @brief Get the error of the given type, wrapped in std::optional
+     *
+     * @tparam Self the deduced self type
+     * @tparam E the error type to get
+     * @param self the self object
+     * @return the error type, wrapped in std::optional
+     */
     template<typename Self, traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr auto&& get_error(this Self&& self) {
@@ -301,11 +330,12 @@ class Result<void, Errs...> {
         }
     }
 
-    template<typename Self>
-    constexpr auto&& get_value(this Self&& self) {
-        return std::forward<Self>(self).m_value;
-    }
-
+    /**
+     * @brief whether there is an error value
+     *
+     * @return true
+     * @return false
+     */
     constexpr bool has_error() {
         return !std::holds_alternative<std::monostate>(m_error);
     }
