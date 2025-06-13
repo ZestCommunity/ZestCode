@@ -108,7 +108,7 @@ struct is_result_error : std::false_type {};
  * @brief type trait for checking whether a type is derived from the ResultError class
  */
 template<typename T>
-    requires std::derived_from<T, ResultError>
+    requires std::is_base_of_v<ResultError, T>
 struct is_result_error<T> : std::true_type {};
 
 /**
@@ -121,7 +121,7 @@ inline constexpr bool is_result_error_v = is_result_error<T>::value;
  * @brief IsResultError concept. Enforces that the given type is derived from the ResultError class
  */
 template<typename T>
-concept IsResultError = is_result_error_v<std::remove_cvref_t<T>>;
+concept IsResultError = is_result_error_v<T>;
 
 /**
  * @brief Trait to define a "sentinel" value for types indicating an error state.
@@ -217,8 +217,8 @@ class Result {
   private:
     // helper type
     template<typename Self, typename F>
-        requires std::invocable<F, decltype((std::declval<Self>().m_value))>
-    using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().m_value))>;
+        requires std::invocable<F, decltype((std::declval<Self>().value))>
+    using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().value))>;
 
   public:
     // instead of wrapping the variant in std::optional, we can use std::monostate
@@ -306,9 +306,11 @@ class Result {
      */
     template<typename Self, typename F>
     constexpr auto and_then(this Self&& self, F&& f)
-        requires std::invocable<F, decltype(std::forward<Self>(self).m_value)>
+        requires std::invocable<F, decltype(std::forward<Self>(self).value)>
                  && traits::is_result_v<and_then_return_t<Self, F>>
-                 && traits::contains_all_v<and_then_return_t<Self, F>, typename Self::error_types>
+                 && traits::contains_all_v<
+                     typename and_then_return_t<Self, F>::error_types,
+                     typename Self::error_types>
     {
         // if there is an error, return said error immediately
         if (self.has_error()) {
@@ -317,7 +319,7 @@ class Result {
             }, std::forward<Self>(self));
         }
         // otherwise, invoke the callable and return the result
-        return std::invoke(f, std::forward<Self>(self).m_value);
+        return std::invoke(f, std::forward<Self>(self).value);
     }
 
     constexpr operator T&() & {
@@ -440,7 +442,7 @@ class Result<void, Errs...> {
             }, std::forward<Self>(self));
         }
         // otherwise, invoke the callable and return the result
-        return std::invoke(f, std::forward<Self>(self).m_value);
+        return std::invoke(f, std::forward<Self>(self).value);
     }
 };
 
