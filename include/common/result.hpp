@@ -217,6 +217,7 @@ class Result {
   private:
     // helper type
     template<typename Self, typename F>
+        requires std::invocable<F, decltype((std::declval<Self>().m_value))>
     using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().m_value))>;
 
   public:
