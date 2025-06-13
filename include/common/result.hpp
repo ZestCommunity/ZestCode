@@ -363,12 +363,13 @@ operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& 
 template<traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result<void, Errs...> {
-  private:
-    // helper type
-    template<typename Self, typename F>
-    using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().m_value))>;
-
   public:
+    using value_type = void;
+    using error_types = traits::type_pack<Errs...>;
+
+    // instead of wrapping the variant in std::optional, we can use std::monostate
+    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
+
     /**
      * @brief Construct a Result with an error.
      * @tparam E Error type (must be in Errs).
@@ -428,23 +429,19 @@ class Result<void, Errs...> {
      */
     template<typename Self, typename F>
     constexpr auto and_then(this Self&& self, F&& f)
-        requires std::invocable<F, decltype(std::forward<Self>(self).m_value)>
-                 && traits::is_result_v<and_then_return_t<Self, F>>
-                 && traits::contains_all_v<and_then_return_t<Self, F>, typename Self::error_types>
+        requires std::invocable<F, void> && traits::is_result_v<std::invoke_result_t<F, void>>
+                 && traits::
+                     contains_all_v<std::invoke_result_t<F, void>, typename Self::error_types>
     {
         // if there is an error, return said error immediately
         if (self.has_error()) {
-            return std::visit([](auto&& var) -> and_then_return_t<Self, F> {
+            return std::visit([](auto&& var) -> std::invoke_result_t<F, void> {
                 return std::forward<decltype(var)>(var);
             }, std::forward<Self>(self));
         }
         // otherwise, invoke the callable and return the result
         return std::invoke(f, std::forward<Self>(self).m_value);
     }
-
-  private:
-    // instead of wrapping the variant in std::optional, we can use std::monostate
-    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
 };
 
 } // namespace zest
