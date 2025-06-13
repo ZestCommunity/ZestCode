@@ -2,9 +2,11 @@
 
 #include <chrono>
 #include <concepts>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <stacktrace>
+#include <type_traits>
 #include <variant>
 
 namespace zest {
@@ -52,6 +54,48 @@ namespace traits {
  */
 template<typename T, typename... Ts>
 inline constexpr bool is_in_pack_v = (std::is_same_v<std::remove_cvref_t<T>, Ts> || ...);
+
+// A simple type pack wrapper
+template<typename... Ts>
+struct type_pack {};
+
+/**
+ * @brief Check if PackA contains all the types in PackB
+ *
+ * @tparam PackA
+ * @tparam PackB
+ */
+template<typename PackA, typename PackB>
+struct contains_all;
+
+/**
+ * @brief Check if PackA contains all the types in PackB
+ *
+ * @tparam PackA
+ * @tparam PackB
+ */
+template<typename... As, typename... Bs>
+struct contains_all<type_pack<As...>, type_pack<Bs...>> {
+    static constexpr bool value = (is_in_pack_v<Bs, As...> && ...);
+};
+
+/**
+ * @brief Check if PackA contains all the types in PackB
+ *
+ * @tparam PackA
+ * @tparam PackB
+ */
+template<typename PackA, typename PackB>
+inline constexpr bool contains_all_v = contains_all<PackA, PackB>::value;
+
+/**
+ * @brief Check if PackA contains all the types in PackB
+ *
+ * @tparam PackA
+ * @tparam PackB
+ */
+template<typename PackA, typename PackB>
+concept ContainsAll = contains_all_v<PackA, PackB>;
 
 /**
  * @brief type trait for checking whether a type is derived from the ResultError class
@@ -170,6 +214,9 @@ template<typename T, traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result {
   public:
+    using value_type = T;
+    using error_types = traits::type_pack<Errs...>;
+
     /**
      * @brief Construct a Result with a normal value (no error).
      * @tparam U Type convertible to T, and U not derived from ResultError
@@ -226,6 +273,44 @@ class Result {
     }
 
     /**
+     * @brief Applies a callable to the stored value if no error is present, returning its result.
+     *
+     * This function implements a monadic bind operation (commonly known as `and_then` in functional
+     * programming). If the `Result` object has a value, the callable `f` is invoked with the value,
+     * and its result is returned. If the `Result` object has an error, the original object is
+     * returned unmodified.
+     *
+     * The callable `f` must return a `Result` type that:
+     * 1. May change the value type.
+     * 2. Must contain all the error types from the original `Result`.
+     *
+     * @tparam Self A type that models a `Result`-like object, providing `get_value()`,
+     * `has_error()`, and `error_types`.
+     * @tparam F A callable type that can be invoked with the value from `self`, returning a
+     * compatible `Result`.
+     * @param self The source `Result` object, passed using `deduced this` for support of
+     * rvalue/lvalue overloads.
+     * @param f A callable to apply to the value if no error is present.
+     * @return A `Result` returned from invoking `f(self.get_value())` if there is no error, or the
+     * original `self` otherwise.
+     *
+     * @note Requires that `std::invoke_result_t<F, decltype(self.get_value())>` is a `Result` type
+     * and contains all error types from `Self`.
+     */
+    template<typename Self, std::invocable F>
+    constexpr auto and_then(this Self&& self, F&& f)
+        requires traits::is_result_v<std::invoke_result_t<F, decltype(self.get_value())>>
+                 && traits::contains_all_v<
+                     std::invoke_result_t<F, decltype(self.get_value())>,
+                     typename Self::error_types>
+    {
+        if (self.has_error()) {
+            return std::forward<Self>(self);
+        }
+        return std::invoke(f, std::forward<Self>(self).get_value());
+    }
+
+    /**
      * @brief Get the normal value
      *
      * @tparam Self the deduced self type
@@ -267,7 +352,7 @@ class Result {
     // instead of wrapping the variant in std::optional, we can use std::monostate
     std::variant<std::monostate, Errs...> m_error;
     T m_value;
-};
+}; // namespace zest
 
 /**
  * @brief compare Result instances with comparable normal values
