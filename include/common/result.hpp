@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cerrno>
 #include <chrono>
 #include <concepts>
 #include <functional>
@@ -167,7 +168,7 @@ inline constexpr T sentinel_v = SentinelValue<T>::value;
 } // namespace traits
 
 // forward declarations, necessary to declare traits
-template<typename T, traits::IsResultError... Errs>
+template<traits::HasSentinel T, traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result;
 
@@ -210,19 +211,16 @@ concept IsResult = is_result_v<T>;
  * @tparam Errs List of possible error types (must inherit from ResultError).
  * @note Errors are stored in a variant, and the value is always initialized.
  */
-template<typename T, traits::IsResultError... Errs>
+template<traits::HasSentinel T, traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result {
   public:
+    // instead of wrapping the variant in std::optional, we can use std::monostate
+    std::variant<std::monostate, Errs...> error;
+    T value;
+
     using value_type = T;
     using error_types = traits::type_pack<Errs...>;
-
-    template<traits::IsResult U>
-        requires traits::contains_all_v<typename Result::error_types, typename U::error_types>
-                 && std::constructible_from<typename Result::value_type, typename U::value_type>
-    static constexpr Result from_other(U&& other) {
-        return Result(std::forward<U>(other).value, std::forward<U>(other).error);
-    }
 
     /**
      * @brief Construct a Result with a normal value (no error).
@@ -230,24 +228,10 @@ class Result {
      * @param value Value to initialize the result with.
      */
     template<typename U>
-        requires std::constructible_from<T, U> && (!traits::IsResultError<U>)
+        requires std::convertible_to<T, U> && (!traits::IsResultError<U>)
     constexpr Result(U&& value)
         : error(std::monostate()),
           value(std::forward<U>(value)) {}
-
-    /**
-     * @brief Construct a Result with a value and an error.
-     * @tparam U Type convertible to T, and U not derived from ResultError
-     * @tparam E Error type, must be in Errs and must be derived from ResultError
-     * @param value Value to store.
-     * @param error Error to store.
-     */
-    template<typename U, traits::IsResultError E>
-        requires std::constructible_from<T, U> && (!traits::IsResultError<U>)
-                     && traits::is_in_pack_v<E, Errs...>
-    constexpr Result(U&& value, E&& error)
-        : value(std::forward<U>(value)),
-          error(std::forward<E>(error)) {}
 
     /**
      * @brief Construct a Result with an error, initializing the value to its sentinel.
@@ -256,7 +240,7 @@ class Result {
      * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
      */
     template<traits::IsResultError E>
-        requires traits::HasSentinel<T> && traits::is_in_pack_v<E, Errs...>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)),
           value(traits::sentinel_v<T>) {}
@@ -276,45 +260,6 @@ class Result {
             return std::optional(std::holds_alternative<E>(std::forward<Self>(self).error));
         } else {
             return std::optional<E>();
-        }
-    }
-
-    // type rules:
-    // - a Result must be returned
-    // - the return type must be able to contain any error type that could be contained by this
-    template<typename Self, std::invocable F>
-    constexpr auto and_then(this Self&& self, F&& f)
-        requires
-        // the callable must return a Result
-        traits::is_result_v<std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>>
-        // the return type must be able to contain any error passed to the callable
-        && traits::contains_all_v<
-            std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>,
-            typename Self::error_types>
-        // the callable can only have a different value type if SentinelValue is specialized
-        && (traits::HasSentinel<typename std::invoke_result_t<
-                F,
-                decltype(std::forward<Self>(self).m_value)>::value_type>
-            || std::same_as<
-                typename Self::value_type,
-                typename std::invoke_result_t<F, decltype(self.m_value)>::value_type>)
-    {
-        using ReturnType = std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>;
-        if (self.has_error()) {
-            // if the callable return value type is the same as the Self value type,
-            // return a Result with the same value and error
-            // otherwise, return the same error but with the sentinel value
-            if constexpr (std::
-                              same_as<typename Self::value_type, typename ReturnType::value_type>) {
-                return Result::from_other(std::invoke(f, std::forward<Self>(self)));
-            } else {
-                return Result{
-                    traits::sentinel_v<typename ReturnType::value_type>,
-                    std::forward<Self>(self).m_error
-                };
-            }
-        } else {
-            return std::invoke(f, std::forward<Self>(self).m_value);
         }
     }
 
@@ -340,6 +285,37 @@ class Result {
         return !std::holds_alternative<std::monostate>(error);
     }
 
+    /**
+     * @brief and_then monadic function
+     *
+     * The callable must be able to return any error passed to it.
+     * The callable must return a Result.
+     *
+     * @tparam Self deduced self type
+     * @tparam F the type of the callable
+     * @param self the current Result instance
+     * @param f the callable
+     * @return return type of callable
+     */
+    template<typename Self, std::invocable<Self> F>
+    constexpr auto and_then(this Self&& self, F&& f)
+        requires traits::is_result_v<
+                     std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>>
+                 && traits::contains_all_v<
+                     std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>,
+                     typename Self::error_types>
+    {
+        using ReturnType = std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>;
+        // if there is an error, return said error immediately
+        if (self.has_error()) {
+            return std::visit([](auto&& var) {
+                return ReturnType(std::forward<decltype(var)>(var));
+            }, std::forward<Self>(self));
+        }
+        // otherwise, invoke the callable and return the result
+        return std::invoke(f, std::forward<Self>(self).m_value);
+    }
+
     constexpr operator T&() & {
         return value;
     }
@@ -355,10 +331,6 @@ class Result {
     constexpr operator const T&&() const&& {
         return std::move(value);
     }
-
-    // instead of wrapping the variant in std::optional, we can use std::monostate
-    std::variant<std::monostate, Errs...> error;
-    T value;
 }; // namespace zest
 
 /**
@@ -430,6 +402,37 @@ class Result<void, Errs...> {
      */
     constexpr bool has_error() {
         return !std::holds_alternative<std::monostate>(error);
+    }
+
+    /**
+     * @brief and_then monadic function
+     *
+     * The callable must be able to return any error passed to it.
+     * The callable must return a Result.
+     *
+     * @tparam Self deduced self type
+     * @tparam F the type of the callable
+     * @param self the current Result instance
+     * @param f the callable
+     * @return return type of callable
+     */
+    template<typename Self, std::invocable<Self> F>
+    constexpr auto and_then(this Self&& self, F&& f)
+        requires traits::is_result_v<
+                     std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>>
+                 && traits::contains_all_v<
+                     std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>,
+                     typename Self::error_types>
+    {
+        using ReturnType = std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>;
+        // if there is an error, return said error immediately
+        if (self.has_error()) {
+            return std::visit([](auto&& var) {
+                return ReturnType(std::forward<decltype(var)>(var));
+            }, std::forward<Self>(self));
+        }
+        // otherwise, invoke the callable and return the result
+        return std::invoke(f, std::forward<Self>(self).m_value);
     }
 
   private:
