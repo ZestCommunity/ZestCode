@@ -108,7 +108,7 @@ struct is_result_error : std::false_type {};
  * @brief type trait for checking whether a type is derived from the ResultError class
  */
 template<typename T>
-    requires std::derived_from<ResultError, T>
+    requires std::derived_from<T, ResultError>
 struct is_result_error<T> : std::true_type {};
 
 /**
@@ -168,8 +168,8 @@ inline constexpr T sentinel_v = SentinelValue<T>::value;
 } // namespace traits
 
 // forward declarations, necessary to declare traits
-template<traits::HasSentinel T, traits::IsResultError... Errs>
-    requires(sizeof...(Errs) > 0)
+template<typename T, traits::IsResultError... Errs>
+    requires(traits::HasSentinel<T> || std::same_as<void, T>) && (sizeof...(Errs) > 0)
 class Result;
 
 namespace traits {
@@ -211,8 +211,8 @@ concept IsResult = is_result_v<T>;
  * @tparam Errs List of possible error types (must inherit from ResultError).
  * @note Errors are stored in a variant, and the value is always initialized.
  */
-template<traits::HasSentinel T, traits::IsResultError... Errs>
-    requires(sizeof...(Errs) > 0)
+template<typename T, traits::IsResultError... Errs>
+    requires(traits::HasSentinel<T> || std::same_as<void, T>) && (sizeof...(Errs) > 0)
 class Result {
   private:
     // helper type
@@ -445,3 +445,85 @@ class Result<void, Errs...> {
 };
 
 } // namespace zest
+
+namespace zest::test {
+
+// Custom error types
+struct ErrorA : protected ResultError {};
+
+struct ErrorB : protected ResultError {};
+
+// Test callables for non-void Results
+constexpr auto return_rvalue = [](int&& x) -> Result<int, ErrorA, ErrorB> {
+    return x * 2;
+};
+constexpr auto return_lvalue = [](int& x) -> Result<int, ErrorA, ErrorB> {
+    return x * 2;
+};
+constexpr auto return_const = [](const int& x) -> Result<int, ErrorA, ErrorB> {
+    return x * 2;
+};
+
+// Test callables for void Results
+constexpr auto void_success = []() -> Result<void, ErrorA, ErrorB> {
+    return {};
+};
+constexpr auto void_failure = []() -> Result<void, ErrorA, ErrorB> {
+    return ErrorA{};
+};
+
+// Compile-time test runner
+constexpr bool run_tests() {
+    // Non-void Result tests
+    {
+        // Test lvalue forwarding
+        Result<int, ErrorA, ErrorB> res{42};
+        auto new_res = res.and_then(return_lvalue);
+        if (new_res.has_error() || new_res.get_value() != 84)
+            return false;
+
+        // Test const lvalue forwarding
+        const Result<int, ErrorA, ErrorB> cres{42};
+        auto cnew_res = cres.and_then(return_const);
+        if (cnew_res.has_error() || cnew_res.get_value() != 84)
+            return false;
+
+        // Test rvalue forwarding
+        auto rnew_res = Result<int, ErrorA, ErrorB>{42}.and_then(return_rvalue);
+        if (rnew_res.has_error() || rnew_res.get_value() != 84)
+            return false;
+
+        // Test error propagation
+        Result<int, ErrorA, ErrorB> err_res{ErrorA{}};
+        auto err_new_res = err_res.and_then(return_lvalue);
+        if (!err_new_res.has_error() || !err_new_res.get_error<ErrorA>())
+            return false;
+    }
+
+    // Void Result tests
+    {
+        // Test successful chain
+        Result<void, ErrorA, ErrorB> vres;
+        auto vnew_res = vres.and_then(void_success);
+        if (vnew_res.has_error())
+            return false;
+
+        // Test error propagation
+        Result<void, ErrorA, ErrorB> verr_res{ErrorA{}};
+        auto verr_new_res = verr_res.and_then(void_success);
+        if (!verr_new_res.has_error() || !verr_new_res.get_error<ErrorA>())
+            return false;
+
+        // Test new error in callback
+        auto vfail_res = Result<void, ErrorA, ErrorB>{}.and_then(void_failure);
+        if (!vfail_res.has_error() || !vfail_res.get_error<ErrorA>())
+            return false;
+    }
+
+    return true;
+}
+
+// Compile-time test execution
+static_assert(run_tests(), "All tests passed");
+
+} // namespace zest::test
