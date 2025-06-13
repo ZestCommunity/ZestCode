@@ -217,6 +217,13 @@ class Result {
     using value_type = T;
     using error_types = traits::type_pack<Errs...>;
 
+    template<traits::IsResult U>
+        requires traits::contains_all_v<typename Result::error_types, typename U::error_types>
+                 && std::constructible_from<typename Result::value_type, typename U::value_type>
+    static constexpr Result from_other(U&& other) {
+        return Result(std::forward<U>(other).value, std::forward<U>(other).error);
+    }
+
     /**
      * @brief Construct a Result with a normal value (no error).
      * @tparam U Type convertible to T, and U not derived from ResultError
@@ -225,8 +232,8 @@ class Result {
     template<typename U>
         requires std::constructible_from<T, U> && (!traits::IsResultError<U>)
     constexpr Result(U&& value)
-        : m_error(std::monostate()),
-          m_value(std::forward<U>(value)) {}
+        : error(std::monostate()),
+          value(std::forward<U>(value)) {}
 
     /**
      * @brief Construct a Result with a value and an error.
@@ -239,8 +246,8 @@ class Result {
         requires std::constructible_from<T, U> && (!traits::IsResultError<U>)
                      && traits::is_in_pack_v<E, Errs...>
     constexpr Result(U&& value, E&& error)
-        : m_value(std::forward<U>(value)),
-          m_error(std::forward<E>(error)) {}
+        : value(std::forward<U>(value)),
+          error(std::forward<E>(error)) {}
 
     /**
      * @brief Construct a Result with an error, initializing the value to its sentinel.
@@ -251,8 +258,8 @@ class Result {
     template<traits::IsResultError E>
         requires traits::HasSentinel<T> && traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
-        : m_error(std::forward<E>(error)),
-          m_value(traits::sentinel_v<T>) {}
+        : error(std::forward<E>(error)),
+          value(traits::sentinel_v<T>) {}
 
     /**
      * @brief Get the error of the given type, wrapped in std::optional
@@ -265,49 +272,50 @@ class Result {
     template<typename Self, traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr auto&& get_error(this Self&& self) {
-        if (std::holds_alternative<E>(self.m_error)) {
-            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).m_error));
+        if (std::holds_alternative<E>(self.error)) {
+            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).error));
         } else {
             return std::optional<E>();
         }
     }
 
-    /**
-     * @brief Applies a callable to the stored value if no error is present, returning its result.
-     *
-     * This function implements a monadic bind operation (commonly known as `and_then` in functional
-     * programming). If the `Result` object has a value, the callable `f` is invoked with the value,
-     * and its result is returned. If the `Result` object has an error, the original object is
-     * returned unmodified.
-     *
-     * The callable `f` must return a `Result` type that:
-     * 1. May change the value type.
-     * 2. Must contain all the error types from the original `Result`.
-     *
-     * @tparam Self A type that models a `Result`-like object, providing `get_value()`,
-     * `has_error()`, and `error_types`.
-     * @tparam F A callable type that can be invoked with the value from `self`, returning a
-     * compatible `Result`.
-     * @param self The source `Result` object, passed using `deduced this` for support of
-     * rvalue/lvalue overloads.
-     * @param f A callable to apply to the value if no error is present.
-     * @return A `Result` returned from invoking `f(self.get_value())` if there is no error, or the
-     * original `self` otherwise.
-     *
-     * @note Requires that `std::invoke_result_t<F, decltype(self.get_value())>` is a `Result` type
-     * and contains all error types from `Self`.
-     */
+    // type rules:
+    // - a Result must be returned
+    // - the return type must be able to contain any error type that could be contained by this
     template<typename Self, std::invocable F>
     constexpr auto and_then(this Self&& self, F&& f)
-        requires traits::is_result_v<std::invoke_result_t<F, decltype(self.get_value())>>
-                 && traits::contains_all_v<
-                     std::invoke_result_t<F, decltype(self.get_value())>,
-                     typename Self::error_types>
+        requires
+        // the callable must return a Result
+        traits::is_result_v<std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>>
+        // the return type must be able to contain any error passed to the callable
+        && traits::contains_all_v<
+            std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>,
+            typename Self::error_types>
+        // the callable can only have a different value type if SentinelValue is specialized
+        && (traits::HasSentinel<typename std::invoke_result_t<
+                F,
+                decltype(std::forward<Self>(self).m_value)>::value_type>
+            || std::same_as<
+                typename Self::value_type,
+                typename std::invoke_result_t<F, decltype(self.m_value)>::value_type>)
     {
+        using ReturnType = std::invoke_result_t<F, decltype(std::forward<Self>(self).m_value)>;
         if (self.has_error()) {
-            return std::forward<Self>(self);
+            // if the callable return value type is the same as the Self value type,
+            // return a Result with the same value and error
+            // otherwise, return the same error but with the sentinel value
+            if constexpr (std::
+                              same_as<typename Self::value_type, typename ReturnType::value_type>) {
+                return Result::from_other(std::invoke(f, std::forward<Self>(self)));
+            } else {
+                return Result{
+                    traits::sentinel_v<typename ReturnType::value_type>,
+                    std::forward<Self>(self).m_error
+                };
+            }
+        } else {
+            return std::invoke(f, std::forward<Self>(self).m_value);
         }
-        return std::invoke(f, std::forward<Self>(self).get_value());
     }
 
     /**
@@ -319,7 +327,7 @@ class Result {
      */
     template<typename Self>
     constexpr auto&& get_value(this Self&& self) {
-        return std::forward<Self>(self).m_value;
+        return std::forward<Self>(self).value;
     }
 
     /**
@@ -329,29 +337,28 @@ class Result {
      * @return false
      */
     constexpr bool has_error() {
-        return !std::holds_alternative<std::monostate>(m_error);
+        return !std::holds_alternative<std::monostate>(error);
     }
 
     constexpr operator T&() & {
-        return m_value;
+        return value;
     }
 
     constexpr operator const T&() const& {
-        return m_value;
+        return value;
     };
 
     constexpr operator T&&() && {
-        return std::move(m_value);
+        return std::move(value);
     }
 
     constexpr operator const T&&() const&& {
-        return std::move(m_value);
+        return std::move(value);
     }
 
-  private:
     // instead of wrapping the variant in std::optional, we can use std::monostate
-    std::variant<std::monostate, Errs...> m_error;
-    T m_value;
+    std::variant<std::monostate, Errs...> error;
+    T value;
 }; // namespace zest
 
 /**
@@ -389,13 +396,13 @@ class Result<void, Errs...> {
     template<traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
-        : m_error(std::forward<E>(error)) {}
+        : error(std::forward<E>(error)) {}
 
     /**
      * @brief Construct a Result with no error (success state).
      */
     constexpr Result()
-        : m_error(std::monostate()) {}
+        : error(std::monostate()) {}
 
     /**
      * @brief Get the error of the given type, wrapped in std::optional
@@ -408,8 +415,8 @@ class Result<void, Errs...> {
     template<typename Self, traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr auto&& get_error(this Self&& self) {
-        if (std::holds_alternative<E>(self.m_error)) {
-            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).m_error));
+        if (std::holds_alternative<E>(self.error)) {
+            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).error));
         } else {
             return std::optional<E>();
         }
@@ -422,12 +429,12 @@ class Result<void, Errs...> {
      * @return false
      */
     constexpr bool has_error() {
-        return !std::holds_alternative<std::monostate>(m_error);
+        return !std::holds_alternative<std::monostate>(error);
     }
 
   private:
     // instead of wrapping the variant in std::optional, we can use std::monostate
-    std::variant<std::monostate, Errs...> m_error; ///< Variant holding an error or monostate.
+    std::variant<std::monostate, Errs...> error; ///< Variant holding an error or monostate.
 };
 
 } // namespace zest
