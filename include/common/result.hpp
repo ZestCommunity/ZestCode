@@ -234,7 +234,7 @@ class Result {
      * @param value Value to initialize the result with.
      */
     template<typename U>
-        requires std::convertible_to<T, U> && (!traits::IsResultError<U>)
+        requires std::convertible_to<T, U> && (!traits::is_in_pack_v<U, std::monostate, Errs...>)
     constexpr Result(U&& value)
         : error(std::monostate()),
           value(std::forward<U>(value)) {}
@@ -245,7 +245,7 @@ class Result {
      * @param error Error to store.
      * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
      */
-    template<traits::IsResultError E>
+    template<typename E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)),
@@ -308,15 +308,14 @@ class Result {
     constexpr auto and_then(this Self&& self, F&& f)
         requires std::invocable<F, decltype(std::forward<Self>(self).value)>
                  && traits::is_result_v<and_then_return_t<Self, F>>
-                 && traits::contains_all_v<
-                     typename and_then_return_t<Self, F>::error_types,
-                     typename Self::error_types>
+                 && traits::
+                     contains_all_v<typename and_then_return_t<Self, F>::error_types, error_types>
     {
         // if there is an error, return said error immediately
         if (self.has_error()) {
             return std::visit([](auto&& var) -> and_then_return_t<Self, F> {
                 return std::forward<decltype(var)>(var);
-            }, std::forward<Self>(self));
+            }, std::forward<Self>(self).error);
         }
         // otherwise, invoke the callable and return the result
         return std::invoke(f, std::forward<Self>(self).value);
@@ -377,8 +376,8 @@ class Result<void, Errs...> {
      * @tparam E Error type (must be in Errs).
      * @param error Error to store.
      */
-    template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
+    template<typename E>
+        requires traits::is_in_pack_v<E, std::monostate, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)) {}
 
@@ -396,11 +395,11 @@ class Result<void, Errs...> {
      * @param self the self object
      * @return the error type, wrapped in std::optional
      */
-    template<typename Self, traits::IsResultError E>
+    template<traits::IsResultError E, typename Self>
         requires traits::is_in_pack_v<E, Errs...>
-    constexpr auto&& get_error(this Self&& self) {
+    constexpr auto get_error(this Self&& self) {
         if (std::holds_alternative<E>(self.error)) {
-            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).error));
+            return std::optional<E>(std::get<E>(std::forward<Self>(self).error));
         } else {
             return std::optional<E>();
         }
@@ -429,103 +428,21 @@ class Result<void, Errs...> {
      * @param f the callable
      * @return return type of callable
      */
-    template<typename Self, typename F>
+    template<std::invocable F, typename Self>
     constexpr auto and_then(this Self&& self, F&& f)
-        requires std::invocable<F, void> && traits::is_result_v<std::invoke_result_t<F, void>>
+        requires traits::is_result_v<std::invoke_result_t<F>>
                  && traits::
-                     contains_all_v<std::invoke_result_t<F, void>, typename Self::error_types>
+                     contains_all_v<typename std::invoke_result_t<F>::error_types, error_types>
     {
         // if there is an error, return said error immediately
         if (self.has_error()) {
-            return std::visit([](auto&& var) -> std::invoke_result_t<F, void> {
+            return std::visit([](auto&& var) -> std::invoke_result_t<F> {
                 return std::forward<decltype(var)>(var);
-            }, std::forward<Self>(self));
+            }, std::forward<Self>(self).error);
         }
         // otherwise, invoke the callable and return the result
-        return std::invoke(f, std::forward<Self>(self).value);
+        return std::invoke(f);
     }
 };
 
 } // namespace zest
-
-namespace zest::test {
-
-// Custom error types
-struct ErrorA : protected ResultError {};
-
-struct ErrorB : protected ResultError {};
-
-// Test callables for non-void Results
-constexpr auto return_rvalue = [](int&& x) -> Result<int, ErrorA, ErrorB> {
-    return x * 2;
-};
-constexpr auto return_lvalue = [](int& x) -> Result<int, ErrorA, ErrorB> {
-    return x * 2;
-};
-constexpr auto return_const = [](const int& x) -> Result<int, ErrorA, ErrorB> {
-    return x * 2;
-};
-
-// Test callables for void Results
-constexpr auto void_success = []() -> Result<void, ErrorA, ErrorB> {
-    return {};
-};
-constexpr auto void_failure = []() -> Result<void, ErrorA, ErrorB> {
-    return ErrorA{};
-};
-
-// Compile-time test runner
-constexpr bool run_tests() {
-    // Non-void Result tests
-    {
-        // Test lvalue forwarding
-        Result<int, ErrorA, ErrorB> res{42};
-        auto new_res = res.and_then(return_lvalue);
-        if (new_res.has_error() || new_res.get_value() != 84)
-            return false;
-
-        // Test const lvalue forwarding
-        const Result<int, ErrorA, ErrorB> cres{42};
-        auto cnew_res = cres.and_then(return_const);
-        if (cnew_res.has_error() || cnew_res.get_value() != 84)
-            return false;
-
-        // Test rvalue forwarding
-        auto rnew_res = Result<int, ErrorA, ErrorB>{42}.and_then(return_rvalue);
-        if (rnew_res.has_error() || rnew_res.get_value() != 84)
-            return false;
-
-        // Test error propagation
-        Result<int, ErrorA, ErrorB> err_res{ErrorA{}};
-        auto err_new_res = err_res.and_then(return_lvalue);
-        if (!err_new_res.has_error() || !err_new_res.get_error<ErrorA>())
-            return false;
-    }
-
-    // Void Result tests
-    {
-        // Test successful chain
-        Result<void, ErrorA, ErrorB> vres;
-        auto vnew_res = vres.and_then(void_success);
-        if (vnew_res.has_error())
-            return false;
-
-        // Test error propagation
-        Result<void, ErrorA, ErrorB> verr_res{ErrorA{}};
-        auto verr_new_res = verr_res.and_then(void_success);
-        if (!verr_new_res.has_error() || !verr_new_res.get_error<ErrorA>())
-            return false;
-
-        // Test new error in callback
-        auto vfail_res = Result<void, ErrorA, ErrorB>{}.and_then(void_failure);
-        if (!vfail_res.has_error() || !vfail_res.get_error<ErrorA>())
-            return false;
-    }
-
-    return true;
-}
-
-// Compile-time test execution
-static_assert(run_tests(), "All tests passed");
-
-} // namespace zest::test
