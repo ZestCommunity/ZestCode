@@ -40,11 +40,11 @@ void Screen::on_touched(
     // TODO: Determine thread safety? (What happens if task A calls this, and while touch_task is
     // being constructed, task B preempts it and calls this again?)
     static pros::Task touch_task([] {
-        while (true) {
-            const auto touch = Screen::get_last_touch();
+        while (true) {        
+          const auto touch = Screen::get_last_touch();
             const auto state = touch.state;
-            static Screen::TouchEvent::State prev_state = state;
-            static size_t prev_time = pros::millis();
+            static Screen::TouchEvent::State prev_state = state;     
+            static uint32_t prev_time = pros::millis();
 
             if (prev_state != state)
                 for (const auto& listener : listeners)
