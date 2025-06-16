@@ -197,11 +197,35 @@ inline constexpr bool is_result_v = is_result<T>::value;
 
 /**
  * @brief Concept to check if a type is a Result
- *
- * @tparam T
+ * @tparam T Type to check
  */
 template<typename T>
 concept IsResult = is_result_v<T>;
+
+/**
+ * @brief Check whether all types in a pack are the same
+ *
+ * @tparam Ts types to check
+ */
+template<typename... Ts>
+struct all_same : std::true_type {};
+
+/**
+ * @brief Check whether all types in a pack are the same
+ *
+ * @tparam T first type
+ * @tparam Ts the rest of the types
+ */
+template<typename T, typename... Ts>
+struct all_same<T, Ts...> : std::bool_constant<(std::is_same_v<T, Ts> && ...)> {};
+
+/**
+ * @brief Check whether all types in a pack are the same
+ *
+ * @tparam Ts types to check
+ */
+template<typename... Ts>
+inline constexpr bool all_same_v = all_same<Ts...>::value;
 
 } // namespace traits
 
@@ -215,10 +239,14 @@ template<typename T, traits::IsResultError... Errs>
     requires(traits::HasSentinel<T> || std::same_as<void, T>) && (sizeof...(Errs) > 0)
 class Result {
   private:
-    // helper type
+    // and_then return type helper
     template<typename Self, typename F>
-        requires std::invocable<F, decltype((std::declval<Self>().value))>
     using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().value))>;
+
+    // or_else return type helper
+    template<typename Self, typename F, typename E>
+    using or_else_return_t =
+        std::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
 
   public:
     // instead of wrapping the variant in std::optional, we can use std::monostate
@@ -233,8 +261,8 @@ class Result {
      * @tparam U Type convertible to T, and U not derived from ResultError
      * @param value Value to initialize the result with.
      */
-    template<typename U>
-        requires std::convertible_to<T, U> && (!traits::is_in_pack_v<U, std::monostate, Errs...>)
+    template<traits::IsResultError U>
+        requires std::convertible_to<T, U>
     constexpr Result(U&& value)
         : error(std::monostate()),
           value(std::forward<U>(value)) {}
@@ -245,7 +273,7 @@ class Result {
      * @param error Error to store.
      * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
      */
-    template<typename E>
+    template<traits::IsResultError E>
         requires traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)),
@@ -305,20 +333,61 @@ class Result {
      * @return return type of callable
      */
     template<typename Self, typename F>
-    constexpr auto and_then(this Self&& self, F&& f)
-        requires std::invocable<F, decltype(std::forward<Self>(self).value)>
+        requires std::invocable<F, decltype((std::declval<Self>().value))>
                  && traits::is_result_v<and_then_return_t<Self, F>>
                  && traits::
                      contains_all_v<typename and_then_return_t<Self, F>::error_types, error_types>
-    {
+    constexpr auto and_then(this Self&& self, F&& f) {
         // if there is an error, return said error immediately
         if (self.has_error()) {
-            return std::visit([](auto&& var) -> and_then_return_t<Self, F> {
-                return std::forward<decltype(var)>(var);
+            return std::visit([](auto&& arg) -> and_then_return_t<Self, F> {
+                // even though this conditional is impossible, it's necessary to stop the compiler
+                // from thinking that ReturnType could be constructed with std::monostate
+                if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                    throw std::logic_error("This exception is unreachable");
+                } else {
+                    return std::forward<decltype(arg)>(arg);
+                }
             }, std::forward<Self>(self).error);
         }
         // otherwise, invoke the callable and return the result
         return std::invoke(f, std::forward<Self>(self).value);
+    }
+
+    /**
+     * @brief or_else monadic function.
+     *
+     * The callable must be able to take a perfectly forwarded error that may be contained by this
+     * Result instance. The callable must be able to return a Result containing any error type that
+     * may be passed to it. The normal value type of the Result returned by the callable must be the
+     * same as the normal value type of this Result instance.
+     *
+     * @tparam Self deduced self type
+     * @tparam F the type of the callable
+     * @param self the current Result instance
+     * @param f the callable
+     */
+    template<typename Self, typename F>
+        requires(std::invocable<F, decltype((std::get<Errs>(std::declval<Self>().error)))> && ...)
+                && (traits::is_result_v<or_else_return_t<Self, F, Errs>> && ...)
+                && (traits::all_same_v<or_else_return_t<Self, F, Errs>...>)
+                && (std::same_as<T, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
+    constexpr auto or_else(this Self&& self, F&& f) {
+        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<1, std::tuple<Errs...>>>;
+        // if there isn't an error, return
+        if (!self.has_error()) {
+            return ReturnType(std::forward<Self>(self).value);
+        }
+        // otherwise, invoke the given lambda
+        return std::visit([&f](auto&& arg) -> ReturnType {
+            // even though this conditional is impossible, it's necessary to stop the compiler from
+            // thinking that ReturnType could be constructed with std::monostate
+            if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                throw std::logic_error("This exception is unreachable");
+            } else {
+                return std::invoke(f, arg);
+            }
+        }, std::forward<Self>(self).error);
     }
 
     constexpr operator T&() & {
@@ -364,6 +433,12 @@ operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& 
 template<traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result<void, Errs...> {
+  private:
+    // or_else return type helper
+    template<typename Self, typename F, typename E>
+    using or_else_return_t =
+        std::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
+
   public:
     using value_type = void;
     using error_types = traits::type_pack<Errs...>;
@@ -376,8 +451,8 @@ class Result<void, Errs...> {
      * @tparam E Error type (must be in Errs).
      * @param error Error to store.
      */
-    template<typename E>
-        requires traits::is_in_pack_v<E, std::monostate, Errs...>
+    template<traits::IsResultError E>
+        requires traits::is_in_pack_v<E, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)) {}
 
@@ -429,19 +504,58 @@ class Result<void, Errs...> {
      * @return return type of callable
      */
     template<std::invocable F, typename Self>
-    constexpr auto and_then(this Self&& self, F&& f)
         requires traits::is_result_v<std::invoke_result_t<F>>
                  && traits::
                      contains_all_v<typename std::invoke_result_t<F>::error_types, error_types>
-    {
+    constexpr auto and_then(this Self&& self, F&& f) {
         // if there is an error, return said error immediately
         if (self.has_error()) {
-            return std::visit([](auto&& var) -> std::invoke_result_t<F> {
-                return std::forward<decltype(var)>(var);
+            return std::visit([](auto&& arg) -> std::invoke_result_t<F> {
+                // even though this conditional is impossible, it's necessary to stop the compiler
+                // from thinking that ReturnType could be constructed with std::monostate
+                if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                    throw std::logic_error("This exception is unreachable");
+                } else {
+                    return std::forward<decltype(arg)>(arg);
+                }
             }, std::forward<Self>(self).error);
         }
         // otherwise, invoke the callable and return the result
         return std::invoke(f);
+    }
+
+    /**
+     * @brief or_else monadic function.
+     *
+     * The callable must be able to take a perfectly forwarded error that may be contained by this
+     * Result instance. The callable must be able to return a Result containing any error type that
+     * may be passed to it. The normal value type of the Result returned by the callable must be the
+     * same as the normal value type of this Result instance.
+     *
+     * @tparam Self deduced self type
+     * @tparam F the type of the callable
+     * @param self the current Result instance
+     * @param f the callable
+     */
+    template<typename Self, typename F>
+        requires(std::invocable<F, decltype((std::get<Errs>(std::declval<Self>().error)))> && ...)
+                && (traits::is_result_v<or_else_return_t<Self, F, Errs>> && ...)
+                && (traits::all_same_v<or_else_return_t<Self, F, Errs>...>)
+                && (std::same_as<void, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
+    constexpr auto or_else(this Self&& self, F&& f) {
+        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<1, std::tuple<Errs...>>>;
+        // if there isn't an error, return
+        return ReturnType();
+        // otherwise, invoke the given lambda
+        return std::visit([&f](auto&& arg) -> ReturnType {
+            // even though this conditional is impossible, it's necessary to stop the compiler from
+            // thinking that ReturnType could be constructed with std::monostate
+            if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                throw std::logic_error("This exception is unreachable");
+            } else {
+                return std::invoke(f, arg);
+            }
+        }, std::forward<Self>(self).error);
     }
 };
 
