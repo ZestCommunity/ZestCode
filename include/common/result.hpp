@@ -261,7 +261,7 @@ class Result {
      * @tparam U Type convertible to T, and U not derived from ResultError
      * @param value Value to initialize the result with.
      */
-    template<traits::IsResultError U>
+    template<typename U>
         requires std::convertible_to<T, U>
     constexpr Result(U&& value)
         : error(std::monostate()),
@@ -287,11 +287,11 @@ class Result {
      * @param self the self object
      * @return the error type, wrapped in std::optional
      */
-    template<typename Self, traits::IsResultError E>
+    template<traits::IsResultError E, typename Self>
         requires traits::is_in_pack_v<E, Errs...>
-    constexpr auto&& get_error(this Self&& self) {
+    constexpr auto get_error(this Self&& self) {
         if (std::holds_alternative<E>(self.error)) {
-            return std::optional(std::holds_alternative<E>(std::forward<Self>(self).error));
+            return std::optional<E>(std::get<E>(std::forward<Self>(self).error));
         } else {
             return std::optional<E>();
         }
@@ -373,7 +373,7 @@ class Result {
                 && (traits::all_same_v<or_else_return_t<Self, F, Errs>...>)
                 && (std::same_as<T, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
     constexpr auto or_else(this Self&& self, F&& f) {
-        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<1, std::tuple<Errs...>>>;
+        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<0, std::tuple<Errs...>>>;
         // if there isn't an error, return
         if (!self.has_error()) {
             return ReturnType(std::forward<Self>(self).value);
@@ -543,7 +543,7 @@ class Result<void, Errs...> {
                 && (traits::all_same_v<or_else_return_t<Self, F, Errs>...>)
                 && (std::same_as<void, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
     constexpr auto or_else(this Self&& self, F&& f) {
-        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<1, std::tuple<Errs...>>>;
+        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<0, std::tuple<Errs...>>>;
         // if there isn't an error, return
         return ReturnType();
         // otherwise, invoke the given lambda
