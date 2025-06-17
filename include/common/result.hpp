@@ -211,7 +211,7 @@ template<typename... Ts>
 struct all_same : std::true_type {};
 
 // special type that is ignored by the all_same trait
-struct all_same_ignored_type {};
+struct ignored_type {};
 
 /**
  * @brief Check whether all types in a pack are the same
@@ -221,8 +221,7 @@ struct all_same_ignored_type {};
  */
 template<typename T, typename... Ts>
 struct all_same<T, Ts...> :
-    std::bool_constant<
-        ((std::is_same_v<T, Ts> || std::is_same_v<all_same_ignored_type, Ts>) && ...)> {};
+    std::bool_constant<((std::is_same_v<T, Ts> || std::is_same_v<ignored_type, Ts>) && ...)> {};
 
 /**
  * @brief Check whether all types in a pack are the same
@@ -239,7 +238,7 @@ struct first_type_that_satisfies {};
 // Specialization: at least one type in the pack
 template<typename Condition, typename T, typename... Ts>
 struct first_type_that_satisfies<Condition, T, Ts...> :
-    std::conditional_t<
+    std::conditional<
         Condition::template value<T>,               // Check condition for T
         std::type_identity<T>,                      // If true, use T
         first_type_that_satisfies<Condition, Ts...> // Otherwise, check rest
@@ -248,6 +247,18 @@ struct first_type_that_satisfies<Condition, T, Ts...> :
 // Helper alias to access the result type
 template<typename Condition, typename... Ts>
 using first_type_that_satisfies_t = typename first_type_that_satisfies<Condition, Ts...>::type;
+
+template<typename F, typename... Args>
+struct invoke_result {
+    using type = ignored_type;
+};
+
+template<typename F, typename... Args>
+    requires std::invocable<F, Args...>
+struct invoke_result<F, Args...> : std::invoke_result<F, Args...> {};
+
+template<typename F, typename... Args>
+using invoke_result_t = invoke_result<F, Args...>::type;
 
 } // namespace traits
 
@@ -268,7 +279,7 @@ class Result {
     // or_else return type helper
     template<typename Self, typename F, typename E>
     using or_else_return_t =
-        std::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
+        traits::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
 
     // or_else invocable callable helper
     template<typename Self, typename F, typename E>
@@ -414,7 +425,7 @@ class Result {
                     // if the callable is invocable
                     or_else_return_t<Self, F, Errs>,
                     // if the callable is not invocable
-                    traits::all_same_ignored_type>...>
+                    traits::ignored_type>...>
                 // the callable must return a Result or void if it is invocable with a given error
                 // type
                 && (std::conditional_t<
@@ -433,7 +444,7 @@ class Result {
                         std::conditional_t<
                             traits::is_result_v<or_else_return_t<Self, F, Errs>>,
                             // if the return is a Result
-                            std::is_same<T, typename or_else_return_t<Self, F, Errs>::value_type>,
+                            std::is_same<T, or_else_return_t<Self, F, Errs>>,
                             // otherwise, if the return is not a Result
                             std::true_type>,
                         // otherwise, if the callable is not invocable
@@ -448,23 +459,37 @@ class Result {
             traits::is_result_v<CallableReturnType>,
             CallableReturnType,
             std::remove_cvref_t<Self>>;
+
         // if there isn't an error, return the value
         if (!self.has_error()) {
-            return std::forward<Self>(self).value;
+            return ReturnType(std::forward<Self>(self).value);
         }
-        // if the callable returns void, then return this Result instance after invoking the
-        // callable
+
+        if constexpr (std::same_as<void, CallableReturnType>) {
+            return std::visit([&f](auto&& arg) -> ReturnType {
+                // even though this condition is impossible, it's necessary. Otherwise the
+                // compiler will compile a branch where f is invoked with an unsupported argument
+                // type
+                if constexpr (!or_else_invocable_v<Self, F, decltype((arg))>
+                              || std::
+                                  is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                    throw std::logic_error("This exception is unreachable");
+                } else {
+                    std::invoke(f, std::forward<decltype(arg)>(arg));
+                    return std::forward<decltype(arg)>(arg);
+                }
+            }, std::forward<Self>(self).error);
+        }
         return std::visit([&f](auto&& arg) -> ReturnType {
             // even though this condition is impossible, it's necessary. Otherwise the
             // compiler will compile a branch where f is invoked with an unsupported argument
             // type
-            if constexpr (!or_else_invocable_v<Self, F, decltype((arg))>) {
+            if constexpr (!or_else_invocable_v<Self, F, decltype((arg))>
+                          || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
-            } else if constexpr (std::same_as<ReturnType, void>) {
+            } else {
                 std::invoke(f, std::forward<decltype(arg)>(arg));
                 return std::forward<decltype(arg)>(arg);
-            } else {
-                return std::invoke(f, std::forward<decltype(arg)>(arg));
             }
         }, std::forward<Self>(self).error);
     }
