@@ -362,6 +362,10 @@ class Result {
      * may be passed to it. The normal value type of the Result returned by the callable must be the
      * same as the normal value type of this Result instance.
      *
+     * TODO:
+     * allow callables that return void
+     * allow callables that can only take some error types
+     *
      * @tparam Self deduced self type
      * @tparam F the type of the callable
      * @param self the current Result instance
