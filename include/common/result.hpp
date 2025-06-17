@@ -210,6 +210,9 @@ concept IsResult = is_result_v<T>;
 template<typename... Ts>
 struct all_same : std::true_type {};
 
+// special type that is ignored by the all_same trait
+struct all_same_ignored_type {};
+
 /**
  * @brief Check whether all types in a pack are the same
  *
@@ -217,7 +220,9 @@ struct all_same : std::true_type {};
  * @tparam Ts the rest of the types
  */
 template<typename T, typename... Ts>
-struct all_same<T, Ts...> : std::bool_constant<(std::is_same_v<T, Ts> && ...)> {};
+struct all_same<T, Ts...> :
+    std::bool_constant<
+        ((std::is_same_v<T, Ts> || std::is_same_v<all_same_ignored_type, Ts>) && ...)> {};
 
 /**
  * @brief Check whether all types in a pack are the same
@@ -226,6 +231,23 @@ struct all_same<T, Ts...> : std::bool_constant<(std::is_same_v<T, Ts> && ...)> {
  */
 template<typename... Ts>
 inline constexpr bool all_same_v = all_same<Ts...>::value;
+
+// Primary template: no types, no result (causes substitution failure if used)
+template<typename Condition, typename... Ts>
+struct first_type_that_satisfies {};
+
+// Specialization: at least one type in the pack
+template<typename Condition, typename T, typename... Ts>
+struct first_type_that_satisfies<Condition, T, Ts...> :
+    std::conditional_t<
+        Condition::template value<T>,               // Check condition for T
+        std::type_identity<T>,                      // If true, use T
+        first_type_that_satisfies<Condition, Ts...> // Otherwise, check rest
+        > {};
+
+// Helper alias to access the result type
+template<typename Condition, typename... Ts>
+using first_type_that_satisfies_t = typename first_type_that_satisfies<Condition, Ts...>::type;
 
 } // namespace traits
 
@@ -247,6 +269,17 @@ class Result {
     template<typename Self, typename F, typename E>
     using or_else_return_t =
         std::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
+
+    // or_else invocable callable helper
+    template<typename Self, typename F, typename E>
+    constexpr static bool or_else_invocable_v =
+        std::is_invocable<F, decltype((std::get<E>(std::declval<Self>().error)))>::value;
+
+    template<typename F, typename Self>
+    struct or_else_invocable_indirect_v {
+        template<typename U>
+        static constexpr bool value = or_else_invocable_v<Self, F, U>;
+    };
 
   public:
     // instead of wrapping the variant in std::optional, we can use std::monostate
@@ -357,14 +390,15 @@ class Result {
     /**
      * @brief or_else monadic function.
      *
-     * The callable must be able to take a perfectly forwarded error that may be contained by this
-     * Result instance. The callable must be able to return a Result containing any error type that
-     * may be passed to it. The normal value type of the Result returned by the callable must be the
-     * same as the normal value type of this Result instance.
-     *
-     * TODO:
-     * allow callables that return void
-     * allow callables that can only take some error types
+     * TODO: implement new constraints
+     * constraints:
+     * - Callable must be invocable with at least one error type as an argument
+     * - If the callable is invocable, it must always return the same type given different parameter
+     * types
+     * - The callable is only allowed to return a Result, or void
+     * - If a Result is returned, it must have the same value type as this Result instance
+     * - The return type of the callable must be the same for all possible arguments it may be
+     * called with.
      *
      * @tparam Self deduced self type
      * @tparam F the type of the callable
@@ -372,24 +406,66 @@ class Result {
      * @param f the callable
      */
     template<typename Self, typename F>
-        requires(std::invocable<F, decltype((std::get<Errs>(std::declval<Self>().error)))> && ...)
-                && (traits::is_result_v<or_else_return_t<Self, F, Errs>> && ...)
-                && (traits::all_same_v<or_else_return_t<Self, F, Errs>...>)
-                && (std::same_as<T, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
+        requires( // callable must be invocable with at least 1 error type
+                    or_else_invocable_v<Self, F, Errs> || ...
+                )
+                // the callable must always return the same type if it is invocable
+                && traits::all_same_v<std::conditional_t<
+                    or_else_invocable_v<Self, F, Errs>,
+                    // if the callable is invocable
+                    or_else_return_t<Self, F, Errs>,
+                    // if the callable is not invocable
+                    traits::all_same_ignored_type>...>
+                // the callable must return a Result or void if it is invocable with a given error
+                // type
+                && (std::conditional_t<
+                        or_else_invocable_v<Self, F, Errs>,
+                        // if the callable is invocable
+                        std::disjunction<
+                            traits::is_result<or_else_return_t<Self, F, Errs>>,
+                            std::is_same<or_else_return_t<Self, F, Errs>, void>>,
+                        // otherwise, if the callable is not invocable
+                        std::true_type>::value
+                    && ...)
+                // if F is invocable and returns a result, it must have the same value type as Self
+                && (std::conditional_t<
+                        or_else_invocable_v<Self, F, Errs>,
+                        // if the callable is invocable
+                        std::conditional_t<
+                            traits::is_result_v<or_else_return_t<Self, F, Errs>>,
+                            // if the return is a Result
+                            std::is_same<T, typename or_else_return_t<Self, F, Errs>::value_type>,
+                            // otherwise, if the return is not a Result
+                            std::true_type>,
+                        // otherwise, if the callable is not invocable
+                        std::true_type>::value
+                    && ...)
     constexpr auto or_else(this Self&& self, F&& f) {
-        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<0, std::tuple<Errs...>>>;
-        // if there isn't an error, return
+        // the return type is the same as the return type of the callable, unless the callable
+        // returns void. In that case, the return type is Self with cv-refs removed
+        using CallableReturnType =
+            traits::first_type_that_satisfies_t<or_else_invocable_indirect_v<F, Self>, Errs...>;
+        using ReturnType = std::conditional_t<
+            traits::is_result_v<CallableReturnType>,
+            CallableReturnType,
+            std::remove_cvref_t<Self>>;
+        // if there isn't an error, return the value
         if (!self.has_error()) {
-            return ReturnType(std::forward<Self>(self).value);
+            return std::forward<Self>(self).value;
         }
-        // otherwise, invoke the given lambda
+        // if the callable returns void, then return this Result instance after invoking the
+        // callable
         return std::visit([&f](auto&& arg) -> ReturnType {
-            // even though this conditional is impossible, it's necessary to stop the compiler from
-            // thinking that ReturnType could be constructed with std::monostate
-            if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+            // even though this condition is impossible, it's necessary. Otherwise the
+            // compiler will compile a branch where f is invoked with an unsupported argument
+            // type
+            if constexpr (!or_else_invocable_v<Self, F, decltype((arg))>) {
                 throw std::logic_error("This exception is unreachable");
+            } else if constexpr (std::same_as<ReturnType, void>) {
+                std::invoke(f, std::forward<decltype(arg)>(arg));
+                return std::forward<decltype(arg)>(arg);
             } else {
-                return std::invoke(f, arg);
+                return std::invoke(f, std::forward<decltype(arg)>(arg));
             }
         }, std::forward<Self>(self).error);
     }
