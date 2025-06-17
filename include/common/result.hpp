@@ -390,7 +390,6 @@ class Result {
     /**
      * @brief or_else monadic function.
      *
-     * TODO: implement new constraints
      * constraints:
      * - Callable must be invocable with at least one error type as an argument
      * - If the callable is invocable, it must always return the same type given different parameter
