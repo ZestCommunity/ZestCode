@@ -497,7 +497,7 @@ class Result {
             return std::visit([](auto&& arg) -> traits::and_then_return_t<Self, F> {
                 // even though this conditional is impossible, it's necessary to stop the compiler
                 // from thinking that ReturnType could be constructed with std::monostate
-                if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                if constexpr (std::same_as<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                     throw std::logic_error("This exception is unreachable");
                 } else {
                     return std::forward<decltype(arg)>(arg);
@@ -510,6 +510,9 @@ class Result {
 
     /**
      * @brief or_else monadic function.
+     *
+     * @note wrappers are used for the requires clause in order to avoid the use of fold
+     * expressions, as fold expressions significantly complicates error messages
      *
      * constraints:
      * - Callable must be invocable with at least one error type as an argument
@@ -535,12 +538,14 @@ class Result {
                  // Result instance
                  && traits::AllValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>...>
     constexpr auto or_else(this Self&& self, F&& f) {
+        using namespace traits;
+
         // the return type is the same as the return type of the callable, unless the callable
         // returns void. In that case, the return type is Self with cv-refs removed
         using CallableReturnType =
-            traits::first_type_that_satisfies_t<traits::invocable_indirect_v<F, Self>, Errs...>;
+            first_type_that_satisfies_t<invocable_indirect_v<F, Self>, Errs...>;
         using ReturnType = std::conditional_t<
-            traits::IsResult<CallableReturnType>,
+            IsResult<CallableReturnType>,
             CallableReturnType,
             std::remove_cvref_t<Self>>;
 
@@ -555,7 +560,7 @@ class Result {
                 // even though this condition is impossible, it's necessary. Otherwise the
                 // compiler will compile a branch where f is invoked with an unsupported argument
                 // type
-                if constexpr (!traits::Invocable<Self, F, decltype((arg))>
+                if constexpr (!Invocable<Self, F, decltype((arg))>
                               || std::
                                   is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                     throw std::logic_error("This exception is unreachable");
@@ -571,7 +576,7 @@ class Result {
             // even though this condition is impossible, it's necessary. Otherwise the
             // compiler will compile a branch where f is invoked with an unsupported argument
             // type
-            if constexpr (!traits::Invocable<Self, F, decltype((arg))>
+            if constexpr (!Invocable<Self, F, decltype((arg))>
                           || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
             } else {
@@ -624,12 +629,6 @@ operator==(const Result<LhsT, LhsErrs...>& lhs, const Result<RhsT, RhsErrs...>& 
 template<traits::IsResultError... Errs>
     requires(sizeof...(Errs) > 0)
 class Result<void, Errs...> {
-  private:
-    // or_else return type helper
-    template<typename Self, typename F, typename E>
-    using or_else_return_t =
-        std::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
-
   public:
     using value_type = void;
     using error_types = traits::type_pack<Errs...>;
@@ -717,10 +716,17 @@ class Result<void, Errs...> {
     /**
      * @brief or_else monadic function.
      *
-     * The callable must be able to take a perfectly forwarded error that may be contained by this
-     * Result instance. The callable must be able to return a Result containing any error type that
-     * may be passed to it. The normal value type of the Result returned by the callable must be the
-     * same as the normal value type of this Result instance.
+     * @note wrappers are used for the requires clause in order to avoid the use of fold
+     * expressions, as fold expressions significantly complicates error messages
+     *
+     * constraints:
+     * - Callable must be invocable with at least one error type as an argument
+     * - If the callable is invocable, it must always return the same type given different parameter
+     * types
+     * - The callable is only allowed to return a Result, or void
+     * - If a Result is returned, it must have the same value type as this Result instance
+     * - The return type of the callable must be the same for all possible arguments it may be
+     * called with.
      *
      * @tparam Self deduced self type
      * @tparam F the type of the callable
@@ -728,22 +734,59 @@ class Result<void, Errs...> {
      * @param f the callable
      */
     template<typename Self, typename F>
-        requires(std::invocable<F, decltype((std::get<Errs>(std::declval<Self>().error)))> && ...)
-                && (traits::IsResult<or_else_return_t<Self, F, Errs>> && ...)
-                && (traits::AllSame<or_else_return_t<Self, F, Errs>...>)
-                && (std::same_as<void, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
+        requires traits::AnyInvocable<Self, F, Errs...>
+                 // the callable must always return the same type (if it's invocable)
+                 && traits::AllSame<traits::or_else_return_t<Self, F, Errs>...>
+                 // the callable must return a Result or void (if it's invocable)
+                 && traits::AllResultOrVoid<Self, F, Errs...>
+                 // if the callable returns a Result, it must have the same value type as this
+                 // Result instance
+                 && traits::AllValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>...>
     constexpr auto or_else(this Self&& self, F&& f) {
-        using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<0, std::tuple<Errs...>>>;
-        // if there isn't an error, return
-        return ReturnType();
-        // otherwise, invoke the given lambda
+        using namespace traits;
+
+        // the return type is the same as the return type of the callable, unless the callable
+        // returns void. In that case, the return type is Self with cv-refs removed
+        using CallableReturnType =
+            first_type_that_satisfies_t<invocable_indirect_v<F, Self>, Errs...>;
+        using ReturnType = std::conditional_t<
+            IsResult<CallableReturnType>,
+            CallableReturnType,
+            std::remove_cvref_t<Self>>;
+
+        // if there isn't an error, return the value
+        if (!self.has_error()) {
+            return ReturnType(std::forward<Self>(self).value);
+        }
+
+        // if the callable returns void
+        if constexpr (std::same_as<void, CallableReturnType>) {
+            return std::visit([&f](auto&& arg) -> ReturnType {
+                // even though this condition is impossible, it's necessary. Otherwise the
+                // compiler will compile a branch where f is invoked with an unsupported argument
+                // type
+                if constexpr (!Invocable<Self, F, decltype((arg))>
+                              || std::
+                                  is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                    throw std::logic_error("This exception is unreachable");
+                } else {
+                    std::invoke(f, std::forward<decltype(arg)>(arg));
+                    return std::forward<decltype(arg)>(arg);
+                }
+            }, std::forward<Self>(self).error);
+        }
+
+        // if the callable returns Result
         return std::visit([&f](auto&& arg) -> ReturnType {
-            // even though this conditional is impossible, it's necessary to stop the compiler from
-            // thinking that ReturnType could be constructed with std::monostate
-            if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+            // even though this condition is impossible, it's necessary. Otherwise the
+            // compiler will compile a branch where f is invoked with an unsupported argument
+            // type
+            if constexpr (!Invocable<Self, F, decltype((arg))>
+                          || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
             } else {
-                return std::invoke(f, arg);
+                std::invoke(f, std::forward<decltype(arg)>(arg));
+                return std::forward<decltype(arg)>(arg);
             }
         }, std::forward<Self>(self).error);
     }
