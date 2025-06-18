@@ -63,7 +63,7 @@ namespace traits {
  * @tparam Ts the typename pack to check
  */
 template<typename T, typename... Ts>
-inline constexpr bool is_in_pack_v = (std::is_same_v<std::remove_cvref_t<T>, Ts> || ...);
+concept InPack = (std::is_same_v<std::remove_cvref_t<T>, Ts> || ...);
 
 // A simple type pack wrapper
 template<typename... Ts>
@@ -86,7 +86,7 @@ struct contains_all;
  */
 template<typename... As, typename... Bs>
 struct contains_all<type_pack<As...>, type_pack<Bs...>> {
-    static constexpr bool value = (is_in_pack_v<Bs, As...> && ...);
+    static constexpr bool value = (InPack<Bs, As...> && ...);
 };
 
 /**
@@ -108,29 +108,10 @@ template<typename PackA, typename PackB>
 concept ContainsAll = contains_all_v<PackA, PackB>;
 
 /**
- * @brief type trait for checking whether a type is derived from the ResultError class
- */
-template<typename>
-struct is_result_error : std::false_type {};
-
-/**
- * @brief type trait for checking whether a type is derived from the ResultError class
- */
-template<typename T>
-    requires std::is_base_of_v<ResultError, T>
-struct is_result_error<T> : std::true_type {};
-
-/**
- * @brief whether the given type is derived from the ResultError class
- */
-template<typename T>
-inline constexpr bool is_result_error_v = is_result_error<T>::value;
-
-/**
  * @brief IsResultError concept. Enforces that the given type is derived from the ResultError class
  */
 template<typename T>
-concept IsResultError = is_result_error_v<T>;
+concept IsResultError = std::is_base_of_v<ResultError, T>;
 
 /**
  * @brief Trait to define a "sentinel" value for types indicating an error state.
@@ -275,17 +256,17 @@ using or_else_return_t =
 
 // or_else invocable callable helper
 template<typename Self, typename F, typename E>
-constexpr static bool invocable_v =
+concept Invocable =
     std::is_invocable<F, decltype((std::get<E>(std::declval<Self>().error)))>::value;
 
 template<typename F, typename Self>
 struct invocable_indirect_v {
     template<typename U>
-    static constexpr bool value = invocable_v<Self, F, U>;
+    static constexpr bool value = Invocable<Self, F, U>;
 };
 
 template<typename F, typename Self, typename... Es>
-concept any_invocable = (traits::invocable_v<Self, F, Es> || ...);
+concept any_invocable = (traits::Invocable<Self, F, Es> || ...);
 
 template<typename T>
 concept ResultOrVoid =
@@ -333,7 +314,7 @@ class Result {
      * @note Requires T to have a defined sentinel value (via SentinelValue<T>).
      */
     template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
+        requires traits::InPack<E, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)),
           value(traits::sentinel_v<T>) {}
@@ -347,7 +328,7 @@ class Result {
      * @return the error type, wrapped in std::optional
      */
     template<traits::IsResultError E, typename Self>
-        requires traits::is_in_pack_v<E, Errs...>
+        requires traits::InPack<E, Errs...>
     constexpr auto get_error(this Self&& self) {
         if (std::holds_alternative<E>(self.error)) {
             return std::optional<E>(std::get<E>(std::forward<Self>(self).error));
@@ -460,7 +441,7 @@ class Result {
                 // even though this condition is impossible, it's necessary. Otherwise the
                 // compiler will compile a branch where f is invoked with an unsupported argument
                 // type
-                if constexpr (!traits::invocable_v<Self, F, decltype((arg))>
+                if constexpr (!traits::Invocable<Self, F, decltype((arg))>
                               || std::
                                   is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                     throw std::logic_error("This exception is unreachable");
@@ -474,7 +455,7 @@ class Result {
             // even though this condition is impossible, it's necessary. Otherwise the
             // compiler will compile a branch where f is invoked with an unsupported argument
             // type
-            if constexpr (!traits::invocable_v<Self, F, decltype((arg))>
+            if constexpr (!traits::Invocable<Self, F, decltype((arg))>
                           || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
             } else {
@@ -546,7 +527,7 @@ class Result<void, Errs...> {
      * @param error Error to store.
      */
     template<traits::IsResultError E>
-        requires traits::is_in_pack_v<E, Errs...>
+        requires traits::InPack<E, Errs...>
     constexpr Result(E&& error)
         : error(std::forward<E>(error)) {}
 
@@ -565,7 +546,7 @@ class Result<void, Errs...> {
      * @return the error type, wrapped in std::optional
      */
     template<traits::IsResultError E, typename Self>
-        requires traits::is_in_pack_v<E, Errs...>
+        requires traits::InPack<E, Errs...>
     constexpr auto get_error(this Self&& self) {
         if (std::holds_alternative<E>(self.error)) {
             return std::optional<E>(std::get<E>(std::forward<Self>(self).error));
