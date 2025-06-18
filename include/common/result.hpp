@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cerrno>
 #include <chrono>
 #include <concepts>
 #include <functional>
