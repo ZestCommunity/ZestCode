@@ -12,6 +12,15 @@
 
 namespace zest {
 
+template<class... Ts>
+struct overload : Ts... {
+    using Ts::operator()...;
+
+    consteval void operator()(auto) const {
+        static_assert(false, "Unsupported type");
+    }
+};
+
 /**
  * @brief Base class for custom error types used in the Result class.
  *
