@@ -74,6 +74,10 @@ class ResultError {
     }
 };
 
+/**
+ * @brief Everything in the traits namespace is for internal use by the Result class only.
+ *
+ */
 namespace traits {
 
 /**
@@ -331,6 +335,18 @@ template<typename R, typename F, typename E>
 concept Invocable = std::invocable<F, decltype((std::get<E>(std::declval<R>().error)))>;
 
 /**
+ * @brief check whether a callable is invocable with any of the given argument types
+ *
+ * @note Result::or_else helper
+ *
+ * @tparam R the Result
+ * @tparam F the callable
+ * @tparam Es the possible argument types passed to the callable
+ */
+template<typename R, typename F, typename... Es>
+concept AnyInvocable = (Invocable<R, F, Es> || ...);
+
+/**
  * @brief check whether a callable is invocable given the Result and argument type
  *
  * @note the value is wrapped in a struct in order to separate the template arguments. This is done
@@ -351,17 +367,19 @@ struct invocable_indirect_v {
 };
 
 /**
- * @brief check whether a type is a Result or void.
+ * @brief check whether the callable return types are all Result, ignored_type, or void
  *
  * @note helper for Result::or_else
  * @note concept is satisfied with ignored_type as well
  *
- * @tparam T the type to check
+ * @tparam Ts the type to check
  */
-template<typename T>
-concept ResultOrVoid =
-    traits::IsResult<std::remove_cvref_t<T>> || std::same_as<void, std::remove_cvref_t<T>>
-    || std::same_as<ignored_type, std::remove_cvref_t<T>>;
+template<typename R, typename F, typename... Ts>
+concept AllResultOrVoid =
+    ((IsResult<or_else_return_t<R, F, Ts>>
+      || std::same_as<void, std::remove_cvref_t<or_else_return_t<R, F, Ts>>>
+      || std::same_as<ignored_type, std::remove_cvref_t<or_else_return_t<R, F, Ts>>>)
+     && ...);
 
 /**
  * @brief check whether the value type of a Result is the other given type
@@ -370,11 +388,13 @@ concept ResultOrVoid =
  * @note concept if satisfied if T is void or ignored_type
  *
  * @tparam R the Result
- * @tparam T the other type
+ * @tparam T the value type
  */
-template<typename R, typename S>
-concept ValueTypeMatch = std::same_as<void, S> || std::same_as<ignored_type, S>
-                         || std::same_as<typename S::value_type, typename S::value_type>;
+template<typename R, typename... Ts>
+concept AllValueTypeMatch =
+    ((std::same_as<void, Ts> || std::same_as<ignored_type, Ts>
+      || std::same_as<typename R::value_type, Ts>)
+     && ...);
 
 } // namespace traits
 
@@ -506,14 +526,14 @@ class Result {
      * @param f the callable
      */
     template<typename Self, typename F>
-        requires(traits::Invocable<Self, F, Errs> || ...)
-                // the callable must always return the same type (if it's invocable)
-                && traits::AllSame<traits::or_else_return_t<Self, F, Errs>...>
-                // the callable must return a Result or void (if it's invocable)
-                && (traits::ResultOrVoid<traits::or_else_return_t<Self, F, Errs>> && ...)
-                // if the callable returns a Result, it must have the same value type as this
-                // Result instance
-                && (traits::ValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>> && ...)
+        requires traits::AnyInvocable<Self, F, Errs...>
+                 // the callable must always return the same type (if it's invocable)
+                 && traits::AllSame<traits::or_else_return_t<Self, F, Errs>...>
+                 // the callable must return a Result or void (if it's invocable)
+                 && traits::AllResultOrVoid<Self, F, Errs...>
+                 // if the callable returns a Result, it must have the same value type as this
+                 // Result instance
+                 && traits::AllValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>...>
     constexpr auto or_else(this Self&& self, F&& f) {
         // the return type is the same as the return type of the callable, unless the callable
         // returns void. In that case, the return type is Self with cv-refs removed
