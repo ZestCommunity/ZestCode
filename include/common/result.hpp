@@ -202,6 +202,9 @@ inline constexpr bool is_result_v = is_result<T>::value;
 template<typename T>
 concept IsResult = is_result_v<T>;
 
+// special type that is ignored by concepts like all_same
+struct ignored_type {};
+
 /**
  * @brief Check whether all types in a pack are the same
  *
@@ -209,9 +212,6 @@ concept IsResult = is_result_v<T>;
  */
 template<typename... Ts>
 struct all_same : std::true_type {};
-
-// special type that is ignored by the all_same trait
-struct ignored_type {};
 
 /**
  * @brief Check whether all types in a pack are the same
@@ -223,13 +223,8 @@ template<typename T, typename... Ts>
 struct all_same<T, Ts...> :
     std::bool_constant<((std::is_same_v<T, Ts> || std::is_same_v<ignored_type, Ts>) && ...)> {};
 
-/**
- * @brief Check whether all types in a pack are the same
- *
- * @tparam Ts types to check
- */
 template<typename... Ts>
-inline constexpr bool all_same_v = all_same<Ts...>::value;
+concept AllSame = all_same<Ts...>::value;
 
 // Primary template: no types, no result (causes substitution failure if used)
 template<typename Condition, typename... Ts>
@@ -260,6 +255,38 @@ struct invoke_result<F, Args...> : std::invoke_result<F, Args...> {};
 template<typename F, typename... Args>
 using invoke_result_t = invoke_result<F, Args...>::type;
 
+// and_then return type helper
+template<typename Self, typename F>
+using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().value))>;
+
+// or_else return type helper
+template<typename Self, typename F, typename E>
+using or_else_return_t =
+    traits::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
+
+// or_else invocable callable helper
+template<typename Self, typename F, typename E>
+constexpr static bool invocable_v =
+    std::is_invocable<F, decltype((std::get<E>(std::declval<Self>().error)))>::value;
+
+template<typename F, typename Self>
+struct invocable_indirect_v {
+    template<typename U>
+    static constexpr bool value = invocable_v<Self, F, U>;
+};
+
+template<typename F, typename Self, typename... Es>
+concept any_invocable = (traits::invocable_v<Self, F, Es> || ...);
+
+template<typename T>
+concept ResultOrVoid =
+    traits::IsResult<std::remove_cvref_t<T>> || std::same_as<void, std::remove_cvref_t<T>>
+    || std::same_as<ignored_type, T>;
+
+template<typename R, typename T>
+concept ValueTypeMatch = std::same_as<void, T> || std::same_as<ignored_type, T>
+                         || std::same_as<typename R::value_type, typename T::value_type>;
+
 } // namespace traits
 
 /**
@@ -271,27 +298,6 @@ using invoke_result_t = invoke_result<F, Args...>::type;
 template<typename T, traits::IsResultError... Errs>
     requires(traits::HasSentinel<T> || std::same_as<void, T>) && (sizeof...(Errs) > 0)
 class Result {
-  private:
-    // and_then return type helper
-    template<typename Self, typename F>
-    using and_then_return_t = std::invoke_result_t<F, decltype((std::declval<Self>().value))>;
-
-    // or_else return type helper
-    template<typename Self, typename F, typename E>
-    using or_else_return_t =
-        traits::invoke_result_t<F, decltype((std::get<E>(std::declval<Self>().error)))>;
-
-    // or_else invocable callable helper
-    template<typename Self, typename F, typename E>
-    constexpr static bool or_else_invocable_v =
-        std::is_invocable<F, decltype((std::get<E>(std::declval<Self>().error)))>::value;
-
-    template<typename F, typename Self>
-    struct or_else_invocable_indirect_v {
-        template<typename U>
-        static constexpr bool value = or_else_invocable_v<Self, F, U>;
-    };
-
   public:
     // instead of wrapping the variant in std::optional, we can use std::monostate
     std::variant<std::monostate, Errs...> error;
@@ -378,13 +384,14 @@ class Result {
      */
     template<typename Self, typename F>
         requires std::invocable<F, decltype((std::declval<Self>().value))>
-                 && traits::is_result_v<and_then_return_t<Self, F>>
-                 && traits::
-                     contains_all_v<typename and_then_return_t<Self, F>::error_types, error_types>
+                 && traits::is_result_v<traits::and_then_return_t<Self, F>>
+                 && traits::contains_all_v<
+                     typename traits::and_then_return_t<Self, F>::error_types,
+                     error_types>
     constexpr auto and_then(this Self&& self, F&& f) {
         // if there is an error, return said error immediately
         if (self.has_error()) {
-            return std::visit([](auto&& arg) -> and_then_return_t<Self, F> {
+            return std::visit([](auto&& arg) -> traits::and_then_return_t<Self, F> {
                 // even though this conditional is impossible, it's necessary to stop the compiler
                 // from thinking that ReturnType could be constructed with std::monostate
                 if constexpr (std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
@@ -416,47 +423,21 @@ class Result {
      * @param f the callable
      */
     template<typename Self, typename F>
-        requires( // callable must be invocable with at least 1 error type
-                    or_else_invocable_v<Self, F, Errs> || ...
-                )
-                // the callable must always return the same type if it is invocable
-                && traits::all_same_v<std::conditional_t<
-                    or_else_invocable_v<Self, F, Errs>,
-                    // if the callable is invocable
-                    or_else_return_t<Self, F, Errs>,
-                    // if the callable is not invocable
-                    traits::ignored_type>...>
-                // the callable must return a Result or void if it is invocable with a given error
-                // type
-                && (std::conditional_t<
-                        or_else_invocable_v<Self, F, Errs>,
-                        // if the callable is invocable
-                        std::disjunction<
-                            traits::is_result<or_else_return_t<Self, F, Errs>>,
-                            std::is_same<or_else_return_t<Self, F, Errs>, void>>,
-                        // otherwise, if the callable is not invocable
-                        std::true_type>::value
-                    && ...)
-                // if F is invocable and returns a result, it must have the same value type as Self
-                && (std::conditional_t<
-                        or_else_invocable_v<Self, F, Errs>,
-                        // if the callable is invocable
-                        std::conditional_t<
-                            traits::is_result_v<or_else_return_t<Self, F, Errs>>,
-                            // if the return is a Result
-                            std::is_same<T, or_else_return_t<Self, F, Errs>>,
-                            // otherwise, if the return is not a Result
-                            std::true_type>,
-                        // otherwise, if the callable is not invocable
-                        std::true_type>::value
-                    && ...)
+        requires traits::any_invocable<F, Self, Errs...>
+                 // the callable must always return the same type (if it's invocable)
+                 && traits::AllSame<traits::or_else_return_t<Self, F, Errs>...>
+                 // the callable must return a Result or void (if it's invocable)
+                 && (traits::ResultOrVoid<traits::or_else_return_t<Self, F, Errs>> && ...)
+                 // if the callable returns a Result, it must have the same value type as this
+                 // Result instance
+                 && (traits::ValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>> && ...)
     constexpr auto or_else(this Self&& self, F&& f) {
         // the return type is the same as the return type of the callable, unless the callable
         // returns void. In that case, the return type is Self with cv-refs removed
         using CallableReturnType =
-            traits::first_type_that_satisfies_t<or_else_invocable_indirect_v<F, Self>, Errs...>;
+            traits::first_type_that_satisfies_t<traits::invocable_indirect_v<F, Self>, Errs...>;
         using ReturnType = std::conditional_t<
-            traits::is_result_v<CallableReturnType>,
+            traits::IsResult<CallableReturnType>,
             CallableReturnType,
             std::remove_cvref_t<Self>>;
 
@@ -470,7 +451,7 @@ class Result {
                 // even though this condition is impossible, it's necessary. Otherwise the
                 // compiler will compile a branch where f is invoked with an unsupported argument
                 // type
-                if constexpr (!or_else_invocable_v<Self, F, decltype((arg))>
+                if constexpr (!traits::invocable_v<Self, F, decltype((arg))>
                               || std::
                                   is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                     throw std::logic_error("This exception is unreachable");
@@ -484,7 +465,7 @@ class Result {
             // even though this condition is impossible, it's necessary. Otherwise the
             // compiler will compile a branch where f is invoked with an unsupported argument
             // type
-            if constexpr (!or_else_invocable_v<Self, F, decltype((arg))>
+            if constexpr (!traits::invocable_v<Self, F, decltype((arg))>
                           || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
             } else {
@@ -644,7 +625,7 @@ class Result<void, Errs...> {
     template<typename Self, typename F>
         requires(std::invocable<F, decltype((std::get<Errs>(std::declval<Self>().error)))> && ...)
                 && (traits::is_result_v<or_else_return_t<Self, F, Errs>> && ...)
-                && (traits::all_same_v<or_else_return_t<Self, F, Errs>...>)
+                && (traits::AllSame<or_else_return_t<Self, F, Errs>...>)
                 && (std::same_as<void, typename or_else_return_t<Self, F, Errs>::value_type> && ...)
     constexpr auto or_else(this Self&& self, F&& f) {
         using ReturnType = or_else_return_t<Self, F, std::tuple_element_t<0, std::tuple<Errs...>>>;
@@ -662,5 +643,4 @@ class Result<void, Errs...> {
         }, std::forward<Self>(self).error);
     }
 };
-
 } // namespace zest
