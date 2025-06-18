@@ -561,8 +561,7 @@ class Result {
                 // compiler will compile a branch where f is invoked with an unsupported argument
                 // type
                 if constexpr (!Invocable<Self, F, decltype((arg))>
-                              || std::
-                                  is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                              || std::same_as<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                     throw std::logic_error("This exception is unreachable");
                 } else {
                     std::invoke(f, std::forward<decltype(arg)>(arg));
@@ -577,7 +576,7 @@ class Result {
             // compiler will compile a branch where f is invoked with an unsupported argument
             // type
             if constexpr (!Invocable<Self, F, decltype((arg))>
-                          || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                          || std::same_as<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
             } else {
                 std::invoke(f, std::forward<decltype(arg)>(arg));
@@ -754,9 +753,9 @@ class Result<void, Errs...> {
             CallableReturnType,
             std::remove_cvref_t<Self>>;
 
-        // if there isn't an error, return the value
+        // if there isn't an error, return
         if (!self.has_error()) {
-            return ReturnType(std::forward<Self>(self).value);
+            return ReturnType();
         }
 
         // if the callable returns void
@@ -766,8 +765,7 @@ class Result<void, Errs...> {
                 // compiler will compile a branch where f is invoked with an unsupported argument
                 // type
                 if constexpr (!Invocable<Self, F, decltype((arg))>
-                              || std::
-                                  is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                              || std::same_as<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                     throw std::logic_error("This exception is unreachable");
                 } else {
                     std::invoke(f, std::forward<decltype(arg)>(arg));
@@ -782,7 +780,7 @@ class Result<void, Errs...> {
             // compiler will compile a branch where f is invoked with an unsupported argument
             // type
             if constexpr (!Invocable<Self, F, decltype((arg))>
-                          || std::is_same_v<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
+                          || std::same_as<std::monostate, std::remove_cvref_t<decltype(arg)>>) {
                 throw std::logic_error("This exception is unreachable");
             } else {
                 std::invoke(f, std::forward<decltype(arg)>(arg));
