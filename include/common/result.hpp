@@ -367,7 +367,9 @@ struct invocable_indirect_v {
 };
 
 /**
- * @brief check whether the callable return types are all Result, ignored_type, or void
+ * @brief check whether the callable return types are all Result
+ *
+ * @note if an ignored_type is present, it won't be evaluated
  *
  * @note helper for Result::or_else
  * @note concept is satisfied with ignored_type as well
@@ -375,9 +377,8 @@ struct invocable_indirect_v {
  * @tparam Ts the type to check
  */
 template<typename R, typename F, typename... Ts>
-concept AllResultOrVoid =
+concept AllResult =
     ((IsResult<or_else_return_t<R, F, Ts>>
-      || std::same_as<void, std::remove_cvref_t<or_else_return_t<R, F, Ts>>>
       || std::same_as<ignored_type, std::remove_cvref_t<or_else_return_t<R, F, Ts>>>)
      && ...);
 
@@ -516,12 +517,9 @@ class Result {
      *
      * constraints:
      * - Callable must be invocable with at least one error type as an argument
-     * - If the callable is invocable, it must always return the same type given different parameter
-     * types
-     * - The callable is only allowed to return a Result, or void
-     * - If a Result is returned, it must have the same value type as this Result instance
-     * - The return type of the callable must be the same for all possible arguments it may be
-     * called with.
+     * - If invocable, the callable must always return the same type regardless of argument type
+     * - If invocable, the callable must return a Result
+     * - The Result returned by the callable must have the same value type
      *
      * @tparam Self deduced self type
      * @tparam F the type of the callable
@@ -532,10 +530,9 @@ class Result {
         requires traits::AnyInvocable<Self, F, Errs...>
                  // the callable must always return the same type (if it's invocable)
                  && traits::AllSame<traits::or_else_return_t<Self, F, Errs>...>
-                 // the callable must return a Result or void (if it's invocable)
-                 && traits::AllResultOrVoid<Self, F, Errs...>
-                 // if the callable returns a Result, it must have the same value type as this
-                 // Result instance
+                 // the callable must return a Result (if it's invocable)
+                 && traits::AllResult<Self, F, Errs...>
+                 // the Result returned by the callable must have the same value type
                  && traits::AllValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>...>
     constexpr auto or_else(this Self&& self, F&& f) {
         using namespace traits;
@@ -720,12 +717,9 @@ class Result<void, Errs...> {
      *
      * constraints:
      * - Callable must be invocable with at least one error type as an argument
-     * - If the callable is invocable, it must always return the same type given different parameter
-     * types
-     * - The callable is only allowed to return a Result, or void
-     * - If a Result is returned, it must have the same value type as this Result instance
-     * - The return type of the callable must be the same for all possible arguments it may be
-     * called with.
+     * - If invocable, the callable must always return the same type regardless of argument type
+     * - If invocable, the callable must return a Result
+     * - The Result returned by the callable must have the same value type
      *
      * @tparam Self deduced self type
      * @tparam F the type of the callable
@@ -736,10 +730,9 @@ class Result<void, Errs...> {
         requires traits::AnyInvocable<Self, F, Errs...>
                  // the callable must always return the same type (if it's invocable)
                  && traits::AllSame<traits::or_else_return_t<Self, F, Errs>...>
-                 // the callable must return a Result or void (if it's invocable)
-                 && traits::AllResultOrVoid<Self, F, Errs...>
-                 // if the callable returns a Result, it must have the same value type as this
-                 // Result instance
+                 // the callable must return a Result (if it's invocable)
+                 && traits::AllResult<Self, F, Errs...>
+                 // the Result returned by the callable must have the same value type
                  && traits::AllValueTypeMatch<Self, traits::or_else_return_t<Self, F, Errs>...>
     constexpr auto or_else(this Self&& self, F&& f) {
         using namespace traits;
