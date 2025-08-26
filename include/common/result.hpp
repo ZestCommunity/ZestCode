@@ -106,6 +106,42 @@ class Result {
     constexpr operator T&&() && {
         return std::move(value);
     }
+
+    /**
+     * @brief Get the value object
+     *
+     * @tparam Self
+     *
+     * @param self
+     *
+     * @return "normal" value
+     */
+    template<typename Self>
+    constexpr auto get_value(this Self&& self) {
+        return std::forward<Self>(self).value;
+    }
+
+    /**
+     * @brief Whether an error is contained
+     *
+     * @return true an error is contained
+     * @return false an error is not contained
+     */
+    constexpr bool has_error() {
+        return error.has_value();
+    }
+
+    /**
+     * @brief Whether a specific error is contained
+     *
+     * @param error the error to check
+     *
+     * @return true error is contained
+     * @return false error is not contained
+     */
+    constexpr bool has_error(E error) {
+        return this->error == error;
+    }
 };
 
 } // namespace zest
