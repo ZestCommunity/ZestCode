@@ -142,6 +142,9 @@ class Result {
     constexpr bool contains(E error) {
         return this->error == error;
     }
+
+    // prevent ambiguous operator overload resolution
+    bool operator==(const Result& other) = delete;
 };
 
 } // namespace zest
