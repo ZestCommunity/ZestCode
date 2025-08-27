@@ -1,30 +1,38 @@
 #pragma once
 
-#include "common/result.hpp"
+#include "pros/devices/port.hpp"
 
 namespace zest {
 
+/**
+ * @brief device type enum. Contains all the device types compatible with ZestCode
+ *
+ */
 enum class DeviceType {
-    Battery,
+    AdiExpander,
+    AiVision,
+    Bumper,
+    Controller,
+    Distance,
+    Gps,
+    Imu,
+    Motor,
+    Optical,
+    Radio,
+    Rotation,
+    Serial,
+    Vision,
+    Invalid,
+    None,
+    Unknown,
 };
 
 /**
- * @brief V5 Port Mismatch Error
+ * @brief Get the type of the device connected to the given smart port
  *
+ * @param port
+ * @return DeviceType
  */
-class V5PortMismatchError : public ResultError {
-  public:
-    /**
-     * @brief Construct a new V5 Port Mismatch Error object
-     *
-     * @param expected the device expected to be on the port
-     * @param actual the device that is actually on the port
-     */
-    V5PortMismatchError(DeviceType expected, DeviceType actual)
-        : expected(expected),
-          actual(actual) {}
+DeviceType get_device_type(SmartPort port);
 
-    DeviceType expected;
-    DeviceType actual;
-};
 } // namespace zest
