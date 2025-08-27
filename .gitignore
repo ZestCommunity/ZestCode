@@ -1,10 +1,14 @@
 # IDEs
 .vscode/
 .idea/
-# OS
+
+# MacOS
 .DS_Store
+
 # Meson
 subprojects/*/
+.wraplock
+
 # clangd
 /.clangd
 .cache/

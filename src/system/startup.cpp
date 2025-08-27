@@ -15,13 +15,13 @@
 
 #include "pros/competition.hpp"
 #include "pros/rtos.hpp"
+#include "src/system/system_daemon.hpp"
 #include "v5_api_patched.h"
 
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <sys/unistd.h>
-
 
 extern "C" {
 // Initialization routines provided elsewhere
@@ -72,6 +72,9 @@ void _start() {
 
     // call global constructors
     __libc_init_array();
+
+    // initialize the system daemon
+    zest::initialize_system_daemon();
 
     // start main task
     // these pragmas are needed to silence the same warning on clang and gcc
