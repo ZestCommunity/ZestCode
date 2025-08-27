@@ -3,6 +3,8 @@
 #include "v5_api_patched.h"
 #include "v5_apitypes_patched.h"
 
+#include <array>
+
 namespace zest {
 DeviceType get_device_type(SmartPort port) {
     // if the port number is greater than 21, return invalid
@@ -48,8 +50,4 @@ DeviceType get_device_type(SmartPort port) {
             return DeviceType::Unknown;
     }
 }
-
-SmartPortError::SmartPortError(DeviceType expected, std::optional<DeviceType> actual)
-    : expected(expected),
-      actual(actual) {}
 } // namespace zest
