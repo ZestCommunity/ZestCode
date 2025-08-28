@@ -51,9 +51,10 @@ class Result {
      * Constraints:
      * - T must be default initializable
      */
-    constexpr Result(E error)
+    template<typename F>
+    constexpr Result(F&& error)
         requires std::default_initializable<T>
-        : error(error) {}
+        : error(std::forward<F>(error)) {}
 
     /**
      * @brief Construct with an "error" value and "normal" value
@@ -64,12 +65,13 @@ class Result {
      * @param value argument to initialize the "normal" value with
      *
      * Constraints:
-     * - T must be constructible with perfectly forwarded value argument
+     * - T must be constructible given perfectly forwarded value argument
+     * - U must be constructible given perfectly forwarded error argument
      */
-    template<typename U>
-        requires std::constructible_from<T, U&&>
-    constexpr Result(E error, U&& value)
-        : error(error),
+    template<typename F, typename U>
+        requires std::constructible_from<T, U&&> && std::constructible_from<E, F&&>
+    constexpr Result(F&& error, U&& value)
+        : error(std::forward<F>(error)),
           value(std::forward<U>(value)) {}
 
     /**
@@ -102,7 +104,7 @@ class Result {
     /**
      * @brief Get the value object
      *
-     * @tparam Self
+     * @tparam Self deduced self type
      *
      * @param self
      *
@@ -119,16 +121,18 @@ class Result {
      * @return true an error is contained
      * @return false an error is not contained
      */
-    constexpr bool has_error() {
+    constexpr bool has_error() const {
         return error.has_value();
     }
 
     /**
      * @brief Get the error
      *
-     * @tparam Self
+     * @tparam Self deduced self type
+     *
      * @param self
-     * @return constexpr auto
+     *
+     * @return std::optional<E>
      */
     template<typename Self>
     constexpr auto get_error(this Self&& self) {
@@ -157,8 +161,13 @@ class Result<void, E> {
      * @brief Construct with an "error" value, and the default "normal" value
      *
      * @param error argument to initialize the "error" value with
+     *
+     * Constraints:
+     * E must be constructible given perfectly forwarded error argument
      */
-    constexpr Result(E error)
+    template<typename F>
+        requires std::constructible_from<E, F&&>
+    constexpr Result(F&& error)
         : error(error) {}
 
     /**
@@ -167,16 +176,18 @@ class Result<void, E> {
      * @return true an error is contained
      * @return false an error is not contained
      */
-    constexpr bool has_error() {
+    constexpr bool has_error() const {
         return error.has_value();
     }
 
     /**
-     * @brief Get the error
+     * @brief Get the error, wrapped in std::optional
      *
-     * @tparam Self
+     * @tparam Self deduced self type
+     *
      * @param self
-     * @return constexpr auto
+     *
+     * @return std::optional<E>
      */
     template<typename Self>
     constexpr auto get_error(this Self&& self) {
