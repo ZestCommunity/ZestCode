@@ -2,25 +2,17 @@
 
 #include <concepts>
 #include <optional>
-#include <type_traits>
 #include <utility>
 
 namespace zest {
 
 /**
- * @brief Helper class for error handling.
+ * @brief Error handling utility
  *
  * @tparam T "normal" type
  * @tparam E "error" type
- *
- * Constraints:
- * - E must be a scoped enum
- * - E must not be implicitly convertible to T
- * - E must not be equality comparable with T
  */
 template<typename T, typename E>
-    requires std::is_scoped_enum_v<E> && (!std::convertible_to<E, T>)
-             && (!std::equality_comparable_with<T, E>)
 class Result {
   public:
     std::optional<E> error;
@@ -132,19 +124,64 @@ class Result {
     }
 
     /**
-     * @brief Whether a specific error is contained
+     * @brief Get the error
      *
-     * @param error the error to check
-     *
-     * @return true error is contained
-     * @return false error is not contained
+     * @tparam Self
+     * @param self
+     * @return constexpr auto
      */
-    constexpr bool contains(E error) {
-        return this->error == error;
+    template<typename Self>
+    constexpr auto get_error(this Self&& self) {
+        return std::forward<Self>(self).error;
     }
 
     // prevent ambiguous operator overload resolution
     bool operator==(const Result& other) = delete;
+};
+
+/**
+ * @brief void specialization of Result
+ *
+ * @tparam E "error" type
+ */
+template<typename E>
+class Result<void, E> {
+    std::optional<E> error;
+
+    /**
+     * @brief default constructor
+     */
+    constexpr Result() = default;
+
+    /**
+     * @brief Construct with an "error" value, and the default "normal" value
+     *
+     * @param error argument to initialize the "error" value with
+     */
+    constexpr Result(E error)
+        : error(error) {}
+
+    /**
+     * @brief Whether an error is contained
+     *
+     * @return true an error is contained
+     * @return false an error is not contained
+     */
+    constexpr bool has_error() {
+        return error.has_value();
+    }
+
+    /**
+     * @brief Get the error
+     *
+     * @tparam Self
+     * @param self
+     * @return constexpr auto
+     */
+    template<typename Self>
+    constexpr auto get_error(this Self&& self) {
+        return std::forward<Self>(self).error;
+    }
 };
 
 } // namespace zest
