@@ -48,7 +48,7 @@ class Result {
      * - T must be constructible with perfectly forwarded value argument
      */
     template<typename U>
-        // TODO: figure out correct noexcept specifier
+        noexcept(std::nothrow_constructible_from_v<T, U&&>)
         requires std::constructible_from<T, U&&>
     constexpr Result(U&& value)
         : value(std::forward<U>(value)) {}
@@ -78,7 +78,7 @@ class Result {
      * - T must be constructible with perfectly forwarded value argument
      */
     template<typename U>
-        // TODO: figure out correct noexcept specifier
+        noexcept(std::nothrow_constructible_from_v<T, U&&>)
         requires std::constructible_from<T, U&&>
     constexpr Result(E error, U&& value)
         : error(error),
@@ -121,8 +121,7 @@ class Result {
      * @return "normal" value
      */
     template<typename Self>
-    // TODO: figure out correct noexcept specifier
-    constexpr auto get_value(this Self&& self) {
+    constexpr auto get_value(this Self&& self) noexcept(noexcept(std::forward<Self>(self).value)) {
         return std::forward<Self>(self).value;
     }
 
