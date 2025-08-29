@@ -33,6 +33,7 @@ class Result {
      * - T must have a default constructor
      */
     constexpr Result()
+        noexcept(std::is_nothrow_default_constructible_v<T>)
         requires std::default_initializable<T>
     = default;
 
@@ -47,6 +48,7 @@ class Result {
      * - T must be constructible with perfectly forwarded value argument
      */
     template<typename U>
+        noexcept(std::nothrow_constructible_from_v<T, U&&>)
         requires std::constructible_from<T, U&&>
     constexpr Result(U&& value)
         : value(std::forward<U>(value)) {}
@@ -60,6 +62,7 @@ class Result {
      * - T must be default initializable
      */
     constexpr Result(E error)
+        noexcept(std::is_nothrow_default_constructible_v<T>)
         requires std::default_initializable<T>
         : error(error) {}
 
@@ -75,6 +78,7 @@ class Result {
      * - T must be constructible with perfectly forwarded value argument
      */
     template<typename U>
+        noexcept(std::nothrow_constructible_from_v<T, U&&>)
         requires std::constructible_from<T, U&&>
     constexpr Result(E error, U&& value)
         : error(error),
@@ -85,7 +89,7 @@ class Result {
      *
      * @return T&
      */
-    constexpr operator T&() & {
+    constexpr operator T&() & noexcept {
         return value;
     }
 
@@ -94,7 +98,7 @@ class Result {
      *
      * @return const T&
      */
-    constexpr operator const T&() const& {
+    constexpr operator const T&() const& noexcept {
         return value;
     }
 
@@ -103,7 +107,7 @@ class Result {
      *
      * @return T&&
      */
-    constexpr operator T&&() && {
+    constexpr operator T&&() && noexcept {
         return std::move(value);
     }
 
@@ -117,7 +121,7 @@ class Result {
      * @return "normal" value
      */
     template<typename Self>
-    constexpr auto get_value(this Self&& self) {
+    constexpr auto get_value(this Self&& self) noexcept(noexcept(std::forward<Self>(self).value)) {
         return std::forward<Self>(self).value;
     }
 
@@ -127,7 +131,7 @@ class Result {
      * @return true an error is contained
      * @return false an error is not contained
      */
-    constexpr bool has_error() {
+    constexpr bool has_error() const noexcept {
         return error.has_value();
     }
 
@@ -139,7 +143,7 @@ class Result {
      * @return true error is contained
      * @return false error is not contained
      */
-    constexpr bool contains(E error) {
+    constexpr bool contains(E error) const noexcept(noexcept(std::declval<E>() == std::declval<E>())) {
         return this->error == error;
     }
 
