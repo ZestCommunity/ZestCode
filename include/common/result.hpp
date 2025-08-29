@@ -453,14 +453,14 @@ class Result<void, E> {
      */
     template<typename F, typename Self>
     constexpr auto transform_error(this Self&& self, F&& f) {
-        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).get_error()))>;
+        using R = std::invoke_result_t<F&&, decltype((std::forward<Self>(self).get_error()))>;
 
         if (self.has_error()) {
-            return Result<T, R>(
+            return Result<void, R>(
                 std::invoke(std::forward<F>(f), std::forward<Self>(self).get_error().get_value())
             );
         }
-        return Result<T, R>(std::forward<Self>(self).get_value());
+        return Result<void, R>(std::forward<Self>(self).get_value());
     }
 
     /**
