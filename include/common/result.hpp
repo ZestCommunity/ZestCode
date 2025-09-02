@@ -16,12 +16,13 @@ namespace zest {
 template<typename T, typename E>
     requires(!std::convertible_to<T, E>) && (!std::convertible_to<E, T>)
 class Result {
+  private:
+    std::optional<E> m_error;
+    T m_value;
+
   public:
     using ErrorT = E;
     using ValueT = T;
-
-    std::optional<E> error;
-    T value;
 
     /**
      * @brief default constructor
@@ -46,7 +47,7 @@ class Result {
     template<typename U>
         requires std::constructible_from<T, U&&>
     constexpr Result(U&& value)
-        : value(std::forward<U>(value)) {}
+        : m_value(std::forward<U>(value)) {}
 
     /**
      * @brief Construct with an "error" value, and the default "normal" value
@@ -60,7 +61,7 @@ class Result {
         requires std::constructible_from<E, F&&>
     constexpr Result(F&& error)
         requires std::default_initializable<T>
-        : error(std::forward<F>(error)) {}
+        : m_error(std::forward<F>(error)) {}
 
     /**
      * @brief Construct with an "error" value and "normal" value
@@ -77,8 +78,8 @@ class Result {
     template<typename F, typename U>
         requires std::constructible_from<T, U&&> && std::constructible_from<E, F&&>
     constexpr Result(F&& error, U&& value)
-        : error(std::forward<F>(error)),
-          value(std::forward<U>(value)) {}
+        : m_error(std::forward<F>(error)),
+          m_value(std::forward<U>(value)) {}
 
     /**
      * @brief conversion operator for an l-value reference to the "normal" value type
@@ -86,7 +87,7 @@ class Result {
      * @return T&
      */
     constexpr operator T&() & {
-        return value;
+        return m_value;
     }
 
     /**
@@ -95,7 +96,7 @@ class Result {
      * @return const T&
      */
     constexpr operator const T&() const& {
-        return value;
+        return m_value;
     }
 
     /**
@@ -104,7 +105,7 @@ class Result {
      * @return T&&
      */
     constexpr operator T&&() && {
-        return std::move(value);
+        return std::move(m_value);
     }
 
     /**
@@ -117,8 +118,8 @@ class Result {
      * @return "normal" value
      */
     template<typename Self>
-    constexpr auto get_value(this Self&& self) {
-        return std::forward<Self>(self).value;
+    constexpr auto value(this Self&& self) {
+        return std::forward<Self>(self).m_value;
     }
 
     /**
@@ -128,7 +129,7 @@ class Result {
      * @return false an error is not contained
      */
     constexpr bool has_error() const {
-        return error.has_value();
+        return m_error.has_value();
     }
 
     /**
@@ -141,8 +142,8 @@ class Result {
      * @return std::optional<E>
      */
     template<typename Self>
-    constexpr auto get_error(this Self&& self) {
-        return std::forward<Self>(self).error;
+    constexpr auto error(this Self&& self) {
+        return std::forward<Self>(self).m_error;
     }
 
     /**
@@ -166,16 +167,16 @@ class Result {
      */
     template<typename F, typename Self>
     constexpr auto and_then(this Self&& self, F&& f) {
-        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).get_value()))>;
+        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).value()))>;
         static_assert(
             std::default_initializable<R>,
             "callable return type must be default-constructible"
         );
 
         if (self.has_error()) {
-            return R(std::forward<Self>(self).error.get_value());
+            return R(std::forward<Self>(self).error().value());
         }
-        return std::invoke(std::forward<F>(f), std::forward<Self>(self).value);
+        return std::invoke(std::forward<F>(f), std::forward<Self>(self).value());
     }
 
     /**
@@ -197,7 +198,7 @@ class Result {
     template<typename F, typename Self>
     constexpr auto or_else(this Self&& self, F&& f) {
         if (self.has_error()) {
-            return std::invoke(std::forward<F>(f), std::forward<Self>(self).error.get_value());
+            return std::invoke(std::forward<F>(f), std::forward<Self>(self).error().value());
         }
         return std::forward<Self>(self);
     }
@@ -223,12 +224,12 @@ class Result {
      */
     template<typename F, typename Self>
     constexpr auto transform(this Self&& self, F&& f) {
-        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).get_value()))>;
+        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).value()))>;
 
         if (self.has_error()) {
-            return Result<R, E>(std::forward<Self>(self).error.get_value());
+            return Result<R, E>(std::forward<Self>(self).error.value());
         }
-        return Result<R, E>(std::invoke(std::forward<F>(f), std::forward<Self>(self).value));
+        return Result<R, E>(std::invoke(std::forward<F>(f), std::forward<Self>(self).value()));
     }
 
     /**
@@ -249,14 +250,14 @@ class Result {
      */
     template<typename F, typename Self>
     constexpr auto transform_error(this Self&& self, F&& f) {
-        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).get_error()))>;
+        using R = std::invoke_result_t<F, decltype((std::forward<Self>(self).error().value()))>;
 
-        if (self.has_error()) {
+        if (self.error()) {
             return Result<T, R>(
-                std::invoke(std::forward<F>(f), std::forward<Self>(self).get_error().get_value())
+                std::invoke(std::forward<F>(f), std::forward<Self>(self).error().value())
             );
         }
-        return Result<T, R>(std::forward<Self>(self).get_value());
+        return Result<T, R>(std::forward<Self>(self).value());
     }
 
     /**
@@ -276,7 +277,7 @@ class Result {
         if (self.has_error()) {
             return std::forward<U>(other_value);
         }
-        return std::forward<Self>(self).get_value();
+        return std::forward<Self>(self).value();
     }
 
     /**
@@ -294,7 +295,7 @@ class Result {
         requires std::convertible_to<F&&, E>
     constexpr E error_or(this Self&& self, F&& other_error) {
         if (self.has_error()) {
-            return std::forward<Self>(self).error.get_value();
+            return std::forward<Self>(self).error().value();
         }
         return std::forward<F>(other_error);
     }
@@ -307,8 +308,12 @@ class Result {
  */
 template<typename E>
 class Result<void, E> {
+  private:
+    std::optional<E> m_error;
+
   public:
-    std::optional<E> error;
+    using ErrorT = E;
+    using ValueT = void;
 
     /**
      * @brief default constructor
@@ -326,7 +331,7 @@ class Result<void, E> {
     template<typename F>
         requires std::constructible_from<E, F&&>
     constexpr Result(F&& error)
-        : error(error) {}
+        : m_error(error) {}
 
     /**
      * @brief Whether an error is contained
@@ -335,7 +340,7 @@ class Result<void, E> {
      * @return false an error is not contained
      */
     constexpr bool has_error() const {
-        return error.has_value();
+        return m_error.has_value();
     }
 
     /**
@@ -348,8 +353,8 @@ class Result<void, E> {
      * @return std::optional<E>
      */
     template<typename Self>
-    constexpr auto get_error(this Self&& self) {
-        return std::forward<Self>(self).error;
+    constexpr auto error(this Self&& self) {
+        return std::forward<Self>(self).m_error;
     }
 
     /**
@@ -370,13 +375,12 @@ class Result<void, E> {
      * - callable must return a Result instance with the same error value type
      *
      * TODO: add support for non-default-constructible types
-     * TODO: check void specialization has valid documentation
      */
     template<std::invocable F, typename Self>
     constexpr auto and_then(this Self&& self, F&& f) {
         using R = std::invoke_result_t<F>;
         if (self.has_error()) {
-            return R(std::forward<Self>(self).error.value());
+            return R(std::forward<Self>(self).error().value());
         }
         return std::invoke(std::forward<F>(f));
     }
@@ -402,9 +406,9 @@ class Result<void, E> {
     template<typename F, typename Self>
     constexpr auto or_else(this Self&& self, F&& f) {
         if (self.has_error()) {
-            return std::invoke(std::forward<F>(f), std::forward<Self>(self).error.value());
+            return std::invoke(std::forward<F>(f), std::forward<Self>(self).error().value());
         }
-        return std::forward<Self>(self).get_value();
+        return std::forward<Self>(self).value();
     }
 
     /**
@@ -430,7 +434,7 @@ class Result<void, E> {
     constexpr auto transform(this Self&& self, F&& f) {
         using R = std::invoke_result_t<F>;
         if (self.has_error()) {
-            return R(std::forward<Self>(self).error.value());
+            return R(std::forward<Self>(self).error().value());
         }
         return R{std::invoke(std::forward<F>(f))};
     }
@@ -453,14 +457,14 @@ class Result<void, E> {
      */
     template<typename F, typename Self>
     constexpr auto transform_error(this Self&& self, F&& f) {
-        using R = std::invoke_result_t<F&&, decltype((std::forward<Self>(self).get_error()))>;
+        using R = std::invoke_result_t<F&&, decltype((std::forward<Self>(self).error()))>;
 
         if (self.has_error()) {
             return Result<void, R>(
-                std::invoke(std::forward<F>(f), std::forward<Self>(self).get_error().get_value())
+                std::invoke(std::forward<F>(f), std::forward<Self>(self).error().value())
             );
         }
-        return Result<void, R>(std::forward<Self>(self).get_value());
+        return Result<void, R>(std::forward<Self>(self).value());
     }
 
     /**
@@ -478,7 +482,7 @@ class Result<void, E> {
         requires std::convertible_to<F&&, E>
     constexpr E error_or(this Self&& self, F&& other_error) {
         if (self.has_error()) {
-            return std::forward<Self>(self).error.get_value();
+            return std::forward<Self>(self).error().value();
         }
         return std::forward<F>(other_error);
     }
