@@ -308,6 +308,7 @@ class Result {
  */
 template<typename E>
 class Result<void, E> {
+  public:
     std::optional<E> error;
 
     /**
@@ -483,5 +484,4 @@ class Result<void, E> {
         return std::forward<F>(other_error);
     }
 };
-
 } // namespace zest

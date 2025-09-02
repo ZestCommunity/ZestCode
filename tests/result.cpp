@@ -6,9 +6,9 @@
 // there'll be a lot of unused variables, since we just want to see if it compiles
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-class MyError : public zest::ResultError {};
+class MyError {};
 
-class MyError2 : public zest::ResultError {};
+class MyError2 {};
 
 zest::Result<void, MyError> test_function_1() {
     // return nothing
