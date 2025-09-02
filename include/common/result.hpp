@@ -14,6 +14,7 @@ namespace zest {
  * @tparam E "error" type
  */
 template<typename T, typename E>
+    requires(!std::convertible_to<T, E>) && (!std::convertible_to<E, T>)
 class Result {
   public:
     using ErrorT = E;
@@ -56,6 +57,7 @@ class Result {
      * - T must be default initializable
      */
     template<typename F>
+        requires std::constructible_from<E, F&&>
     constexpr Result(F&& error)
         requires std::default_initializable<T>
         : error(std::forward<F>(error)) {}
