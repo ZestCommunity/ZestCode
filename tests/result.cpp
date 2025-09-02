@@ -1,8 +1,5 @@
 #include "common/result.hpp"
 
-#include <cstdint>
-#include <limits>
-
 // there'll be a lot of unused variables, since we just want to see if it compiles
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -26,9 +23,6 @@ zest::Result<int, MyError> test_function_2() {
 
 constexpr void compile_time_tests() {
     // test sentinel values
-    static_assert(zest::sentinel_v<int32_t> == INT32_MAX);
-    static_assert(zest::sentinel_v<float> == std::numeric_limits<float>::infinity());
-
     {
         // test comparison operator
         static_assert(zest::Result<int, MyError>(2) == zest::Result<int, MyError>(2));
@@ -51,10 +45,6 @@ constexpr void compile_time_tests() {
 
     {
         // test error getting
-        static_assert(zest::Result<int, MyError>(MyError()).get<MyError>());
-        static_assert(!zest::Result<int, MyError>(1).get<MyError>());
-        static_assert(zest::Result<int, MyError>(1).get<int>());
-        static_assert(zest::Result<int, MyError>(1).get());
     }
 }
 

@@ -298,9 +298,6 @@ class Result {
         }
         return std::forward<F>(other_error);
     }
-
-    // prevent ambiguous operator overload resolution
-    bool operator==(const Result& other) = delete;
 };
 
 /**
